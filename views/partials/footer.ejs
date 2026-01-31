@@ -1,0 +1,46 @@
+<script>
+    // Sidebar & UI Logic
+    let isSidebarCollapsed = false;
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        if (!sidebar || !mainContent) return;
+        isSidebarCollapsed = !isSidebarCollapsed;
+
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('sidebar-collapsed');
+            mainContent.classList.add('main-content-expanded');
+        } else {
+            sidebar.classList.remove('sidebar-collapsed');
+            mainContent.classList.remove('main-content-expanded');
+        }
+    }
+
+    function confirmLogout() {
+        Swal.fire({
+            title: 'ยืนยันการออกจากระบบ?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-3xl' }
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = '/logout';
+        });
+    }
+
+    function showNotifications() {
+        Swal.fire({
+            title: 'การแจ้งเตือน',
+            text: 'ยังไม่มีการแจ้งเตือนใหม่',
+            icon: 'info',
+            confirmButtonColor: '#10b981',
+            customClass: { popup: 'rounded-3xl' }
+        });
+    }
+</script>
+</body>
+
+</html>

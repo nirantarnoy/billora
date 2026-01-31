@@ -1,0 +1,361 @@
+<%- include('partials/header') %>
+
+    <div class="flex">
+        <%- include('partials/sidebar', { active: 'channels' }) %>
+
+            <!-- Main Content Wrapper -->
+            <main id="mainContent" class="main-content flex-1 p-0 min-h-screen">
+                <!-- Top Navigation Bar -->
+                <%- include('partials/topbar', { title: 'จัดการช่องทางขายออนไลน์' }) %>
+
+                    <div class="p-10">
+                        <!-- Header -->
+                        <header class="flex justify-between items-center mb-10">
+                            <div>
+                                <h2 class="text-3xl font-bold text-slate-800">เชื่อมต่อ Online Channels</h2>
+                                <p class="text-slate-500 text-sm">
+                                    เชื่อมต่อร้านค้าออนไลน์ของคุณเพื่อซิงค์ข้อมูลสลิปและใบเสร็จอัตโนมัติ</p>
+                            </div>
+                        </header>
+
+                        <!-- SaaS Banner -->
+                        <div
+                            class="mb-10 p-6 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-3xl text-white shadow-xl shadow-emerald-600/20 relative overflow-hidden">
+                            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                        <i class="fas fa-rocket text-3xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold">ยกระดับธุรกิจของคุณด้วย SaaS Solution</h3>
+                                        <p class="text-emerald-50 opacity-90">จัดการหลายร้านค้าในที่เดียว พร้อมระบบ AI
+                                            ช่วยตรวจสอบความถูกต้อง</p>
+                                    </div>
+                                </div>
+                                <button
+                                    class="bg-white text-emerald-600 px-8 py-3 rounded-xl font-bold hover:bg-emerald-50 transition-all">
+                                    อัปเกรดเป็น PRO
+                                </button>
+                            </div>
+                            <!-- Abstract patterns -->
+                            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl">
+                            </div>
+                            <div class="absolute -left-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                        </div>
+
+                        <!-- Platform Integration Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <!-- Shopee -->
+                            <div
+                                class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div
+                                        class="w-16 h-16 bg-[#ff4a00]/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg"
+                                            class="w-10 h-10" alt="Shopee">
+                                    </div>
+                                    <% const shopee=channels.find(c=> c.platform === 'shopee'); %>
+                                        <span
+                                            class="px-3 py-1 <%= shopee ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400' %> text-[10px] rounded-full uppercase font-bold tracking-wider">
+                                            <%= shopee ? 'Connected' : 'Disconnected' %>
+                                        </span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">Shopee</h3>
+                                <p class="text-sm text-slate-500 mb-8 flex-1">
+                                    เชื่อมต่อเพื่อดึงข้อมูลคำสั่งซื้อและตรวจสอบสถานะการชำระเงินจาก Shopee Seller Center
+                                </p>
+
+                                <% if (shopee) { %>
+                                    <div class="p-4 bg-slate-50 rounded-2xl mb-6">
+                                        <p class="text-xs text-slate-400 mb-1">ร้านค้าที่เชื่อมต่อ</p>
+                                        <div class="flex justify-between items-center">
+                                            <p class="text-sm font-bold text-slate-700">
+                                                <%= shopee.shop_name %>
+                                            </p>
+                                            <button onclick="updateBookCode(this)" data-id="<%= shopee.id %>"
+                                                data-current="<%= shopee.express_book_code || '' %>"
+                                                class="text-xs text-emerald-600 font-semibold hover:underline">
+                                                <i class="fas fa-edit"></i> Express: <%= shopee.express_book_code
+                                                    || 'N/A' %>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button onclick="disconnect('shopee')"
+                                        class="w-full py-3.5 border border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2">
+                                        <i class="fas fa-unlink"></i> ยกเลิกการเชื่อมต่อ
+                                    </button>
+                                    <% } else { %>
+                                        <button onclick="connect('shopee')"
+                                            class="w-full py-3.5 bg-[#ff4a00] text-white rounded-xl font-bold text-sm hover:bg-[#e64300] transition-all shadow-lg shadow-[#ff4a00]/20 flex items-center justify-center gap-2">
+                                            <i class="fas fa-plug"></i> เริ่มการเชื่อมต่อ
+                                        </button>
+                                        <% } %>
+                            </div>
+
+                            <!-- TikTok Shop -->
+                            <div
+                                class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div
+                                        class="w-16 h-16 bg-black/5 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <i class="fab fa-tiktok text-3xl"></i>
+                                    </div>
+                                    <% const tiktok=channels.find(c=> c.platform === 'tiktok'); %>
+                                        <span
+                                            class="px-3 py-1 <%= tiktok ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400' %> text-[10px] rounded-full uppercase font-bold tracking-wider">
+                                            <%= tiktok ? 'Connected' : 'Disconnected' %>
+                                        </span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">TikTok Shop</h3>
+                                <p class="text-sm text-slate-500 mb-8 flex-1">เพิ่มประสิทธิภาพการจัดการร้านค้า TikTok
+                                    บันทึกรายได้และจัดหมวดหมู่ภาษีอัตโนมัติ</p>
+
+                                <% if (tiktok) { %>
+                                    <div class="p-4 bg-slate-50 rounded-2xl mb-6">
+                                        <p class="text-xs text-slate-400 mb-1">ร้านค้าที่เชื่อมต่อ</p>
+                                        <div class="flex justify-between items-center">
+                                            <p class="text-sm font-bold text-slate-700">
+                                                <%= tiktok.shop_name %>
+                                            </p>
+                                            <button onclick="updateBookCode(this)" data-id="<%= tiktok.id %>"
+                                                data-current="<%= tiktok.express_book_code || '' %>"
+                                                class="text-xs text-emerald-600 font-semibold hover:underline">
+                                                <i class="fas fa-edit"></i> Express: <%= tiktok.express_book_code
+                                                    || 'N/A' %>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button onclick="disconnect('tiktok')"
+                                        class="w-full py-3.5 border border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2">
+                                        <i class="fas fa-unlink"></i> ยกเลิกการเชื่อมต่อ
+                                    </button>
+                                    <% } else { %>
+                                        <button onclick="connect('tiktok')"
+                                            class="w-full py-3.5 bg-black text-white rounded-xl font-bold text-sm hover:bg-slate-900 transition-all shadow-lg shadow-black/20 flex items-center justify-center gap-2">
+                                            <i class="fas fa-plug"></i>เริ่มการเชื่อมต่อ
+                                        </button>
+                                        <% } %>
+                            </div>
+
+                            <!-- Lazada -->
+                            <div
+                                class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div
+                                        class="w-16 h-16 bg-[#000080]/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Lazada_Logo-2019.svg"
+                                            class="w-10 h-10" alt="Lazada">
+                                    </div>
+                                    <% const lazada=channels.find(c=> c.platform === 'lazada'); %>
+                                        <span
+                                            class="px-3 py-1 <%= lazada ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400' %> text-[10px] rounded-full uppercase font-bold tracking-wider">
+                                            <%= lazada ? 'Connected' : 'Disconnected' %>
+                                        </span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-800 mb-2">Lazada</h3>
+                                <p class="text-sm text-slate-500 mb-8 flex-1">ซิงค์รายการสั่งซื้อและยอดชำระเงินจาก
+                                    Lazada Seller Center เข้าสู่ระบบบัญชี Billora ของคุณ</p>
+
+                                <% if (lazada) { %>
+                                    <div class="p-4 bg-slate-50 rounded-2xl mb-6">
+                                        <p class="text-xs text-slate-400 mb-1">ร้านค้าที่เชื่อมต่อ</p>
+                                        <div class="flex justify-between items-center">
+                                            <p class="text-sm font-bold text-slate-700">
+                                                <%= lazada.shop_name %>
+                                            </p>
+                                            <button onclick="updateBookCode(this)" data-id="<%= lazada.id %>"
+                                                data-current="<%= lazada.express_book_code || '' %>"
+                                                class="text-xs text-emerald-600 font-semibold hover:underline">
+                                                <i class="fas fa-edit"></i> Express: <%= lazada.express_book_code
+                                                    || 'N/A' %>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button onclick="disconnect('lazada')"
+                                        class="w-full py-3.5 border border-red-100 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 transition-all flex items-center justify-center gap-2">
+                                        <i class="fas fa-unlink"></i> ยกเลิกการเชื่อมต่อ
+                                    </button>
+                                    <% } else { %>
+                                        <button onclick="connect('lazada')"
+                                            class="w-full py-3.5 bg-[#000080] text-white rounded-xl font-bold text-sm hover:bg-[#000066] transition-all shadow-lg shadow-[#000080]/20 flex items-center justify-center gap-2">
+                                            <i class="fas fa-plug"></i>เริ่มการเชื่อมต่อ
+                                        </button>
+                                        <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Sync History -->
+                        <div class="mt-12 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <div
+                                class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-800">ประวัติการซิงค์ข้อมูล</h3>
+                                    <p class="text-slate-500 text-sm">ติดตามความเคลื่อนไหวล่าสุดจากทุกช่องทางการขาย</p>
+                                </div>
+                                <button
+                                    class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2">
+                                    <i class="fas fa-sync-alt"></i> ซิงค์ข้อมูลทั้งหมดตอนนี้
+                                </button>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr
+                                            class="text-left text-slate-400 text-xs uppercase tracking-widest border-b border-slate-50">
+                                            <th class="pb-6 font-semibold">ช่องทาง</th>
+                                            <th class="pb-6 font-semibold">รายการที่พบ</th>
+                                            <th class="pb-6 font-semibold">สถานะ</th>
+                                            <th class="pb-6 font-semibold">เวลาล่าสุด</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <!-- Placeholder for sync history -->
+                                        <% if (channels.length===0) { %>
+                                            <tr>
+                                                <td colspan="4" class="py-20 text-center text-slate-400">
+                                                    ยังไม่มีข้อมูลการซิงค์ กรุณาเชื่อมต่อร้านค้าออนไลน์ของคุณ
+                                                </td>
+                                            </tr>
+                                            <% } else { %>
+                                                <% channels.forEach(channel=> { %>
+                                                    <tr class="hover:bg-slate-50/50 transition-all group">
+                                                        <td class="py-6">
+                                                            <div class="flex items-center gap-4">
+                                                                <div
+                                                                    class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                    <% if(channel.platform==='shopee' ) { %> <img
+                                                                            src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Shopee.svg"
+                                                                            class="w-6 h-6">
+                                                                        <% } %>
+                                                                            <% if(channel.platform==='tiktok' ) { %> <i
+                                                                                    class="fab fa-tiktok text-black"></i>
+                                                                                <% } %>
+                                                                                    <% if(channel.platform==='lazada' )
+                                                                                        { %> <img
+                                                                                            src="https://upload.wikimedia.org/wikipedia/commons/0/05/Lazada_Logo-2019.svg"
+                                                                                            class="w-6 h-6">
+                                                                                        <% } %>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="font-bold text-slate-700 capitalize">
+                                                                        <%= channel.platform %>
+                                                                    </p>
+                                                                    <p class="text-xs text-slate-400">
+                                                                        <%= channel.shop_name %>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-6">
+                                                            <span class="text-sm font-bold text-slate-800">12
+                                                                รายการ</span>
+                                                        </td>
+                                                        <td class="py-6">
+                                                            <div class="flex items-center gap-2">
+                                                                <div
+                                                                    class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse">
+                                                                </div>
+                                                                <span
+                                                                    class="text-xs font-bold text-emerald-600">สำเร็จ</span>
+                                                            </div>
+                                                        </td>
+                                                        <td class="py-6">
+                                                            <p class="text-sm text-slate-500">
+                                                                <%= new Date(channel.updated_at).toLocaleString('th-TH')
+                                                                    %>
+                                                            </p>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+            </main>
+    </div>
+
+    <script>
+        // Check for success messages in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const successPlat = urlParams.get('success');
+        if (successPlat) {
+            Swal.fire({
+                title: 'เชื่อมต่อสำเร็จ!',
+                text: `ระบบได้ทำการเชื่อมต่อกับร้านค้า ${successPlat} เรียบร้อยแล้ว`,
+                icon: 'success',
+                confirmButtonColor: '#10b981',
+                customClass: { popup: 'rounded-[2rem]' }
+            }).then(() => {
+                // Remove the query param without refreshing
+                const newRelativePathQuery = window.location.pathname;
+                history.pushState(null, '', newRelativePathQuery);
+            });
+        }
+
+        async function connect(platform) {
+            Swal.fire({
+                title: 'กำลังเชื่อมต่อ...',
+                html: `ระบบกำลังพาคุณไปหน้า Login ของ ${platform}`,
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: () => Swal.showLoading()
+            }).then(() => {
+                window.location.href = `/auth/${platform}`;
+            });
+        }
+
+        async function disconnect(platform) {
+            const result = await Swal.fire({
+                title: 'ยืนยันการยกเลิก?',
+                text: `ต้องการยกเลิกการเชื่อมต่อกับ ${platform} ใช่หรือไม่?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ยืนยัน ยกเลิกเลย',
+                cancelButtonText: 'กลับ',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+
+            if (result.isConfirmed) {
+                const response = await fetch(`/api/channels?platform=${platform}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (data.success) {
+                    location.reload();
+                }
+            }
+        }
+
+        async function updateBookCode(btn) {
+            const id = btn.getAttribute('data-id');
+            const current = btn.getAttribute('data-current');
+            const { value: code } = await Swal.fire({
+                title: 'ตั้งรหัสสมุดเงินฝาก (Express)',
+                input: 'text',
+                inputLabel: 'ระบุรหัสเดียวกับในโปรแกรม Express',
+                inputValue: current,
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    if (!value) return 'กรุณาระบุรหัส'
+                },
+                confirmButtonColor: '#10b981',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+
+            if (code) {
+                const res = await fetch(`/api/channels/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ express_book_code: code })
+                });
+                if (res.ok) {
+                    Swal.fire({ title: 'บันทึกสำเร็จ!', icon: 'success', confirmButtonColor: '#10b981', customClass: { popup: 'rounded-[2rem]' } }).then(() => location.reload());
+                }
+            }
+        }
+    </script>
+
+    <%- include('partials/footer') %>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประวัติการสแกน | Billora Pro</title>
+    <script src="/js/tailwind.min.js"></script>
+    <link href="/css/all.min.css" rel="stylesheet">
+    <script src="/js/sweetalert2.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Anuphan', sans-serif;
+            background: #f8fafc;
+        }
+
+        .sidebar {
+            transition: all 0.3s;
+        }
+
+        .sidebar-collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content {
+            transition: all 0.3s;
+            margin-left: 288px;
+        }
+
+        .main-content-expanded {
+            margin-left: 0;
+        }
+
+        .sidebar-active {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <div class="flex">
+        <%- include('partials/sidebar', { active: 'history' , user: user }) %>
+
+            <main id="mainContent" class="main-content flex-1 p-0 min-h-screen transition-all">
+                <%- include('partials/topbar', { user: user, title: 'ประวัติการสแกน' }) %>
+
+                    <div class="p-10">
+                        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                            <div>
+                                <h2 class="text-3xl font-bold text-slate-800">ประวัติการสแกน OCR</h2>
+                                <p class="text-slate-500">ตรวจสอบประวัติการทำรายการย้อนหลังจากทุกช่องทาง</p>
+                            </div>
+
+                            <form action="/history" method="GET"
+                                class="flex flex-wrap items-end gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                                <div class="space-y-1">
+                                    <label
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">วันที่เริ่มต้น</label>
+                                    <input type="date" name="startDate" value="<%= filters.startDate || '' %>"
+                                        class="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                                </div>
+                                <div class="space-y-1">
+                                    <label
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">วันที่สิ้นสุด</label>
+                                    <input type="date" name="endDate" value="<%= filters.endDate || '' %>"
+                                        class="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                                </div>
+                                <div class="space-y-1">
+                                    <label
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">แสดงต่อหน้า</label>
+                                    <select name="limit"
+                                        class="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                                        <option value="10" <%=pagination.limit==10 ? 'selected' : '' %>>10 แถว</option>
+                                        <option value="20" <%=pagination.limit==20 ? 'selected' : '' %>>20 แถว</option>
+                                        <option value="50" <%=pagination.limit==50 ? 'selected' : '' %>>50 แถว</option>
+                                        <option value="100" <%=pagination.limit==100 ? 'selected' : '' %>>100 แถว
+                                        </option>
+                                    </select>
+                                </div>
+                                <button type="submit"
+                                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                                    <i class="fas fa-filter"></i> กรองข้อมูล
+                                </button>
+                                <% if (filters.startDate || filters.endDate) { %>
+                                    <a href="/history"
+                                        class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2">
+                                        <i class="fas fa-times"></i> ล้าง
+                                    </a>
+                                    <% } %>
+                            </form>
+                        </div>
+
+                        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-100 italic text-slate-500 text-sm">
+                                            <th class="px-6 py-4 font-semibold uppercase">วัน-เวลา</th>
+                                            <th class="px-6 py-4 font-semibold uppercase">ช่องทาง</th>
+                                            <th class="px-6 py-4 font-semibold uppercase">ประเภท</th>
+                                            <th class="px-6 py-4 font-semibold uppercase">เลขที่รายการ</th>
+                                            <th class="px-6 py-4 font-semibold uppercase text-right">จำนวนเงิน</th>
+                                            <th class="px-6 py-4 font-semibold uppercase text-center">สถานะ</th>
+                                            <th class="px-6 py-4 font-semibold uppercase text-center">รูปภาพ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <% if (logs.length===0) { %>
+                                            <tr>
+                                                <td colspan="7" class="px-6 py-10 text-center text-slate-400">
+                                                    <i class="fas fa-history text-4xl mb-3 block"></i>
+                                                    ไม่พบประวัติการทำรายการ
+                                                </td>
+                                            </tr>
+                                            <% } %>
+                                                <% logs.forEach(log=> { %>
+                                                    <tr class="hover:bg-slate-50 transition-colors">
+                                                        <td class="px-6 py-4">
+                                                            <p class="text-sm font-semibold text-slate-700">
+                                                                <%= new Date(log.created_at).toLocaleDateString('th-TH')
+                                                                    %>
+                                                            </p>
+                                                            <p class="text-[10px] text-slate-400">
+                                                                <%= new Date(log.created_at).toLocaleTimeString('th-TH')
+                                                                    %> โดย <%= log.username %>
+                                                            </p>
+                                                        </td>
+                                                        <td class="px-6 py-4">
+                                                            <% if (log.source==='LINE' ) { %>
+                                                                <span
+                                                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-50 text-green-600 text-xs font-bold border border-green-100">
+                                                                    <i class="fab fa-line"></i> LINE OA
+                                                                </span>
+                                                                <% } else if (log.source==='MOBILE' ) { %>
+                                                                    <span
+                                                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold border border-blue-100">
+                                                                        <i class="fas fa-mobile-alt"></i> APP
+                                                                    </span>
+                                                                    <% } else { %>
+                                                                        <span
+                                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-bold border border-slate-200">
+                                                                            <i class="fas fa-desktop"></i> WEB
+                                                                        </span>
+                                                                        <% } %>
+                                                        </td>
+                                                        <td class="px-6 py-4 text-sm font-medium text-slate-600">
+                                                            <%= log.type==='BANK_SLIP' ? 'สลิปโอนเงิน' : 'ใบเสร็จ' %>
+                                                        </td>
+                                                        <td class="px-6 py-4">
+                                                            <span
+                                                                class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                                                                <%= log.trans_id || '-' %>
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                            ฿<%= Number(log.amount).toLocaleString(undefined, {
+                                                                minimumFractionDigits: 2 }) %>
+                                                        </td>
+                                                        <td class="px-6 py-4 text-center">
+                                                            <% if (log.status==='success' ) { %>
+                                                                <span
+                                                                    class="px-2 py-1 bg-emerald-100 text-emerald-600 text-[10px] rounded-full font-bold uppercase">สำเร็จ</span>
+                                                                <% } else if (log.status==='duplicate' ) { %>
+                                                                    <span
+                                                                        class="px-2 py-1 bg-orange-100 text-orange-600 text-[10px] rounded-full font-bold uppercase">สลิปซ้ำ</span>
+                                                                    <% } else { %>
+                                                                        <span
+                                                                            class="px-2 py-1 bg-red-100 text-red-600 text-[10px] rounded-full font-bold uppercase">ผิดปกติ</span>
+                                                                        <% } %>
+                                                        </td>
+                                                        <td class="px-6 py-4 text-center">
+                                                            <% if (log.image_path) { %>
+                                                                <button
+                                                                    onclick="viewImage('/<%= log.image_path.replace(/\\/g, '/') %>')"
+                                                                    class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all">
+                                                                    <i class="fas fa-image"></i>
+                                                                </button>
+                                                                <% } else { %>
+                                                                    -
+                                                                    <% } %>
+                                                        </td>
+                                                    </tr>
+                                                    <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div
+                                class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <p class="text-sm text-slate-500">
+                                    แสดงรายการที่ <span class="font-bold text-slate-800">
+                                        <%= (pagination.currentPage - 1) * pagination.limit + 1 %>
+                                    </span>
+                                    ถึง <span class="font-bold text-slate-800">
+                                        <%= Math.min(pagination.currentPage * pagination.limit, pagination.totalItems)
+                                            %>
+                                    </span>
+                                    จากทั้งหมด <span class="font-bold text-slate-800 text-base">
+                                        <%= pagination.totalItems %>
+                                    </span> รายการ
+                                </p>
+
+                                <div class="flex items-center gap-1">
+                                    <% if (pagination.currentPage> 1) { %>
+                                        <a href="/history?page=<%= pagination.currentPage - 1 %>&startDate=<%= filters.startDate %>&endDate=<%= filters.endDate %>&limit=<%= pagination.limit %>"
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all">
+                                            <i class="fas fa-chevron-left text-xs"></i>
+                                        </a>
+                                        <% } %>
+
+                                            <% for(let i=1; i <=pagination.totalPages; i++) { %>
+                                                <% if (i===1 || i===pagination.totalPages || (i>= pagination.currentPage
+                                                    - 2 && i <= pagination.currentPage + 2)) { %>
+                                                        <a href="/history?page=<%= i %>&startDate=<%= filters.startDate %>&endDate=<%= filters.endDate %>&limit=<%= pagination.limit %>"
+                                                            class="w-8 h-8 flex items-center justify-center rounded-lg border <%= pagination.currentPage === i ? 'bg-emerald-600 border-emerald-600 text-white font-bold' : 'border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-600' %> transition-all text-sm">
+                                                            <%= i %>
+                                                        </a>
+                                                        <% } else if (i===pagination.currentPage - 3 ||
+                                                            i===pagination.currentPage + 3) { %>
+                                                            <span class="px-1 text-slate-400">...</span>
+                                                            <% } %>
+                                                                <% } %>
+
+                                                                    <% if (pagination.currentPage <
+                                                                        pagination.totalPages) { %>
+                                                                        <a href="/history?page=<%= pagination.currentPage + 1 %>&startDate=<%= filters.startDate %>&endDate=<%= filters.endDate %>&limit=<%= pagination.limit %>"
+                                                                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all">
+                                                                            <i class="fas fa-chevron-right text-xs"></i>
+                                                                        </a>
+                                                                        <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('sidebar-collapsed');
+            mainContent.classList.toggle('main-content-expanded');
+        }
+
+        function viewImage(url) {
+            Swal.fire({
+                imageUrl: url,
+                imageAlt: 'OCR Image',
+                showCloseButton: true,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'rounded-3xl p-2 overflow-hidden',
+                    image: 'rounded-2xl max-h-[80vh] object-contain'
+                }
+            });
+        }
+
+        function confirmLogout() {
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ?',
+                text: "คุณต้องการออกจากเซสชันปัจจุบันหรือไม่?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#f43f5e',
+                confirmButtonText: 'ใช่, ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก',
+                customClass: { popup: 'rounded-3xl' }
+            }).then((result) => {
+                if (result.isConfirmed) window.location.href = '/logout';
+            })
+        }
+    </script>
+</body>
+
+</html>

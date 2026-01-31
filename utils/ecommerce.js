@@ -1,0 +1,83 @@
+const crypto = require('crypto');
+const axios = require('axios');
+
+class EcommerceAPI {
+    // --- Shopee ---
+    static getShopeeAuthUrl() {
+        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
+        const partnerKey = process.env.SHOPEE_PARTNER_KEY;
+        const redirectUrl = process.env.SHOPEE_REDIRECT_URL;
+        const timestamp = Math.floor(Date.now() / 1000);
+
+        const baseString = `${partnerId}/api/v2/shop/auth_partner${timestamp}`;
+        const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
+
+        return `https://partner.shopeemobile.com/api/v2/shop/auth_partner?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${redirectUrl}`;
+    }
+
+    static async getShopeeTokens(code, shopId) {
+        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
+        const partnerKey = process.env.SHOPEE_PARTNER_KEY;
+        const timestamp = Math.floor(Date.now() / 1000);
+
+        const path = "/api/v2/auth/token/get";
+        const baseString = `${partnerId}${path}${timestamp}`;
+        const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
+
+        const url = `https://partner.shopeemobile.com${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`;
+
+        const response = await axios.post(url, {
+            code: code,
+            partner_id: partnerId,
+            shop_id: parseInt(shopId)
+        });
+
+        return response.data;
+    }
+
+    // --- TikTok ---
+    static getTikTokAuthUrl() {
+        const appKey = process.env.TIKTOK_APP_KEY;
+        const redirectUrl = process.env.TIKTOK_REDIRECT_URL;
+        return `https://services.tiktokshops.com/open/authorize?app_key=${appKey}&state=tiktok&redirect_uri=${redirectUrl}`;
+    }
+
+    static async getTikTokTokens(code) {
+        const appKey = process.env.TIKTOK_APP_KEY;
+        const appSecret = process.env.TIKTOK_APP_SECRET;
+
+        const url = `https://auth.tiktokshops.com/api/v2/token/get?app_key=${appKey}&app_secret=${appSecret}&auth_code=${code}&grant_type=authorized_code`;
+
+        const response = await axios.get(url);
+        return response.data;
+    }
+
+    // --- Lazada ---
+    static getLazadaAuthUrl() {
+        const appKey = process.env.LAZADA_APP_KEY;
+        const redirectUrl = process.env.LAZADA_REDIRECT_URL;
+        return `https://auth.lazada.com/oauth/authorize?response_type=code&force_auth=true&redirect_uri=${redirectUrl}&client_id=${appKey}`;
+    }
+
+    static async getLazadaTokens(code) {
+        const appKey = process.env.LAZADA_APP_KEY;
+        const appSecret = process.env.LAZADA_APP_SECRET;
+        const timestamp = Date.now();
+
+        // Lazada signature logic is a bit more complex, simplified here for the flow
+        // Actual implementation would require sorting parameters and HmacSha256
+        const url = `https://auth.lazada.com/rest/auth/token/create`;
+
+        const response = await axios.get(url, {
+            params: {
+                code,
+                app_key: appKey,
+                timestamp,
+                sign_method: 'sha256'
+            }
+        });
+        return response.data;
+    }
+}
+
+module.exports = EcommerceAPI;
