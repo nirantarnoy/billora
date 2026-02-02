@@ -2,7 +2,18 @@ const vision = require('@google-cloud/vision');
 const { spawn } = require('child_process');
 const path = require('path');
 
-const client = new vision.ImageAnnotatorClient();
+let client = null;
+function getVisionClient() {
+    if (!client) {
+        try {
+            client = new vision.ImageAnnotatorClient();
+        } catch (err) {
+            console.error("Failed to initialize Google Vision client:", err.message);
+            return null;
+        }
+    }
+    return client;
+}
 
 let pyProcess = null;
 let pyReady = false;
@@ -67,7 +78,9 @@ function startPythonProcess() {
 startPythonProcess();
 
 async function readBillText(filePath) {
-    const [result] = await client.textDetection(filePath);
+    const vClient = getVisionClient();
+    if (!vClient) throw new Error("Google Vision client is not initialized (missing vision-key.json)");
+    const [result] = await vClient.textDetection(filePath);
     const detections = result.textAnnotations;
     return detections.length ? detections[0].description : '';
 }

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billora - ระบบจัดการบิลและสลิปอัจฉริยะ</title>
+    <meta name="description" content="จัดการบิลและสลิปธนาคารด้วยเทคโนโลยี OCR อัจฉริยะ แม่นยำ รวดเร็ว และเป็นระเบียบ">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --secondary: #3b82f6;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --bg-light: #f9fafb;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Prompt', sans-serif;
+            color: var(--text-main);
+            line-height: 1.6;
+            background-color: var(--white);
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav-container {
+            width: 100%;
+            padding: 0 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Navbar */
+        nav {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            transition: var(--transition);
+            border-bottom: 1px solid transparent;
+        }
+
+        nav.scrolled {
+            background: var(--white);
+            height: 70px;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-left: 1rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            color: var(--white);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 160px 0 100px;
+            background: radial-gradient(circle at top right, var(--primary-light) 0%, var(--white) 50%);
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 0.5s ease;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+
+        h1 span {
+            color: var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero-mockup {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 8px solid var(--white);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-mockup img {
+            width: 100%;
+            display: block;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.125rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 2.5rem;
+            border-radius: 16px;
+            background-color: var(--bg-light);
+            transition: var(--transition);
+            border: 1px solid #f3f4f6;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            background-color: var(--white);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 100px 0;
+            background-color: var(--bg-light);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .pricing-card {
+            background-color: var(--white);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: var(--transition);
+            border: 1px solid #e5e7eb;
+        }
+
+        .pricing-card.featured {
+            transform: scale(1.05);
+            border: 2px solid var(--primary);
+            z-index: 10;
+        }
+
+        .pricing-card.featured .popular-tag {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 0.25rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .price {
+            margin-bottom: 2rem;
+        }
+
+        .price span.currency {
+            font-size: 1.5rem;
+            font-weight: 600;
+            vertical-align: top;
+            margin-right: 4px;
+        }
+
+        .price span.amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+        }
+
+        .price span.period {
+            color: var(--text-muted);
+        }
+
+        .pricing-features {
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+        }
+
+        .pricing-features i {
+            color: var(--primary);
+        }
+
+        .pricing-card .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .cta-box {
+            background-color: var(--primary);
+            padding: 5rem 2rem;
+            border-radius: 30px;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box p {
+            font-size: 1.25rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-box .btn-white {
+            background-color: var(--white);
+            color: var(--primary);
+        }
+
+        .cta-box .btn-white:hover {
+            background-color: #f3f4f6;
+            transform: translateY(-2px);
+        }
+
+        .cta-box::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        /* Footer */
+        footer {
+            padding: 80px 0 40px;
+            background-color: #111827;
+            color: var(--white);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-about p {
+            margin-top: 1.5rem;
+            color: #9ca3af;
+            max-width: 300px;
+        }
+
+        .footer-column h4 {
+            font-size: 1.125rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: #9ca3af;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            padding-left: 5px;
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            border-top: 1px solid #374151;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background-color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+
+            .hero {
+                padding-top: 120px;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-file-invoice-dollar"></i>
+                Billora
+            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <ul class="nav-links">
+                    <li><a href="#features">คุณสมบัติ</a></li>
+                    <li><a href="#pricing">ราคา</a></li>
+                    <li><a href="#contact">ติดต่อเรา</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="/login" class="btn btn-outline">เข้าสู่ระบบ</a>
+                    <a href="/login?register=true" class="btn btn-primary">เริ่มใช้งานฟรี</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="badge">✨ ใหม่! รองรับการอ่านบิลด้วย AI แม่นยำ 99%</span>
+                <h1>เปลี่ยนบิลกองโต ให้เป็น <span>ข้อมูลอัจฉริยะ</span></h1>
+                <p>ระบบจัดการบิลและใบเสร็จอัตโนมัติ ช่วยลดเวลาทำงานให้นักบัญชีและเจ้าของธุรกิจ ด้วยระบบ OCR
+                    อัจฉริยะที่เชื่อมต่อ LINE และ Mobile App</p>
+                <div class="hero-btns">
+                    <a href="/login?register=true" class="btn btn-primary">เริ่มใช้งานฟรี 14 วัน <i
+                            class="fas fa-arrow-right"></i></a>
+                    <a href="#demo" class="btn btn-outline">ดูตัวอย่างการใช้งาน</a>
+                </div>
+            </div>
+            <div class="hero-mockup">
+                <img src="/img/dashboard_preview.png" alt="Billora Dashboard"
+                    onerror="this.src='https://placehold.co/1200x800/white/10b981?text=Billora+Dashboard+Preview'">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>ทำไมต้องเลือก Billora?</h2>
+                <p>เราออกแบบระบบมาเพื่อช่วยให้การจัดการรายรับ-รายจ่ายเป็นเรื่องง่ายที่สุด</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-scan"></i></div>
+                    <h3>AI OCR อัจฉริยะ</h3>
+                    <p>อ่านข้อมูลจากบิลและสลิปธนาคารได้โดยไม่ต้องคีย์ข้อมูลเอง ไม่ว่าจะเป็นไฟล์ภาพหรือ PDF</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fab fa-line"></i></div>
+                    <h3>เชื่อมต่อ LINE Bot</h3>
+                    <p>ส่งภาพสลิปเข้า LINE Bot ระบบจะบันทึกข้อมูลและตรวจสอบของปลอมให้คุณทันที</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>แดชบอร์ดสรุปผล</h3>
+                    <p>เห็นภาพรวมรายรับ-รายจ่ายแบบ Real-time พร้อมกราฟวิเคราะห์แนวโน้มธุรกิจ</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-check"></i></div>
+                    <h3>ตรวจสลิปซ้ำ/ปลอม</h3>
+                    <p>ระบบป้องกันการส่งสลิปเดิมซ้ำ และตรวจสอบความถูกต้องของรายการโอนเงินโดยอัตโนมัติ</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-file-export"></i></div>
+                    <h3>Export ไป Express</h3>
+                    <p>ส่งออกข้อมูลในรูปแบบไฟล์ Excel ที่พร้อมนำเข้าสู่โปรแกรมบัญชี Express ได้ทันที</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h3>แอพพลิเคชันมือถือ</h3>
+                    <p>จัดการข้อมูลได้ทุกที่ทุกเวลาด้วยแอพพลิเคชันที่รองรับทั้ง iOS และ Android</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>เลือกแพ็กเกจที่เหมาะกับคุณ</h2>
+                <p>คุ้มค่ากับฟีเจอร์ที่ช่วยให้ธุรกิจคุณเติบโต</p>
+            </div>
+            <div class="pricing-grid">
+                <!-- Basic -->
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">
+                        <span class="currency">฿</span><span class="amount">0</span><span class="period">/เดือน</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> จำกัด 50 บิล/เดือน</li>
+                        <li><i class="fas fa-check"></i> ใช้งาน LINE Bot พื้นฐาน</li>
+                        <li><i class="fas fa-check"></i> แดชบอร์ดสรุปผล</li>
+                        <li><i class="fas fa-check"></i> จัดเก็บข้อมูล 3 เดือน</li>
+                        <li style="opacity: 0.5;"><i class="fas fa-times"></i> ส่งออกข้อมูล Express</li>
+                        <li style="opacity: 0.5;"><i class="fas fa-times"></i> API Access</li>
+                    </ul>
+                    <a href="/login?register=true" class="btn btn-outline">สมัครใช้งาน</a>
+                </div>
+
+                <!-- Pro -->
+                <div class="pricing-card featured">
+                    <div class="popular-tag">ยอดนิยม</div>
+                    <h3>Pro Business</h3>
+                    <div class="price">
+                        <span class="currency">฿</span><span class="amount">490</span><span class="period">/เดือน</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> ไม่จำกัดจำนวนบิล</li>
+                        <li><i class="fas fa-check"></i> LINE Bot รุ่น Pro</li>
+                        <li><i class="fas fa-check"></i> ตรวจสอบสลิปปลอมอัตโนมัติ</li>
+                        <li><i class="fas fa-check"></i> ส่งออกข้อมูล Express</li>
+                        <li><i class="fas fa-check"></i> จัดเก็บข้อมูลไม่จำกัด</li>
+                        <li><i class="fas fa-check"></i> ทีมซัพพอร์ตดูแล 24/7</li>
+                    </ul>
+                    <a href="/login?register=true" class="btn btn-primary">เลือกแพ็กเกจนี้</a>
+                </div>
+
+                <!-- Custom -->
+                <div class="pricing-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">
+                        <span class="amount">Custom</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> ทุกฟีเจอร์ในแพ็กเกจ Pro</li>
+                        <li><i class="fas fa-check"></i> ใช้งานหลายบริษัท (Multi-Branch)</li>
+                        <li><i class="fas fa-check"></i> เชื่อมต่อ Webhook/API</li>
+                        <li><i class="fas fa-check"></i> ติดตั้งลงบน Server ส่วนตัว</li>
+                        <li><i class="fas fa-check"></i> ปรับแต่งฟีเจอร์เฉพาะทาง</li>
+                        <li><i class="fas fa-check"></i> ผู้ดูแลส่วนตัว (Account Manager)</li>
+                    </ul>
+                    <a href="#contact" class="btn btn-outline">ติดต่อฝ่ายขาย</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <div class="cta-box">
+                <h2>พร้อมเริ่มต้นประหยัดเวลาแล้วหรือยัง?</h2>
+                <p>สมัครสมาชิกและเริ่มจัดการบิลชุดแรกได้ใน 2 นาที ไม่ต้องกรอกข้อมูลบัตรเครดิต</p>
+                <div class="hero-btns">
+                    <a href="/login?register=true" class="btn btn-white btn-lg">เริ่มใช้งานฟรีตอนนี้</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a href="/" class="logo" style="color: white;">
+                        <i class="fas fa-file-invoice-dollar" style="color: var(--primary);"></i>
+                        Billora
+                    </a>
+                    <p>ระบบจัดการบิลและสลิปอัจฉริยะที่ช่วยให้การบริหารจัดการการเงินของธุรกิจคุณเป็นเรื่องง่ายและตรวจสอบได้
+                    </p>
+                </div>
+                <div class="footer-column">
+                    <h4>เมนู</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features">คุณสมบัติ</a></li>
+                        <li><a href="#pricing">ราคา</a></li>
+                        <li><a href="/login">เข้าสู่ระบบ</a></li>
+                        <li><a href="/login?register=true">สมัครสมาชิก</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>บริการ</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">OCR API</a></li>
+                        <li><a href="#">LINE Business</a></li>
+                        <li><a href="#">Custom Integration</a></li>
+                        <li><a href="#">คู่มือการใช้งาน</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>ติดต่อ</h4>
+                    <ul class="footer-links">
+                        <li><a href="mailto:support@billora.co"><i class="fas fa-envelope"></i> support@billora.co</a>
+                        </li>
+                        <li><a href="tel:021234567"><i class="fas fa-phone"></i> 02-123-4567</a></li>
+                        <li>
+                            <div class="social-links" style="margin-top: 1rem;">
+                                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#"><i class="fab fa-line"></i></a>
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Billora Technology Co., Ltd. สงวนลิขสิทธิ์</p>
+                <div style="display: flex; gap: 2rem;">
+                    <a href="#">นโยบายความเป็นส่วนตัว</a>
+                    <a href="#">ข้อตกลงการใช้งาน</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', function () {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

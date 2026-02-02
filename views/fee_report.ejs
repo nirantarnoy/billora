@@ -1,0 +1,524 @@
+<div class="p-10 space-y-10">
+    <!-- Header & Search -->
+    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800">รายงานรายได้และค่าธรรมเนียม</h2>
+                <p class="text-slate-500 mt-1">สรุปการเงินแยกตามช่องทางแพลตฟอร์ม</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button
+                    class="flex items-center gap-2 px-6 py-3 bg-emerald-50 text-emerald-600 rounded-2xl font-bold hover:bg-emerald-100 transition-all">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button
+                    class="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+            </div>
+        </div>
+
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 items-end">
+            <div>
+                <label
+                    class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">เลขคำสั่งซื้อ</label>
+                <input type="text" name="orderId" value="<%= query.orderId || '' %>"
+                    placeholder="ระบุเลขคำสั่งซื้อ (ถ้ามี)"
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-semibold">
+            </div>
+            <div>
+                <label
+                    class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">เริ่มวันที่</label>
+                <input type="date" name="dateFrom" value="<%= query.dateFrom %>"
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-semibold">
+            </div>
+            <div>
+                <label
+                    class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">ถึงวันที่</label>
+                <input type="date" name="dateTo" value="<%= query.dateTo %>"
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-semibold">
+            </div>
+            <div>
+                <label
+                    class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">ช่องทาง</label>
+                <select name="channel"
+                    class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm font-semibold">
+                    <option value="">ทั้งหมด</option>
+                    <% channels.forEach(ch=> { %>
+                        <option value="<%= ch.id %>" <%=query.channel==ch.id ? 'selected' : '' %>><%= ch.name %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit"
+                    class="flex-1 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-search"></i> ค้นหา
+                </button>
+                <a href="/fee-report"
+                    class="bg-slate-100 p-3 rounded-xl text-slate-500 hover:bg-slate-200 transition-all flex items-center justify-center">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Section -->
+    <% const hasShopee=items.some(i=> i.channel_name === 'Shopee');
+        const hasTiktok = items.some(i => i.channel_name === 'Tiktok');
+        %>
+
+        <% if (hasShopee && (!query.channel || items.some(i=> i.channel_id == query.channel && i.channel_name ===
+            'Shopee'))) { %>
+            <!-- Shopee Summary -->
+            <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
+                    <span
+                        class="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-orange-500/20">S</span>
+                    สรุปรายการ Shopee (Summary)
+                </h3>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <!-- Income Section -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-emerald-600 font-bold mb-4">
+                            <i class="fas fa-arrow-down italic"></i> รายได้ (INCOME)
+                        </div>
+                        <div class="bg-emerald-50/30 rounded-2xl overflow-hidden border border-emerald-100">
+                            <table class="w-full text-sm">
+                                <tbody class="divide-y divide-emerald-100/50">
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Buyer Total Amount</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.buyer_total_amount.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Original Price</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.original_price.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Shipping Fee Paid by Buyer</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.shipping_fee_paid_by_buyer.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Shopee Shipping Rebate</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.shopee_shipping_rebate.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Shopee Voucher Code</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.shopee_voucher_code.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Cost of Goods Sold</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.cost_of_goods_sold.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Seller Coin Cash Back</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.seller_coin_cash_back.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-emerald-100/50">
+                                        <td class="px-6 py-5 font-black text-emerald-700">รวมรายได้ (Total Income)</td>
+                                        <td class="px-6 py-5 text-right font-black text-emerald-700 text-lg">
+                                            <%= shopeeSummary.totalIncome.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Expenses Section -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-rose-600 font-bold mb-4">
+                            <i class="fas fa-arrow-up italic"></i> ค่าใช้จ่าย (EXPENSES)
+                        </div>
+                        <div class="bg-rose-50/30 rounded-2xl overflow-hidden border border-rose-100">
+                            <table class="w-full text-sm">
+                                <tbody class="divide-y divide-rose-100/50">
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Commission Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.commission_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Transaction Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.transaction_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Service Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.service_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Seller Return Refund</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.seller_return_refund_amount.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Reverse Shipping Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.reverse_shipping_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Final Shipping Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.final_shipping_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Actual Shipping Fee</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.actual_shipping_fee.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Shipping Fee Discount From 3PL</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.shipping_fee_discount_from_3pl.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">DRC Adjustable Refund</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.drc_adjustable_refund.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Payment Promotion Amount</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.payment_promotion_amount.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Cross Border Tax</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.cross_border_tax.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Seller Shipping Discount</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.seller_shipping_discount.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 text-slate-600">Seller Voucher Code</td>
+                                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                            <%= shopeeSummary.seller_voucher_code.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                    <tr class="bg-rose-100/50">
+                                        <td class="px-6 py-5 font-black text-rose-700">รวมค่าใช้จ่าย (Total Expenses)
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-black text-rose-700 text-lg">
+                                            <%= shopeeSummary.totalExpenses.toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Net Settlement Card -->
+                <div
+                    class="mt-10 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center group overflow-hidden relative shadow-xl shadow-emerald-900/20">
+                    <div class="relative z-10">
+                        <p class="text-emerald-50/80 font-bold uppercase tracking-widest text-xs mb-1">ยอดเงินโอนสุทธิ
+                            (Shopee)</p>
+                        <h4 class="text-white font-bold text-lg">Net Settlement Amount</h4>
+                    </div>
+                    <div class="relative z-10 text-right mt-6 md:mt-0">
+                        <div class="text-5xl font-black text-white">
+                            <%= shopeeSummary.netSettlement.toLocaleString(undefined, {minimumFractionDigits: 2}) %>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 text-emerald-100 font-bold text-sm mt-2"><i
+                                class="fas fa-check-circle"></i> Calculated</div>
+                    </div>
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-[100px] -mr-32 -mt-32">
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+                <% if (hasTiktok && (!query.channel || items.some(i=> i.channel_id == query.channel && i.channel_name
+                    === 'Tiktok'))) { %>
+                    <!-- Tiktok Summary -->
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                        <h3 class="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
+                            <span
+                                class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center text-xs font-black shadow-lg shadow-black/20">T</span>
+                            สรุปรายการ TikTok (Summary)
+                        </h3>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                            <!-- Income Section -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 text-emerald-600 font-bold mb-4">
+                                    <i class="fas fa-arrow-down italic"></i> รายได้ (INCOME)
+                                </div>
+                                <div class="bg-emerald-50/30 rounded-2xl overflow-hidden border border-emerald-100">
+                                    <table class="w-full text-sm">
+                                        <tbody class="divide-y divide-emerald-100/50">
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Gross Sales</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.gross_sales_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Customer Payment</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.customer_payment_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Platform Discount</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.platform_discount_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Shipping Fee Subsidy</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.shipping_fee_subsidy_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Revenue Amount</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.revenue_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr class="bg-emerald-100/50">
+                                                <td class="px-6 py-5 font-black text-emerald-700">รวมรายได้ (Total
+                                                    Income)</td>
+                                                <td class="px-6 py-5 text-right font-black text-emerald-700 text-lg">
+                                                    <%= tiktokSummary.totalIncome.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- Expenses Section -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 text-rose-600 font-bold mb-4">
+                                    <i class="fas fa-arrow-up italic"></i> ค่าใช้จ่าย (EXPENSES)
+                                </div>
+                                <div class="bg-rose-50/30 rounded-2xl overflow-hidden border border-rose-100">
+                                    <table class="w-full text-sm">
+                                        <tbody class="divide-y divide-rose-100/50">
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Platform Commission</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.platform_commission_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Transaction Fee</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.transaction_fee_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Affiliate Commission</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.affiliate_commission_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Shipping Cost</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.shipping_cost_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Actual Shipping Fee</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.actual_shipping_fee_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Customer Refund</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.customer_refund_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Adjustment</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.adjustment_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Sales Tax</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.sales_tax_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 text-slate-600">Fee & Tax</td>
+                                                <td class="px-6 py-4 text-right font-bold text-slate-800">
+                                                    <%= tiktokSummary.fee_and_tax_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                            <tr class="bg-rose-100/50">
+                                                <td class="px-6 py-5 font-black text-rose-700">รวมค่าใช้จ่าย (Total
+                                                    Expenses)</td>
+                                                <td class="px-6 py-5 text-right font-black text-rose-700 text-lg">
+                                                    <%= tiktokSummary.totalExpenses.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Net Settlement Card -->
+                        <div
+                            class="mt-10 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-center group overflow-hidden relative shadow-xl shadow-emerald-900/20">
+                            <div class="relative z-10">
+                                <p class="text-emerald-50/80 font-bold uppercase tracking-widest text-xs mb-1">
+                                    ยอดเงินโอนสุทธิ (TikTok)</p>
+                                <h4 class="text-white font-bold text-lg">Net Settlement Amount</h4>
+                            </div>
+                            <div class="relative z-10 text-right mt-6 md:mt-0">
+                                <div class="text-5xl font-black text-white">
+                                    <%= tiktokSummary.netSettlement.toLocaleString(undefined, {minimumFractionDigits:
+                                        2}) %>
+                                </div>
+                                <div
+                                    class="flex items-center justify-end gap-2 text-emerald-100 font-bold text-sm mt-2">
+                                    <i class="fas fa-check-circle"></i> Calculated</div>
+                            </div>
+                            <div
+                                class="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-[100px] -mr-32 -mt-32">
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <!-- Detailed List -->
+                        <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="p-8 border-b border-slate-100">
+                                <h3 class="font-bold text-slate-800">รายการละเอียดรายออเดอร์</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr
+                                            class="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <th class="px-8 py-5">วันเวลา</th>
+                                            <th class="px-6 py-5">เลขคำสั่งซื้อ</th>
+                                            <th class="px-6 py-5">แพลตฟอร์ม</th>
+                                            <th class="px-6 py-5 text-right">ยอดรวม</th>
+                                            <th class="px-6 py-5 text-right">ค่าธรรมเนียม</th>
+                                            <th class="px-8 py-5 text-right">สุทธิ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        <% items.forEach(item=> { %>
+                                            <tr class="hover:bg-slate-50/50 transition-all">
+                                                <td class="px-8 py-5 text-sm"><span class="font-bold text-slate-700">
+                                                        <%= new Date(item.order_date).toLocaleDateString('th-TH') %>
+                                                    </span><span class="block text-[10px] text-slate-400">
+                                                        <%= new Date(item.order_date).toLocaleTimeString('th-TH') %>
+                                                    </span></td>
+                                                <td class="px-6 py-5 text-sm font-bold text-slate-800">#<%=
+                                                        item.order_id || item.order_sn %>
+                                                </td>
+                                                <td class="px-6 py-5">
+                                                    <div class="flex items-center gap-2">
+                                                        <% if (item.channel_name==='Shopee' ) { %>
+                                                            <div
+                                                                class="w-6 h-6 rounded bg-orange-500 text-white flex items-center justify-center text-[10px] font-black">
+                                                                S</div>
+                                                            <% } else if (item.channel_name==='Tiktok' ) { %>
+                                                                <div
+                                                                    class="w-6 h-6 rounded bg-black text-white flex items-center justify-center text-[10px] font-black">
+                                                                    T</div>
+                                                                <% } %><span class="text-xs font-bold text-slate-600">
+                                                                        <%= item.channel_name %>
+                                                                    </span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-5 text-right text-sm font-bold text-slate-700">฿<%=
+                                                        item.total_amount.toLocaleString(undefined,
+                                                        {minimumFractionDigits: 2}) %>
+                                                </td>
+                                                <% const fees=item.channel_name==='Shopee' ? (parseFloat(item.s_comm) +
+                                                    parseFloat(item.s_trans) + parseFloat(item.s_service)) :
+                                                    parseFloat(item.t_settlement - item.t_revenue) || 0; %>
+                                                    <td class="px-6 py-5 text-right text-sm font-bold text-rose-500">-฿
+                                                        <%= Math.abs(fees || 0).toLocaleString(undefined,
+                                                            {minimumFractionDigits: 2}) %>
+                                                    </td>
+                                                    <td
+                                                        class="px-8 py-5 text-right text-sm font-black text-emerald-600">
+                                                        ฿<%= (item.channel_name==='Shopee' ? item.s_escrow :
+                                                            item.t_settlement).toLocaleString(undefined,
+                                                            {minimumFractionDigits: 2}) %>
+                                                    </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+</div>

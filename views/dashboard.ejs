@@ -1,1013 +1,645 @@
-<!DOCTYPE html>
-<html lang="th">
+<div class="p-10">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800">ภาพรวมการเงิน</h2>
+            <p class="text-slate-500 text-sm">ยินดีต้อนรับกลับมา ติดตามความเคลื่อนไหวทางธุรกิจของคุณ</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+            <button onclick="openModal()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                <i class="fas fa-cloud-upload-alt"></i> สแกนเอกสารใหม่
+            </button>
+            <a href="/api/export/express"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                <i class="fas fa-file-export"></i> ส่งออกข้อมูล (Express)
+            </a>
+        </div>
+    </header>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billora | แผงควบคุมการเงิน</title>
-    <script src="/js/tailwind.min.js"></script>
-    <link href="/css/all.min.css" rel="stylesheet">
-    <script src="/js/sweetalert2.min.js"></script>
-    <script src="/js/chart.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&display=swap');
-
-        body {
-            font-family: 'Anuphan', 'Outfit', sans-serif;
-            background: #f0f4f8;
-            color: #1e293b;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .sidebar-active {
-            background: #10b981;
-            /* Emerald-500 */
-            color: white;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.1);
-        }
-
-        /* Fix for Chart Growth */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        .modal {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .modal-hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
-        }
-
-        /* Collapsible Sidebar Logic */
-        .sidebar {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sidebar-collapsed {
-            transform: translateX(-100%);
-        }
-
-        .main-content {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-left: 288px;
-            /* w-72 */
-        }
-
-        .main-content-expanded {
-            margin-left: 0;
-        }
-
-        /* Notification Badge */
-        .notification-badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: #f43f5e;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
-            }
-
-            70% {
-                transform: scale(1.1);
-                box-shadow: 0 0 0 10px rgba(244, 63, 94, 0);
-            }
-
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
-            }
-        }
-    </style>
-</head>
-
-<body class="min-h-screen">
-
-    <div class="flex">
-        <!-- Sidebar -->
-        <aside id="sidebar"
-            class="sidebar w-72 min-h-screen bg-white border-r border-slate-200 p-6 flex flex-col fixed left-0 z-40">
-            <div class="flex items-center justify-between mb-12">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
-                        <i class="fas fa-file-invoice text-white text-xl"></i>
-                    </div>
-                    <h1 class="text-2xl font-bold tracking-tight text-slate-800">Billora<span
-                            class="text-emerald-500">Pro</span></h1>
-                </div>
-                <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-slate-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Card 1 -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
+            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-4">
+                <i class="fas fa-file-invoice text-emerald-600 text-xl"></i>
             </div>
-
-            <nav class="space-y-4 flex-1">
-                <% if (user.permissions.dashboard) { %>
-                    <a href="/dashboard" class="flex items-center gap-3 p-3 sidebar-active rounded-xl transition-all">
-                        <i class="fas fa-th-large"></i> แผงควบคุม
-                    </a>
-                    <% } %>
-                        <% if (user.permissions.bills) { %>
-                            <a href="/bills"
-                                class="flex items-center gap-3 p-3 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all">
-                                <i class="fas fa-file-invoice-dollar"></i> ใบเสร็จและใบสำคัญ
-                            </a>
-                            <% } %>
-                                <% if (user.permissions.slips) { %>
-                                    <a href="/slips"
-                                        class="flex items-center gap-3 p-3 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all">
-                                        <i class="fas fa-exchange-alt"></i> สลิปการโอนเงิน
-                                    </a>
-                                    <% } %>
-                                        <% if (user.role==='admin' ) { %>
-                                            <a href="/channels"
-                                                class="flex items-center gap-3 p-3 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all">
-                                                <i class="fas fa-shopping-cart"></i> ช่องทางออนไลน์
-                                            </a>
-                                            <a href="/users"
-                                                class="flex items-center gap-3 p-3 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all">
-                                                <i class="fas fa-users-cog"></i> จัดการผู้ใช้
-                                            </a>
-                                            <% } %>
-            </nav>
-
-            <div class="mt-auto pt-6 border-t border-slate-100 space-y-3">
-                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-                    <div
-                        class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold">
-                        <%= user.username.charAt(0).toUpperCase() %>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="text-sm font-semibold text-slate-800 truncate">
-                            <%= user.username %>
-                        </p>
-                        <p class="text-xs text-slate-500 capitalize">
-                            <%= user.role==='admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานทั่วไป' %>
-                        </p>
-                    </div>
-                </div>
-                <a href="javascript:void(0)" onclick="confirmLogout()"
-                    class="flex items-center gap-3 p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all font-medium">
-                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
-                </a>
+            <p class="text-slate-500 text-sm font-medium">ใบเสร็จทั้งหมด</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-slate-800">
+                    <%= summary.bill_count %>
+                </h3>
+                <span class="text-emerald-500 text-xs font-semibold">+12%</span>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Content Wrapper -->
-        <main id="mainContent" class="main-content flex-1 p-0 min-h-screen">
-            <!-- Top Navigation Bar -->
-            <div
-                class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-10 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()"
-                        class="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-all">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="hidden sm:block">
-                        <p class="text-sm font-medium text-slate-400">Billora Pro / Dashboard</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-6">
-                    <!-- Notification Bell -->
-                    <div class="relative group cursor-pointer" onclick="showNotifications()">
-                        <div
-                            class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-all">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <div id="notifBadge" class="hidden notification-badge">0</div>
-                    </div>
-
-                    <button onclick="openModal()"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
-                        <i class="fas fa-plus"></i> <span class="hidden md:inline">เพิ่มรายการ</span>
-                    </button>
-                </div>
+        <!-- Card 2 -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
+            <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-4">
+                <i class="fas fa-wallet text-emerald-600 text-xl"></i>
             </div>
+            <p class="text-slate-500 text-sm font-medium">ยอดใช้จ่ายทั้งหมด</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-slate-800">฿<%= Number(summary.total_sales).toLocaleString(undefined,
+                        { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h3>
+            </div>
+        </div>
 
-            <div class="p-10">
-                <!-- Header -->
-                <header class="flex justify-between items-center mb-10">
-                    <div>
-                        <h2 class="text-3xl font-bold text-slate-800">ภาพรวมการเงิน</h2>
-                        <p class="text-slate-500 text-sm">ยินดีต้อนรับกลับมา ติดตามความเคลื่อนไหวทางธุรกิจของคุณ</p>
-                    </div>
-                    <a href="/api/export/express"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
-                        <i class="fas fa-file-export"></i> ส่งออกข้อมูล (Express)
-                    </a>
-                </header>
+        <!-- Card 3 -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
+            <div class="w-12 h-12 bg-teal-500/10 rounded-2xl flex items-center justify-center mb-4">
+                <i class="fas fa-receipt text-teal-600 text-xl"></i>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">สลิปการชำระเงิน</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-slate-800">
+                    <%= summary.slip_count %>
+                </h3>
+                <span class="text-slate-500 text-xs font-semibold">ตรวจสอบแล้ว</span>
+            </div>
+        </div>
 
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <!-- Card 1 -->
-                    <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
-                        <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-file-invoice text-emerald-600 text-xl"></i>
-                        </div>
-                        <p class="text-slate-500 text-sm font-medium">ใบเสร็จทั้งหมด</p>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-3xl font-bold text-slate-800">
-                                <%= summary.bill_count %>
-                            </h3>
-                            <span class="text-emerald-500 text-xs font-semibold">+12%</span>
-                        </div>
-                    </div>
-
-                    <!-- Card 2 -->
-                    <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
-                        <div class="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-wallet text-emerald-600 text-xl"></i>
-                        </div>
-                        <p class="text-slate-500 text-sm font-medium">ยอดใช้จ่ายทั้งหมด</p>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-3xl font-bold text-slate-800">฿<%=
-                                    Number(summary.total_sales).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h3>
-                        </div>
-                    </div>
-
-                    <!-- Card 3 -->
-                    <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
-                        <div class="w-12 h-12 bg-teal-500/10 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-receipt text-teal-600 text-xl"></i>
-                        </div>
-                        <p class="text-slate-500 text-sm font-medium">สลิปการชำระเงิน</p>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-3xl font-bold text-slate-800">
-                                <%= summary.slip_count %>
-                            </h3>
-                            <span class="text-slate-500 text-xs font-semibold">ตรวจสอบแล้ว</span>
-                        </div>
-                    </div>
-
-                    <!-- Card 4 -->
-                    <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
-                        <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-percentage text-blue-600 text-xl"></i>
-                        </div>
-                        <p class="text-slate-500 text-sm font-medium">ภาษีมูลค่าเพิ่มทั้งหมด</p>
-                        <div class="flex items-baseline gap-2">
-                            <h3 class="text-3xl font-bold text-slate-800">฿<%=
-                                    Number(summary.total_vat).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- NEW: Slip Channel Totals Header -->
-                <div class="mb-6">
-                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest">สรุปยอดเงินตามช่องทาง (สลิป)
-                    </h4>
-                </div>
-
-                <!-- NEW: Slip Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                    <!-- LINE Total -->
-                    <div
-                        class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
-                        <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fab fa-line text-green-500 text-2xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">LINE OA</p>
-                            <h4 class="text-xl font-bold text-slate-800">฿<%=
-                                    Number(slipStats.LINE).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h4>
-                        </div>
-                    </div>
-
-                    <!-- App Total -->
-                    <div
-                        class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
-                        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-mobile-alt text-blue-500 text-2xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">Mobile App</p>
-                            <h4 class="text-xl font-bold text-slate-800">฿<%=
-                                    Number(slipStats.MOBILE).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h4>
-                        </div>
-                    </div>
-
-                    <!-- Browser Total -->
-                    <div
-                        class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
-                        <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-desktop text-slate-400 text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">Web (Browser)</p>
-                            <h4 class="text-xl font-bold text-slate-800">฿<%=
-                                    Number(slipStats.BROWSER).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h4>
-                        </div>
-                    </div>
-
-                    <!-- GRAND TOTAL -->
-                    <div
-                        class="p-5 rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 shadow-xl shadow-indigo-200 flex items-center gap-4 transition-all hover:scale-[1.02]">
-                        <div
-                            class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-md">
-                            <i class="fas fa-coins text-white text-2xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-indigo-100 text-xs font-bold uppercase tracking-tight">ยอดรวมทุกช่องทาง</p>
-                            <h4 class="text-xl font-bold text-white">฿<%=
-                                    Number(slipStats.TOTAL).toLocaleString(undefined, { minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2 }) %>
-                            </h4>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-                    <!-- Chart -->
-                    <div class="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-slate-800">ยอดโอนเงิน 6 เดือนล่าสุด</h3>
-                            <select
-                                class="bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-1 outline-none text-slate-600">
-                                <option>6 เดือนล่าสุด</option>
-                            </select>
-                        </div>
-                        <!-- Box with fixed height to prevent infinite growth -->
-                        <div class="chart-container">
-                            <canvas id="spendingChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Security Check -->
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                        <h3 class="text-xl font-bold text-slate-800 mb-6">การป้องกันการทุจริต</h3>
-                        <div class="space-y-6">
-                            <div class="flex items-center gap-4">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-semibold text-slate-700">ตรวจสอบรายการซ้ำ</p>
-                                    <p class="text-xs text-slate-400">เปิดใช้งาน - ตรวจสอบแบบเรียลไทม์</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-semibold text-slate-700">ความแม่นยำของ OCR</p>
-                                    <p class="text-xs text-slate-400">การจดจำรูปแบบด้วย AI</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-semibold text-slate-700">การตรวจสอบสลิป</p>
-                                    <p class="text-xs text-slate-400">เชื่อมต่อระบบตรวจสอบธนาคารแล้ว</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
-                            <p class="text-xs text-emerald-600 font-bold uppercase mb-1">ข้อเสนอแนะจาก AI</p>
-                            <p class="text-sm text-slate-600">เอกสารทั้งหมดที่สแกนในวันนี้ถูกต้องและเชื่อถือได้</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Receipts Table -->
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-slate-800">ใบเสร็จล่าสุด</h3>
-                            <div class="flex items-center gap-4">
-                                <button onclick="openExportModal('bills')"
-                                    class="text-emerald-600 text-sm font-semibold hover:bg-emerald-50 px-3 py-1 rounded-lg transition-all">
-                                    <i class="fas fa-file-excel mr-1"></i> ส่งออก Excel
-                                </button>
-                                <a href="/bills"
-                                    class="text-emerald-600 text-sm font-semibold hover:underline">ดูทั้งหมด</a>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-left text-slate-400 text-sm border-b border-slate-100">
-                                        <th class="pb-4 font-medium">ร้านค้า</th>
-                                        <th class="pb-4 font-medium">วันที่</th>
-                                        <th class="pb-4 font-medium text-right">จำนวนเงิน</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-50">
-                                    <% bills.forEach(bill=> { %>
-                                        <tr class="hover:bg-slate-50/50 transition-colors">
-                                            <td class="py-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div
-                                                        class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center relative">
-                                                        <i class="fas fa-store text-xs text-emerald-600"></i>
-                                                        <div
-                                                            class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 text-[8px]">
-                                                            <% if (bill.source==='LINE' ) { %>
-                                                                <i class="fab fa-line text-green-500"></i>
-                                                                <% } else if (bill.source==='MOBILE' ) { %>
-                                                                    <i class="fas fa-mobile-alt text-blue-500"></i>
-                                                                    <% } else { %>
-                                                                        <i class="fas fa-desktop text-slate-400"></i>
-                                                                        <% } %>
-                                                        </div>
-                                                    </div>
-                                                    <span class="font-medium text-slate-700">
-                                                        <%= bill.store_name %>
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="py-4 text-slate-500 text-sm">
-                                                <%= new Date(bill.date).toLocaleDateString('th-TH') %>
-                                            </td>
-                                            <td class="py-4 text-right font-bold text-slate-800">฿<%=
-                                                    Number(bill.total_amount).toLocaleString() %>
-                                            </td>
-                                        </tr>
-                                        <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Slips Table -->
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-slate-800">สลิปการชำระเงิน</h3>
-                            <div class="flex items-center gap-4">
-                                <button onclick="openExportModal('slips')"
-                                    class="text-emerald-600 text-sm font-semibold hover:bg-emerald-50 px-3 py-1 rounded-lg transition-all">
-                                    <i class="fas fa-file-excel mr-1"></i> ส่งออก Excel
-                                </button>
-                                <a href="/slips"
-                                    class="text-emerald-600 text-sm font-semibold hover:underline">ดูทั้งหมด</a>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-left text-slate-400 text-sm border-b border-slate-100">
-                                        <th class="pb-4 font-medium">รหัสรายการ</th>
-                                        <th class="pb-4 font-medium text-center">สถานะ</th>
-                                        <th class="pb-4 font-medium text-right">จำนวนเงิน</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-50">
-                                    <% slips.forEach(slip=> { %>
-                                        <tr class="hover:bg-slate-50/50 transition-colors">
-                                            <td class="py-4">
-                                                <div class="flex items-center gap-2">
-                                                    <% if (slip.source==='LINE' ) { %>
-                                                        <i class="fab fa-line text-green-500" title="LINE OA"></i>
-                                                        <% } else if (slip.source==='MOBILE' ) { %>
-                                                            <i class="fas fa-mobile-alt text-blue-500"
-                                                                title="Mobile App"></i>
-                                                            <% } else { %>
-                                                                <i class="fas fa-desktop text-slate-400"
-                                                                    title="Web Browser"></i>
-                                                                <% } %>
-                                                                    <span
-                                                                        class="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">
-                                                                        <%= slip.trans_id || 'N/A' %>
-                                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="py-4 text-center">
-                                                <% if(slip.status==='success' ) { %>
-                                                    <span
-                                                        class="px-3 py-1 bg-emerald-100 text-emerald-600 text-[10px] rounded-full uppercase font-bold">สำเร็จ</span>
-                                                    <% } else if(slip.status==='duplicate' ) { %>
-                                                        <span
-                                                            class="px-3 py-1 bg-orange-100 text-orange-600 text-[10px] rounded-full uppercase font-bold">สลิปซ้ำ</span>
-                                                        <% } else { %>
-                                                            <span
-                                                                class="px-3 py-1 bg-red-100 text-red-600 text-[10px] rounded-full uppercase font-bold">ผิดปกติ</span>
-                                                            <% } %>
-                                            </td>
-                                            <td class="py-4 text-right font-bold text-slate-800">฿<%=
-                                                    Number(slip.amount).toLocaleString() %>
-                                            </td>
-                                        </tr>
-                                        <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-        </main>
+        <!-- Card 4 -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100">
+            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
+                <i class="fas fa-percentage text-blue-600 text-xl"></i>
+            </div>
+            <p class="text-slate-500 text-sm font-medium">ภาษีมูลค่าเพิ่มทั้งหมด</p>
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-3xl font-bold text-slate-800">฿<%= Number(summary.total_vat).toLocaleString(undefined, {
+                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h3>
+            </div>
+        </div>
     </div>
 
-    <!-- Upload Modal -->
-    <div id="uploadModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm modal modal-hidden">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-slate-800">สแกนเอกสารใหม่</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+    <!-- NEW: Slip Channel Totals Header -->
+    <div class="mb-6">
+        <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest">สรุปยอดเงินตามช่องทาง (สลิป)
+        </h4>
+    </div>
+
+    <!-- NEW: Slip Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <!-- LINE Total -->
+        <div
+            class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
+            <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i class="fab fa-line text-green-500 text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">LINE OA</p>
+                <h4 class="text-xl font-bold text-slate-800">฿<%= Number(slipStats.LINE).toLocaleString(undefined, {
+                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h4>
+            </div>
+        </div>
+
+        <!-- App Total -->
+        <div
+            class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
+            <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-mobile-alt text-blue-500 text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">Mobile App</p>
+                <h4 class="text-xl font-bold text-slate-800">฿<%= Number(slipStats.MOBILE).toLocaleString(undefined, {
+                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h4>
+            </div>
+        </div>
+
+        <!-- Browser Total -->
+        <div
+            class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 transition-all hover:shadow-md">
+            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-desktop text-slate-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-tight">Web (Browser)</p>
+                <h4 class="text-xl font-bold text-slate-800">฿<%= Number(slipStats.BROWSER).toLocaleString(undefined, {
+                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h4>
+            </div>
+        </div>
+
+        <!-- GRAND TOTAL -->
+        <div
+            class="p-5 rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 shadow-xl shadow-indigo-200 flex items-center gap-4 transition-all hover:scale-[1.02]">
+            <div
+                class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0 backdrop-blur-md">
+                <i class="fas fa-coins text-white text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-indigo-100 text-xs font-bold uppercase tracking-tight">ยอดรวมทุกช่องทาง</p>
+                <h4 class="text-xl font-bold text-white">฿<%= Number(slipStats.TOTAL).toLocaleString(undefined, {
+                        minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <!-- Chart -->
+        <div class="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">ยอดโอนเงิน 6 เดือนล่าสุด</h3>
+                <select
+                    class="bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-1 outline-none text-slate-600">
+                    <option>6 เดือนล่าสุด</option>
+                </select>
+            </div>
+            <!-- Box with fixed height to prevent infinite growth -->
+            <div class="chart-container">
+                <canvas id="spendingChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Security Check -->
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+            <h3 class="text-xl font-bold text-slate-800 mb-6">การป้องกันการทุจริต</h3>
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-700">ตรวจสอบรายการซ้ำ</p>
+                        <p class="text-xs text-slate-400">เปิดใช้งาน - ตรวจสอบแบบเรียลไทม์</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-700">ความแม่นยำของ OCR</p>
+                        <p class="text-xs text-slate-400">การจดจำรูปแบบด้วย AI</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-slate-700">การตรวจสอบสลิป</p>
+                        <p class="text-xs text-slate-400">เชื่อมต่อระบบตรวจสอบธนาคารแล้ว</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                <p class="text-xs text-emerald-600 font-bold uppercase mb-1">ข้อเสนอแนะจาก AI</p>
+                <p class="text-sm text-slate-600">เอกสารทั้งหมดที่สแกนในวันนี้ถูกต้องและเชื่อถือได้</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Receipts Table -->
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">ใบเสร็จล่าสุด</h3>
+                <div class="flex items-center gap-4">
+                    <button onclick="openExportModal('bills')"
+                        class="text-emerald-600 text-sm font-semibold hover:bg-emerald-50 px-3 py-1 rounded-lg transition-all">
+                        <i class="fas fa-file-excel mr-1"></i> ส่งออก Excel
+                    </button>
+                    <a href="/bills" class="text-emerald-600 text-sm font-semibold hover:underline">ดูทั้งหมด</a>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-slate-400 text-sm border-b border-slate-100">
+                            <th class="pb-4 font-medium">ร้านค้า</th>
+                            <th class="pb-4 font-medium">วันที่</th>
+                            <th class="pb-4 font-medium text-right">จำนวนเงิน</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <% bills.forEach(bill=> { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center relative">
+                                            <i class="fas fa-store text-xs text-emerald-600"></i>
+                                            <div
+                                                class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 text-[8px]">
+                                                <% if (bill.source==='LINE' ) { %>
+                                                    <i class="fab fa-line text-green-500"></i>
+                                                    <% } else if (bill.source==='MOBILE' ) { %>
+                                                        <i class="fas fa-mobile-alt text-blue-500"></i>
+                                                        <% } else { %>
+                                                            <i class="fas fa-desktop text-slate-400"></i>
+                                                            <% } %>
+                                            </div>
+                                        </div>
+                                        <span class="font-medium text-slate-700">
+                                            <%= bill.store_name %>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-slate-500 text-sm">
+                                    <%= new Date(bill.date).toLocaleDateString('th-TH') %>
+                                </td>
+                                <td class="py-4 text-right font-bold text-slate-800">฿<%=
+                                        Number(bill.total_amount).toLocaleString() %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slips Table -->
+        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">สลิปการชำระเงิน</h3>
+                <div class="flex items-center gap-4">
+                    <button onclick="openExportModal('slips')"
+                        class="text-emerald-600 text-sm font-semibold hover:bg-emerald-50 px-3 py-1 rounded-lg transition-all">
+                        <i class="fas fa-file-excel mr-1"></i> ส่งออก Excel
+                    </button>
+                    <a href="/slips" class="text-emerald-600 text-sm font-semibold hover:underline">ดูทั้งหมด</a>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-slate-400 text-sm border-b border-slate-100">
+                            <th class="pb-4 font-medium">รหัสรายการ</th>
+                            <th class="pb-4 font-medium text-center">สถานะ</th>
+                            <th class="pb-4 font-medium text-right">จำนวนเงิน</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <% slips.forEach(slip=> { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-2">
+                                        <% if (slip.source==='LINE' ) { %>
+                                            <i class="fab fa-line text-green-500" title="LINE OA"></i>
+                                            <% } else if (slip.source==='MOBILE' ) { %>
+                                                <i class="fas fa-mobile-alt text-blue-500" title="Mobile App"></i>
+                                                <% } else { %>
+                                                    <i class="fas fa-desktop text-slate-400" title="Web Browser"></i>
+                                                    <% } %>
+                                                        <span
+                                                            class="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">
+                                                            <%= slip.trans_id || 'N/A' %>
+                                                        </span>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-center">
+                                    <% if(slip.status==='success' ) { %>
+                                        <span
+                                            class="px-3 py-1 bg-emerald-100 text-emerald-600 text-[10px] rounded-full uppercase font-bold">สำเร็จ</span>
+                                        <% } else if(slip.status==='duplicate' ) { %>
+                                            <span
+                                                class="px-3 py-1 bg-orange-100 text-orange-600 text-[10px] rounded-full uppercase font-bold">สลิปซ้ำ</span>
+                                            <% } else { %>
+                                                <span
+                                                    class="px-3 py-1 bg-red-100 text-red-600 text-[10px] rounded-full uppercase font-bold">ผิดปกติ</span>
+                                                <% } %>
+                                </td>
+                                <td class="py-4 text-right font-bold text-slate-800">฿<%=
+                                        Number(slip.amount).toLocaleString() %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm modal modal-hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-slate-800">สแกนเอกสารใหม่</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-8">
+            <div id="dropZone"
+                class="border-2 border-dashed border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center hover:border-emerald-500 hover:bg-emerald-50/50 transition-all cursor-pointer group">
+                <div
+                    class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-cloud-upload-alt text-emerald-600 text-2xl"></i>
+                </div>
+                <p class="text-slate-700 font-semibold mb-1">ลากไฟล์มาวาง หรือคลิกเพื่ออัปโหลด</p>
+                <p class="text-slate-400 text-xs text-center px-4">รองรับ JPG, PNG และ PDF (สแกนได้หลายไฟล์พร้อมกัน)
+                </p>
+                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple />
             </div>
 
-            <div class="p-8">
-                <div id="dropZone"
-                    class="border-2 border-dashed border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center hover:border-emerald-500 hover:bg-emerald-50/50 transition-all cursor-pointer group">
+            <!-- Preview Grid -->
+            <div id="previewGrid" class="hidden mt-6 grid grid-cols-2 gap-3 max-h-60 overflow-y-auto p-1">
+                <!-- Previews will be injected here -->
+            </div>
+
+            <div id="previewContainer" class="hidden mt-6">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200">
+                    <img id="imagePreview" src="#" alt="Preview" class="w-full h-48 object-cover" />
                     <div
-                        class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-cloud-upload-alt text-emerald-600 text-2xl"></i>
-                    </div>
-                    <p class="text-slate-700 font-semibold mb-1">ลากไฟล์มาวาง หรือคลิกเพื่ออัปโหลด</p>
-                    <p class="text-slate-400 text-xs text-center px-4">รองรับ JPG, PNG และ PDF (สแกนได้หลายไฟล์พร้อมกัน)
-                    </p>
-                    <input type="file" id="fileInput" class="hidden" accept="image/*" multiple />
-                </div>
-
-                <!-- Preview Grid -->
-                <div id="previewGrid" class="hidden mt-6 grid grid-cols-2 gap-3 max-h-60 overflow-y-auto p-1">
-                    <!-- Previews will be injected here -->
-                </div>
-
-                <div id="previewContainer" class="hidden mt-6">
-                    <div class="relative rounded-2xl overflow-hidden border border-slate-200">
-                        <img id="imagePreview" src="#" alt="Preview" class="w-full h-48 object-cover" />
-                        <div
-                            class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <button onclick="resetUpload()"
-                                class="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30">
-                                เปลี่ยนรูปภาพ
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex gap-3">
-                        <button id="uploadBtn" onclick="handleUpload()"
-                            class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2">
-                            <span>เริ่มการวิเคราะห์ AI</span>
+                        class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button onclick="resetUpload()"
+                            class="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-white/30">
+                            เปลี่ยนรูปภาพ
                         </button>
                     </div>
                 </div>
+                <div class="mt-4 flex gap-3">
+                    <button id="uploadBtn" onclick="handleUpload()"
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2">
+                        <span>เริ่มการวิเคราะห์ AI</span>
+                    </button>
+                </div>
+            </div>
 
-                <div id="uploadingState" class="hidden mt-6 text-center">
-                    <div class="flex justify-center mb-4">
-                        <div
-                            class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin">
-                        </div>
+            <div id="uploadingState" class="hidden mt-6 text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin">
                     </div>
-                    <p class="text-slate-700 font-medium">กำลังประมวลผลด้วย AI...</p>
-                    <p class="text-slate-400 text-xs mt-1">กรุณารอสักครู่ ระบบกำลังอ่านข้อมูลจากภาพ</p>
                 </div>
+                <p class="text-slate-700 font-medium">กำลังประมวลผลด้วย AI...</p>
+                <p class="text-slate-400 text-xs mt-1">กรุณารอสักครู่ ระบบกำลังอ่านข้อมูลจากภาพ</p>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Export Modal -->
-    <div id="exportModal"
-        class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm modal modal-hidden">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-slate-800">เลือกคอลัมน์ที่ต้องการ Export</h3>
-                <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600"><i
-                        class="fas fa-times"></i></button>
+<!-- Export Modal -->
+<div id="exportModal"
+    class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm modal modal-hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-slate-800">เลือกคอลัมน์ที่ต้องการ Export</h3>
+            <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <div class="p-8">
+            <div id="columnSelection" class="space-y-3 mb-8">
+                <!-- Form columns will be injected here -->
             </div>
-            <div class="p-8">
-                <div id="columnSelection" class="space-y-3 mb-8">
-                    <!-- Form columns will be injected here -->
-                </div>
-                <button onclick="handleExport()"
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all">
-                    ดาวน์โหลดไฟล์ Excel
-                </button>
-                <p class="text-center text-slate-400 text-xs mt-4">ระบบจะส่งออกในรูปแบบสำหรับโปรแกรม Express</p>
-            </div>
+            <button onclick="handleExport()"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all">
+                ดาวน์โหลดไฟล์ Excel
+            </button>
+            <p class="text-center text-slate-400 text-xs mt-4">ระบบจะส่งออกในรูปแบบสำหรับโปรแกรม Express</p>
         </div>
     </div>
+</div>
 
-    <!-- Success Feedback -->
-    <div id="successToast"
-        class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[70] bg-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all">
-        <i class="fas fa-check-circle text-xl"></i>
-        <span class="font-semibold" id="successMessage">อัปโหลดสำเร็จ!</span>
-    </div>
+<!-- Success Feedback -->
+<div id="successToast"
+    class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[70] bg-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all">
+    <i class="fas fa-check-circle text-xl"></i>
+    <span class="font-semibold" id="successMessage">อัปโหลดสำเร็จ!</span>
+</div>
 
-    <script>
-        // Modal & Upload Logic
-        const modal = document.getElementById('uploadModal');
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const previewGrid = document.getElementById('previewGrid');
-        const previewContainer = document.getElementById('previewContainer');
-        const uploadingState = document.getElementById('uploadingState');
-        const successToast = document.getElementById('successToast');
+<script>
+    // Modal & Upload Logic
+    const modal = document.getElementById('uploadModal');
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const previewGrid = document.getElementById('previewGrid');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadingState = document.getElementById('uploadingState');
+    const successToast = document.getElementById('successToast');
 
-        let exportType = 'bills';
+    let exportType = 'bills';
 
-        function openModal() {
-            modal.classList.remove('modal-hidden');
-            resetUpload();
+    function openModal() {
+        modal.classList.remove('modal-hidden');
+        resetUpload();
+    }
+
+    function closeModal() {
+        modal.classList.add('modal-hidden');
+    }
+
+    dropZone.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+        if (e.target.files.length > 0) {
+            showPreviews(e.target.files);
         }
+    };
 
-        function closeModal() {
-            modal.classList.add('modal-hidden');
+    dropZone.ondragover = (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-emerald-500', 'bg-emerald-50');
+    };
+
+    dropZone.ondragleave = () => {
+        dropZone.classList.remove('border-emerald-500', 'bg-emerald-50');
+    };
+
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-emerald-500', 'bg-emerald-50');
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            showPreviews(e.dataTransfer.files);
         }
+    };
 
-        dropZone.onclick = () => fileInput.click();
+    function showPreviews(files) {
+        previewGrid.innerHTML = '';
+        previewGrid.classList.remove('hidden');
+        previewContainer.classList.remove('hidden');
+        dropZone.classList.add('hidden');
 
-        fileInput.onchange = (e) => {
-            if (e.target.files.length > 0) {
-                showPreviews(e.target.files);
-            }
-        };
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const div = document.createElement('div');
+                div.className = 'relative rounded-xl overflow-hidden border border-slate-200 h-24';
+                div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" />`;
+                previewGrid.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
-        dropZone.ondragover = (e) => {
-            e.preventDefault();
-            dropZone.classList.add('border-emerald-500', 'bg-emerald-50');
-        };
+    function resetUpload() {
+        fileInput.value = '';
+        previewGrid.innerHTML = '';
+        previewGrid.classList.add('hidden');
+        previewContainer.classList.add('hidden');
+        uploadingState.classList.add('hidden');
+        dropZone.classList.remove('hidden');
+    }
 
-        dropZone.ondragleave = () => {
-            dropZone.classList.remove('border-emerald-500', 'bg-emerald-50');
-        };
+    async function handleUpload() {
+        const files = fileInput.files;
+        if (files.length === 0) return;
 
-        dropZone.ondrop = (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('border-emerald-500', 'bg-emerald-50');
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                showPreviews(e.dataTransfer.files);
-            }
-        };
+        previewContainer.classList.add('hidden');
+        uploadingState.classList.remove('hidden');
 
-        function showPreviews(files) {
-            previewGrid.innerHTML = '';
-            previewGrid.classList.remove('hidden');
-            previewContainer.classList.remove('hidden');
-            dropZone.classList.add('hidden');
+        const formData = new FormData();
+        Array.from(files).forEach(file => formData.append('files', file));
 
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const div = document.createElement('div');
-                    div.className = 'relative rounded-xl overflow-hidden border border-slate-200 h-24';
-                    div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" />`;
-                    previewGrid.appendChild(div);
-                };
-                reader.readAsDataURL(file);
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: formData
             });
-        }
 
-        function resetUpload() {
-            fileInput.value = '';
-            previewGrid.innerHTML = '';
-            previewGrid.classList.add('hidden');
-            previewContainer.classList.add('hidden');
-            uploadingState.classList.add('hidden');
-            dropZone.classList.remove('hidden');
-        }
+            const result = await response.json();
 
-        async function handleUpload() {
-            const files = fileInput.files;
-            if (files.length === 0) return;
-
-            previewContainer.classList.add('hidden');
-            uploadingState.classList.remove('hidden');
-
-            const formData = new FormData();
-            Array.from(files).forEach(file => formData.append('files', file));
-
-            try {
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showSuccess(`อัปโหลดสำเร็จ ${result.results.length} รายการ`);
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    alert(result.error || 'เกิดข้อผิดพลาดในการอัปโหลด');
-                    resetUpload();
-                }
-            } catch (err) {
-                alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            if (result.success) {
+                showSuccess(`อัปโหลดสำเร็จ ${result.results.length} รายการ`);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                alert(result.error || 'เกิดข้อผิดพลาดในการอัปโหลด');
                 resetUpload();
             }
+        } catch (err) {
+            alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+            resetUpload();
         }
+    }
 
-        function showSuccess(msg) {
-            const toast = document.getElementById('successToast');
-            document.getElementById('successMessage').textContent = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+    function showSuccess(msg) {
+        const toast = document.getElementById('successToast');
+        document.getElementById('successMessage').textContent = msg;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3000);
+    }
+
+    // Export Excel Logic
+    const exportModal = document.getElementById('exportModal');
+    const colSelection = document.getElementById('columnSelection');
+
+    const billCols = [
+        { id: 'store_name', label: 'ชื่อร้านค้า' },
+        { id: 'date', label: 'วันที่ใบเสร็จ' },
+        { id: 'total_amount', label: 'ยอดรวม' },
+        { id: 'vat', label: 'ภาษี (VAT)' },
+        { id: 'id', label: 'รหัสภายใน' }
+    ];
+
+    const slipCols = [
+        { id: 'trans_id', label: 'รหัสรายการ (Trans ID)' },
+        { id: 'sender_name', label: 'ผู้โอน' },
+        { id: 'sender_bank', label: 'ธนาคารผู้โอน' },
+        { id: 'receiver_name', label: 'ผู้รับ' },
+        { id: 'receiver_bank', label: 'ธนาคารผู้รับ' },
+        { id: 'amount', label: 'จำนวนเงิน' },
+        { id: 'datetime', label: 'วันเวลาที่โอน' }
+    ];
+
+    function openExportModal(type) {
+        exportType = type;
+        const cols = type === 'bills' ? billCols : slipCols;
+        colSelection.innerHTML = cols.map(c => `
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" name="export_col" value="${c.id}" checked class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                <span class="text-slate-700 font-medium">${c.label}</span>
+            </label>
+        `).join('');
+        exportModal.classList.remove('modal-hidden');
+    }
+
+    function closeExportModal() {
+        exportModal.classList.add('modal-hidden');
+    }
+
+    function handleExport() {
+        const selected = Array.from(document.querySelectorAll('input[name="export_col"]:checked')).map(i => i.value);
+        if (selected.length === 0) {
+            alert('กรุณาเลือกอย่างน้อย 1 คอลัมน์');
+            return;
         }
+        window.location.href = `/api/export?type=${exportType}&columns=${selected.join(',')}`;
+        closeExportModal();
+    }
 
-        // Export Excel Logic
-        const exportModal = document.getElementById('exportModal');
-        const colSelection = document.getElementById('columnSelection');
+    // Initialize Spending Chart
+    const ctx = document.getElementById('spendingChart').getContext('2d');
 
-        const billCols = [
-            { id: 'store_name', label: 'ชื่อร้านค้า' },
-            { id: 'date', label: 'วันที่ใบเสร็จ' },
-            { id: 'total_amount', label: 'ยอดรวม' },
-            { id: 'vat', label: 'ภาษี (VAT)' },
-            { id: 'id', label: 'รหัสภายใน' }
-        ];
+    fetch('/api/stats')
+        .then(res => res.json())
+        .then(data => {
+            const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "สิง.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
-        const slipCols = [
-            { id: 'trans_id', label: 'รหัสรายการ (Trans ID)' },
-            { id: 'sender_name', label: 'ผู้โอน' },
-            { id: 'sender_bank', label: 'ธนาคารผู้โอน' },
-            { id: 'receiver_name', label: 'ผู้รับ' },
-            { id: 'receiver_bank', label: 'ธนาคารผู้รับ' },
-            { id: 'amount', label: 'จำนวนเงิน' },
-            { id: 'datetime', label: 'วันเวลาที่โอน' }
-        ];
-
-        function openExportModal(type) {
-            exportType = type;
-            const cols = type === 'bills' ? billCols : slipCols;
-            colSelection.innerHTML = cols.map(c => `
-                <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-emerald-50 transition-colors">
-                    <input type="checkbox" name="export_col" value="${c.id}" checked class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                    <span class="text-slate-700 font-medium">${c.label}</span>
-                </label>
-            `).join('');
-            exportModal.classList.remove('modal-hidden');
-        }
-
-        function closeExportModal() {
-            exportModal.classList.add('modal-hidden');
-        }
-
-        function handleExport() {
-            const selected = Array.from(document.querySelectorAll('input[name="export_col"]:checked')).map(i => i.value);
-            if (selected.length === 0) {
-                alert('กรุณาเลือกอย่างน้อย 1 คอลัมน์');
-                return;
-            }
-            window.location.href = `/api/export?type=${exportType}&columns=${selected.join(',')}`;
-            closeExportModal();
-        }
-
-        // Initialize Spending Chart
-        const ctx = document.getElementById('spendingChart').getContext('2d');
-
-        fetch('/api/stats')
-            .then(res => res.json())
-            .then(data => {
-                const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "สิง.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-
-                // 1. Extract unique months for labels
-                const labels = [...new Set(data.map(d => d.month))].sort();
-                const thaiLabels = labels.map(l => {
-                    const [year, month] = l.split('-');
-                    return `${monthNames[parseInt(month) - 1]} ${year}`;
-                });
-
-                // 2. Prepare datasets for each platform
-                const platforms = [
-                    { key: 'LINE', label: 'LINE OA', color: '#22c55e' },
-                    { key: 'MOBILE', label: 'Mobile App', color: '#3b82f6' },
-                    { key: 'BROWSER', label: 'Web Browser', color: '#94a3b8' }
-                ];
-
-                const datasets = platforms.map(p => {
-                    return {
-                        label: p.label,
-                        data: labels.map(m => {
-                            const found = data.find(d => d.month === m && d.source === p.key);
-                            return found ? Number(found.value) : 0;
-                        }),
-                        backgroundColor: p.color,
-                        borderRadius: 6,
-                        barThickness: 30
-                    };
-                });
-
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: thaiLabels,
-                        datasets: datasets
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => monthNames[d.month - 1]),
+                    datasets: [{
+                        label: 'ยอดโอนเงิน (บาท)',
+                        data: data.map(d => d.total_amount),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10b981',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 20,
-                                    font: { size: 12, weight: '600' }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: '#1e293b',
-                                titleFont: { size: 14 },
-                                bodyFont: { size: 14 },
-                                padding: 12,
-                                displayColors: true,
-                                callbacks: {
-                                    label: function (context) {
-                                        return `${context.dataset.label}: ฿${context.raw.toLocaleString()}`;
-                                    }
-                                }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.03)' },
+                            ticks: {
+                                callback: value => '฿' + value.toLocaleString()
                             }
                         },
-                        scales: {
-                            y: {
-                                stacked: true,
-                                beginAtZero: true,
-                                grid: { color: '#f1f5f9' },
-                                ticks: {
-                                    color: '#94a3b8',
-                                    callback: function (value) { return '฿' + value.toLocaleString(); }
-                                }
-                            },
-                            x: {
-                                stacked: true,
-                                grid: { display: false },
-                                ticks: { color: '#94a3b8' }
-                            }
+                        x: {
+                            grid: { display: false }
                         }
                     }
-                });
-            });
-
-        // Sidebar & UI Logic
-        let isSidebarCollapsed = false;
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            isSidebarCollapsed = !isSidebarCollapsed;
-
-            if (isSidebarCollapsed) {
-                sidebar.classList.add('sidebar-collapsed');
-                mainContent.classList.add('main-content-expanded');
-            } else {
-                sidebar.classList.remove('sidebar-collapsed');
-                mainContent.classList.remove('main-content-expanded');
-            }
-        }
-
-        // Notification System
-        let notifications = [];
-        const notifBadge = document.getElementById('notifBadge');
-
-        function updateNotifUI() {
-            if (notifications.length > 0) {
-                notifBadge.textContent = notifications.length;
-                notifBadge.classList.remove('hidden');
-            } else {
-                notifBadge.classList.add('hidden');
-            }
-        }
-
-        function showNotifications() {
-            if (notifications.length === 0) {
-                Swal.fire({
-                    title: 'ไม่มีการแจ้งเตือน',
-                    text: 'เอกสารทั้งหมดได้รับการประมวลผลแล้ว',
-                    icon: 'info',
-                    confirmButtonColor: '#10b981',
-                    customClass: { popup: 'rounded-3xl' }
-                });
-                return;
-            }
-
-            const listHtml = notifications.map((n, i) => {
-                let statusBadge = '';
-                let bgClass = 'bg-emerald-100';
-                let iconClass = 'text-emerald-600';
-
-                if (n.status === 'duplicate') {
-                    statusBadge = '<span class="text-[9px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold ml-2">ซ้ำ</span>';
-                    bgClass = 'bg-orange-100';
-                    iconClass = 'text-orange-600';
-                } else if (n.status === 'warning') {
-                    statusBadge = '<span class="text-[9px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold ml-2">ผิดปกติ</span>';
-                    bgClass = 'bg-red-100';
-                    iconClass = 'text-red-600';
                 }
-
-                return `
-                <div class="flex items-center gap-4 p-4 ${i !== notifications.length - 1 ? 'border-b border-slate-100' : ''} text-left">
-                    <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center ${iconClass}">
-                        <i class="fas ${n.type === 'BANK_SLIP' ? 'fa-exchange-alt' : 'fa-file-invoice-dollar'}"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-bold text-slate-800">${n.type === 'BANK_SLIP' ? 'สลิปการโอน' : 'ใบเสร็จ'}${statusBadge}</p>
-                        <p class="text-xs text-slate-500">ยอดเงิน: ฿${Number(n.amount).toLocaleString()}</p>
-                    </div>
-                    <span class="text-[10px] text-slate-400 font-mono">${new Date().toLocaleTimeString()}</span>
-                </div>
-            `}).join('');
-
-            Swal.fire({
-                title: 'รายการแจ้งเตือนล่าสุด',
-                html: `<div class="mt-4 max-h-80 overflow-y-auto rounded-2xl bg-slate-50 border border-slate-100">${listHtml}</div>`,
-                showCancelButton: true,
-                confirmButtonText: 'รีเฟรชหน้าเว็บ',
-                cancelButtonText: 'ล้างทั้งหมด',
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#f43f5e',
-                customClass: { popup: 'rounded-3xl' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.reload();
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    notifications = [];
-                    updateNotifUI();
-                }
-            });
-        }
-
-        // Socket logic integration
-        const socket = io();
-        socket.on('new_upload', (data) => {
-            // Add to internal notification list
-            if (data.results) {
-                notifications = [...data.results, ...notifications].slice(0, 10);
-                updateNotifUI();
-            }
-
-            // Show Toast
-            const hasProblem = data.results.some(r => r.status === 'duplicate' || r.status === 'warning');
-            const Toast = Swal.mixin({
-                toast: true, position: 'top-end',
-                showConfirmButton: false, timer: 5000, timerProgressBar: true
-            });
-
-            Toast.fire({
-                icon: hasProblem ? 'warning' : 'success',
-                title: hasProblem ? `พบรายการที่ต้องตรวจสอบ ${data.count} รายการ` : `พบรายการใหม่ ${data.count} รายการ`,
-                text: 'คลิกที่รูปกระดิ่งเพื่อดูรายละเอียด'
             });
         });
 
-        function confirmLogout() {
-            Swal.fire({
-                title: 'ยืนยันการออกจากระบบ?',
-                text: "คุณต้องการออกจากเซสชันปัจจุบันหรือไม่?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#f43f5e',
-                confirmButtonText: 'ใช่, ออกจากระบบ',
-                cancelButtonText: 'ยกเลิก',
-                background: '#fff',
-                borderRadius: '1.5rem',
-                customClass: {
-                    title: 'font-bold text-slate-800',
-                    popup: 'rounded-3xl'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/logout';
-                }
-            })
-        }
-    </script>
-</body>
+    function showNotifications() {
+        Swal.fire({
+            title: 'การแจ้งเตือน',
+            text: 'ไม่มีการแจ้งเตือนใหม่ในขณะนี้',
+            icon: 'info',
+            confirmButtonColor: '#10b981',
+            customClass: { popup: 'rounded-3xl' }
+        });
+    }
 
-</html>
+    function confirmLogout() {
+        Swal.fire({
+            title: 'ออกจากระบบ?',
+            text: "คุณต้องการออกจากระบบใช่หรือไม่?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#f43f5e',
+            confirmButtonText: 'ใช่, ออกจากระบบ',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-3xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/logout';
+            }
+        });
+    }
+</script>

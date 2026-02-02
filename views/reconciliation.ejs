@@ -1,0 +1,280 @@
+<div class="p-10">
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card bg-white p-6 rounded-[32px] flex items-center gap-5 border border-slate-100 shadow-sm">
+            <div
+                class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ยอดตรงกัน (<%=
+                        data.filter(d=> d.status === 'match').length %> รายการ)</p>
+                <h4 class="text-2xl font-black text-slate-800">฿<%= Number(totals.match).toLocaleString(undefined,
+                        {minimumFractionDigits: 2}) %>
+                </h4>
+            </div>
+        </div>
+        <div class="glass-card bg-white p-6 rounded-[32px] flex items-center gap-5 border border-slate-100 shadow-sm">
+            <div
+                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">รวมเงินโอนเกิน (
+                    <%= data.filter(d=> d.status === 'over').length %> รายการ)
+                </p>
+                <h4 class="text-2xl font-black text-blue-600">฿<%= Number(totals.over).toLocaleString(undefined,
+                        {minimumFractionDigits: 2}) %>
+                </h4>
+            </div>
+        </div>
+        <div class="glass-card bg-white p-6 rounded-[32px] flex items-center gap-5 border border-slate-100 shadow-sm">
+            <div
+                class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">รวมเงินโอนขาด (
+                    <%= data.filter(d=> d.status === 'under').length %> รายการ)
+                </p>
+                <h4 class="text-2xl font-black text-rose-600">฿<%= Number(totals.under).toLocaleString(undefined,
+                        {minimumFractionDigits: 2}) %>
+                </h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Summary & Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Financial Overview -->
+        <div
+            class="glass-card bg-white p-8 rounded-[32px] flex flex-col justify-between border border-slate-100 shadow-sm">
+            <div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">สรุปภาพรวมการเงิน</h3>
+                <p class="text-sm text-slate-400 mb-6 font-medium">
+                    เปรียบเทียบยอดขายที่คาดหวังกับยอดเงินที่ได้รับจริง</p>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500">มูลค่า Order ทั้งหมด:</span>
+                        <span class="font-bold text-slate-800">฿<%= Number(totals.orderValue).toLocaleString(undefined,
+                                {minimumFractionDigits: 2}) %></span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-slate-500">ยอดเงินที่ได้รับรวม:</span>
+                        <span class="font-bold text-slate-800">฿<%= Number(totals.received).toLocaleString(undefined,
+                                {minimumFractionDigits: 2}) %>
+                        </span>
+                    </div>
+                    <div class="h-px bg-slate-100 my-2"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-slate-600">กำไร/ขาดทุนสุทธิ:</span>
+                        <span class="text-xl font-black <%= totals.net >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+                            <%= totals.net>= 0 ? '+' : '' %>฿<%= Number(totals.net).toLocaleString(undefined,
+                                    {minimumFractionDigits: 2}) %>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="mt-8 p-5 rounded-2xl <%= totals.net >= 0 ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100' %>">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-full flex items-center justify-center <%= totals.net >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white' %>">
+                        <i class="fas <%= totals.net >= 0 ? 'fa-chart-line' : 'fa-chart-area' %>"></i>
+                    </div>
+                    <div>
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-widest <%= totals.net >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+                            สถานะปัจจุบัน</p>
+                        <p class="text-sm font-bold text-slate-700">
+                            ยอดเงิน <%= totals.net>= 0 ? 'เกิน' : 'ขาด' %> <%= Math.abs(totals.percentage).toFixed(2) %>
+                                    %
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconciliation Chart -->
+        <div class="lg:col-span-2 glass-card bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">กราฟเปรียบเทียบมูลค่า</h3>
+                <div class="flex gap-2">
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-200"></span><span
+                            class="text-[10px] font-bold text-slate-400 uppercase">Order</span></div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span
+                            class="text-[10px] font-bold text-slate-400 uppercase">Match</span></div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span><span
+                            class="text-[10px] font-bold text-slate-400 uppercase">Over</span></div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500"></span><span
+                            class="text-[10px] font-bold text-slate-400 uppercase">Under</span></div>
+                </div>
+            </div>
+            <div class="h-[250px]">
+                <canvas id="reconChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Button Group -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="bg-white p-1 rounded-2xl shadow-sm border border-slate-100 flex gap-1">
+            <a href="/reconciliation?status=all"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all <%= filter === 'all' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50' %>">ทั้งหมด</a>
+            <a href="/reconciliation?status=match"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all <%= filter === 'match' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %>">ถูกต้อง</a>
+            <a href="/reconciliation?status=over"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all <%= filter === 'over' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-slate-500 hover:bg-blue-50 hover:text-blue-600' %>">โอนเกิน</a>
+            <a href="/reconciliation?status=under"
+                class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all <%= filter === 'under' ? 'bg-rose-600 text-white shadow-lg shadow-rose-200' : 'text-slate-500 hover:bg-rose-50 hover:text-rose-600' %>">โอนขาด</a>
+        </div>
+
+        <div class="text-sm font-medium text-slate-400 italic">
+            แสดงข้อมูล: <span class="text-slate-600 font-bold">
+                <%= filter==='all' ? 'ทั้งหมด' : (filter==='match' ? 'เฉพาะที่ถูกต้อง' : (filter==='over' ? 'โอนเกิน'
+                    : 'โอนขาด' )) %>
+            </span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left border-b border-slate-100 bg-slate-50/50">
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            คำสั่งซื้อ / ลูกค้า</th>
+                        <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            ยอดจาก Order</th>
+                        <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            ยอดจาก สลิป</th>
+                        <th
+                            class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
+                            ผลการตรวจสอบ</th>
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <% const filteredData=filter==='all' ? data : data.filter(d=> d.status === filter); %>
+                        <% if (filteredData.length===0) { %>
+                            <tr>
+                                <td colspan="5"
+                                    class="px-8 py-20 text-center text-slate-400 font-medium whitespace-nowrap">
+                                    ไม่พบข้อมูลในหมวดหมู่นี้</td>
+                            </tr>
+                            <% } %>
+                                <% filteredData.forEach(item=> { %>
+                                    <tr class="hover:bg-slate-50 transition-all group">
+                                        <td class="px-8 py-5">
+                                            <div class="font-bold text-slate-800">
+                                                <%= item.order_id %>
+                                            </div>
+                                            <div class="text-xs text-slate-400 font-medium">
+                                                <%= item.customer %> • <%= item.date %>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-bold text-slate-600">฿<%=
+                                                Number(item.order_amount).toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-bold text-slate-800">฿<%=
+                                                Number(item.slip_amount).toLocaleString(undefined,
+                                                {minimumFractionDigits: 2}) %>
+                                        </td>
+                                        <td class="px-6 py-5 text-center">
+                                            <% if (item.status==='match' ) { %>
+                                                <div
+                                                    class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-xs font-bold ring-1 ring-emerald-100">
+                                                    <i class="fas fa-check-circle"></i> ถูกต้อง
+                                                </div>
+                                                <% } else if (item.status==='over' ) { %>
+                                                    <div
+                                                        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 text-xs font-bold ring-1 ring-blue-100">
+                                                        <i class="fas fa-exclamation-circle"></i> โอนเกิน (฿<%=
+                                                            Number(item.slip_amount -
+                                                            item.order_amount).toLocaleString() %>
+                                                            )
+                                                    </div>
+                                                    <% } else { %>
+                                                        <div
+                                                            class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-xs font-bold ring-1 ring-rose-100">
+                                                            <i class="fas fa-times-circle"></i> โอนขาด (฿<%=
+                                                                Number(item.order_amount -
+                                                                item.slip_amount).toLocaleString() %>)
+                                                        </div>
+                                                        <% } %>
+                                        </td>
+                                        <td class="px-8 py-5 text-right">
+                                            <button class="text-slate-300 hover:text-indigo-600 transition-colors"><i
+                                                    class="fas fa-eye"></i></button>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Reconciliation Chart
+    const ctx = document.getElementById('reconChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['ภาพรวมการเปรียบเทียบยอดเงิน'],
+            datasets: [
+                {
+                    label: 'ยอด Order ทั้งหมด',
+                    data: [<%= totals.orderValue %>],
+                    backgroundColor: '#e2e8f0',
+                    borderRadius: 8,
+                    barThickness: 40
+                },
+                {
+                    label: 'ยอดที่ถูกต้อง',
+                    data: [<%= totals.match %>],
+                    backgroundColor: '#10b981',
+                    borderRadius: 8,
+                    barThickness: 40
+                },
+                {
+                    label: 'ยอดโอนเกิน',
+                    data: [<%= totals.over %>],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8,
+                    barThickness: 40
+                },
+                {
+                    label: 'ยอดโอนขาด',
+                    data: [<%= totals.under %>],
+                    backgroundColor: '#f43f5e',
+                    borderRadius: 8,
+                    barThickness: 40
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: {
+                        callback: (value) => '฿' + value.toLocaleString()
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>

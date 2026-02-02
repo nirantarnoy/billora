@@ -1,0 +1,13 @@
+<%- include('partials/header') %>
+
+    <div class="flex">
+        <%- include('partials/sidebar') %>
+
+            <div id="mainContent" class="main-content flex-1 p-0 min-h-screen">
+                <%- include('partials/topbar') %>
+
+                    <%- body %>
+            </div>
+    </div>
+
+    <%- include('partials/footer') %>

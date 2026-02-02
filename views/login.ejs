@@ -8,18 +8,92 @@
     <script src="/js/tailwind.min.js"></script>
     <link href="/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --white: #ffffff;
+        }
 
         body {
-            font-family: 'Anuphan', sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', 'Prompt', 'Anuphan', sans-serif;
+            background-color: var(--white);
+            background-image:
+                radial-gradient(circle at top right, var(--primary-light) 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #e0f2fe 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: var(--primary-light);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            top: -100px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            left: -100px;
+            background: #e0f2fe;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(50px, 50px) scale(1.1);
+            }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <div class="bg-white rounded-3xl shadow-2xl p-10">
+<body class="p-4">
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="w-full max-w-md relative z-10">
+        <div class="login-card rounded-3xl p-10">
             <div class="flex flex-col items-center mb-10">
                 <div
                     class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/50 mb-4">
@@ -38,6 +112,7 @@
                 <% } %>
 
                     <form action="/login" method="POST" class="space-y-6">
+                        <input type="hidden" name="_csrf" value="<%= typeof _csrf !== 'undefined' ? _csrf : '' %>">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อผู้ใช้</label>
                             <div class="relative">

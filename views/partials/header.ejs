@@ -10,7 +10,17 @@
     <link href="/css/all.min.css" rel="stylesheet">
     <script src="/js/sweetalert2.min.js"></script>
     <script src="/js/chart.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <meta name="csrf-token" content="<%= typeof _csrf !== 'undefined' ? _csrf : '' %>">
+    <script>
+        window.getCsrfToken = () => $('meta[name="csrf-token"]').attr('content');
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken()
+            }
+        });
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Outfit:wght@300;400;600;700&display=swap');
 
@@ -82,6 +92,25 @@
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(244, 63, 94, 0);
             }
+        }
+
+        .modal {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
