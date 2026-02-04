@@ -38,10 +38,41 @@ dnf install python3 -y
 echo "[4/6] Installing dependencies for 'canvas' (Cairo, Pango, etc.)..."
 dnf install cairo cairo-devel cairomm-devel libjpeg-turbo-devel pango pango-devel pangomm-devel giflib-devel -y
 
-# 5. Install MySQL/MariaDB Client
-# Required for the system's Auto Backup feature (mysqldump)
-echo "[5/6] Installing MySQL/MariaDB Client..."
-dnf install mariadb -y
+# 5. Install MySQL/MariaDB Server (Database)
+echo "[5/8] Installing MySQL/MariaDB Server..."
+dnf install mariadb mariadb-server openssl -y
+systemctl enable mariadb
+systemctl start mariadb
+
+# Auto-secure MariaDB (Set Root Password if not set)
+echo "Checking MariaDB security status..."
+# Try to connect as root without password
+if mysql -u root -e "status" >/dev/null 2>&1; then
+    echo "Detected fresh MariaDB installation. Securing..."
+    
+    # Generate a random strong password
+    DB_ROOT_PASS=$(openssl rand -base64 12)
+    
+    # Apply security settings
+    mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test_%';
+FLUSH PRIVILEGES;
+EOF
+
+    echo "========================================================"
+    echo "   [IMPORTANT] MariaDB Root Password Set!"
+    echo "========================================================"
+    echo "   Password: ${DB_ROOT_PASS}"
+    echo "========================================================"
+    echo "   Please save this password securely."
+    echo "========================================================"
+else
+    echo "MariaDB is already secured (or service is not running)."
+fi
 
 # 6. Install PM2 (Process Manager)
 # Recommended for running Node.js apps in production
