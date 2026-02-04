@@ -1,0 +1,317 @@
+<div class="px-6 py-6 max-w-[1600px] mx-auto">
+    <div class="mb-6">
+        <a href="/fulfillment/products" class="text-slate-500 hover:text-slate-700 mb-2 inline-flex items-center gap-1">
+            <i class="fas fa-arrow-left"></i> กลับไปหน้ารายการสินค้า
+        </a>
+        <h1 class="text-2xl font-bold text-slate-800">
+            <%= title %>
+        </h1>
+    </div>
+
+    <form id="productForm" action="/fulfillment/products" method="POST" class="max-w-5xl">
+        <input type="hidden" name="id" value="<%= product ? product.id : '' %>">
+        <input type="hidden" name="image_urls_json" id="imageUrlJson">
+        <input type="hidden" name="marketplace_mappings_json" id="mappingJson">
+        <input type="hidden" name="_csrf" value="<%= _csrf %>">
+
+        <!-- Custom Tabs -->
+        <div class="border-b border-gray-200 mb-6">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <a href="#" onclick="switchTab(event, 'general')"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-emerald-600 border-emerald-500"
+                    id="tab-btn-general">
+                    ข้อมูลทั่วไป
+                </a>
+                <a href="#" onclick="switchTab(event, 'pricing')"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    id="tab-btn-pricing">
+                    ราคา & ต้นทุน
+                </a>
+                <a href="#" onclick="switchTab(event, 'stock_settings')"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    id="tab-btn-stock_settings">
+                    ตั้งค่าสต็อก (Reorder)
+                </a>
+                <a href="#" onclick="switchTab(event, 'images')"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    id="tab-btn-images">
+                    รูปภาพ (Max 4)
+                </a>
+                <a href="#" onclick="switchTab(event, 'marketplace')"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    id="tab-btn-marketplace">
+                    Marketplace Mapping
+                </a>
+            </nav>
+        </div>
+
+        <!-- Tab Contents -->
+
+        <!-- General -->
+        <div id="general" class="tab-content block bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">ชื่อสินค้า <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" name="name"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.name : '' %>" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">รหัสสินค้า (Product Code) <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" name="code"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.code : '' %>" required />
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Main SKU <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" name="sku"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.sku : '' %>" required />
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">คำอธิบาย</label>
+                    <textarea name="description" rows="4"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"><%= product ? product.description : '' %></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Unit ID (หน่วยนับ)</label>
+                    <input type="number" name="unit_id"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.unit_id : '' %>" placeholder="1" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing -->
+        <div id="pricing" class="tab-content hidden bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">ราคาต้นทุน (Cost)</label>
+                    <input type="number" step="0.01" name="cost"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.cost : '0.00' %>" />
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">ราคาขาย (Sale Price)</label>
+                    <input type="number" step="0.01" name="sale_price"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.sale_price : '0.00' %>" />
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">ต้นทุนเฉลี่ย (Avg Cost)</label>
+                    <input type="number" step="0.01" name="avg_cost"
+                        class="block w-full rounded-md border-gray-300 bg-slate-50 shadow-sm sm:text-sm p-2 border text-slate-500 cursor-not-allowed"
+                        value="<%= product ? product.avg_cost : '0.00' %>" readonly />
+                    <p class="mt-1 text-xs text-slate-400">คำนวณอัตโนมัติจากระบบสต็อก</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Settings -->
+        <div id="stock_settings"
+            class="tab-content hidden bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">การแจ้งเตือนและการสั่งซื้อ (Reorder Point)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">จุดสั่งซื้อ (Min Stock)</label>
+                    <input type="number" step="0.01" name="min_stock"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.min_stock : '0.00' %>" />
+                    <p class="mt-1 text-xs text-slate-400">แจ้งเตือนเมื่อสินค้าคงเหลือต่ำกว่านี้</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">ปริมาณสต็อกสูงสุด (Max Stock)</label>
+                    <input type="number" step="0.01" name="max_stock"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.max_stock : '0.00' %>" />
+                    <p class="mt-1 text-xs text-slate-400">เป้าหมายสต็อกที่ต้องการเก็บไว้</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">จำนวนสั่งซื้อต่อหน่วย (Multiple
+                        Qty)</label>
+                    <input type="number" step="0.01" name="multiple_qty"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                        value="<%= product ? product.multiple_qty : '1.00' %>" />
+                    <p class="mt-1 text-xs text-slate-400">จำนวนขั้นต่ำในการสั่งซื้อแต่ละครั้ง</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Images -->
+        <div id="images" class="tab-content hidden bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">รูปภาพดสินค้า (สูงสุด 4 รูป)</h3>
+            <div class="space-y-4 max-w-2xl">
+                <% let imgArr=[]; if (product && product.image_urls) { imgArr=Array.isArray(product.image_urls) ?
+                    product.image_urls : []; } // Pre-fill 4 slots %>
+                    <% for(let i=0; i<4; i++) { let val=imgArr[i] || '' ; %>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">URL รูปภาพที่ <%= i+1 %></label>
+                            <div class="flex gap-3">
+                                <input type="text"
+                                    class="img-input block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border"
+                                    value="<%= val %>" placeholder="https://..." onchange="updatePreview(<%= i %>)" />
+                                <div
+                                    class="w-12 h-12 rounded bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                    <img id="preview_<%= i %>"
+                                        src="<%= val || 'https://via.placeholder.com/50?text=Img' %>"
+                                        class="w-full h-full object-cover">
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+
+        <!-- Marketplace -->
+        <div id="marketplace" class="tab-content hidden bg-white border border-slate-200 rounded-xl p-6 shadow-sm mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800">Marketplace Mapping</h3>
+                    <p class="text-sm text-slate-500">จับคู่ SKU กับ Shopee, Lazada, TikTok</p>
+                </div>
+                <button type="button" onclick="addMappingRow()"
+                    class="inline-flex items-center px-3 py-1.5 border border-emerald-600 text-xs font-medium rounded text-emerald-600 bg-white hover:bg-emerald-50">
+                    <i class="fas fa-plus mr-1"></i> เพิ่มรายการ
+                </button>
+            </div>
+
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 border-b border-gray-200">
+                    <tr>
+                        <th class="p-3 w-1/4 text-sm font-semibold text-gray-700">Platform</th>
+                        <th class="p-3 text-sm font-semibold text-gray-700">Marketplace SKU</th>
+                        <th class="p-3 w-[50px]"></th>
+                    </tr>
+                </thead>
+                <tbody id="mappingTableBody" class="divide-y divide-gray-200">
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+
+            <% if (mappings && mappings.length> 0) { %>
+                <script>
+                    window.existingMappings = <% - JSON.stringify(mappings) %>;
+                </script>
+                <% } %>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+            <a href="/fulfillment/products"
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">ยกเลิก</a>
+            <button type="submit" onclick="prepareSubmit()"
+                class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">บันทึกข้อมูล</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function switchTab(e, tabId) {
+        e.preventDefault();
+
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.add('hidden');
+            el.classList.remove('block');
+        });
+
+        // Show target
+        const target = document.getElementById(tabId);
+        target.classList.remove('hidden');
+        target.classList.add('block');
+
+        // Reset tabs styles
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('text-emerald-600', 'border-emerald-500');
+            el.classList.add('border-transparent', 'text-gray-500');
+        });
+
+        // Set active tab style
+        const btn = document.getElementById('tab-btn-' + tabId);
+        btn.classList.remove('border-transparent', 'text-gray-500');
+        btn.classList.add('text-emerald-600', 'border-emerald-500');
+    }
+
+    function updatePreview(index) {
+        const input = document.querySelectorAll('.img-input')[index];
+        const img = document.getElementById('preview_' + index);
+        if (input.value) {
+            img.src = input.value;
+        } else {
+            img.src = 'https://via.placeholder.com/50?text=Img';
+        }
+    }
+
+    // Mapping Logic
+    let mappings = window.existingMappings || [];
+
+    function renderMappings() {
+        const tbody = document.getElementById('mappingTableBody');
+        tbody.innerHTML = '';
+
+        mappings.forEach((map, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="p-2">
+                    <select class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border map-platform" onchange="updateMap(${index}, 'platform', this.value)">
+                        <option value="shopee" ${map.platform === 'shopee' ? 'selected' : ''}>Shopee</option>
+                        <option value="lazada" ${map.platform === 'lazada' ? 'selected' : ''}>Lazada</option>
+                        <option value="tiktok" ${map.platform === 'tiktok' ? 'selected' : ''}>TikTok Shop</option>
+                    </select>
+                </td>
+                <td class="p-2">
+                    <input type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm p-2 border map-sku" value="${map.marketplace_sku || ''}" onchange="updateMap(${index}, 'sku', this.value)" placeholder="SKU บนระบบอื่น..." />
+                </td>
+                <td class="p-2 text-center">
+                    <button type="button" onclick="removeMapping(${index})" class="text-red-400 hover:text-red-600 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (mappings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">ยังไม่มีการจับคู่อ้างอิง</td></tr>';
+        }
+    }
+
+    function addMappingRow() {
+        mappings.push({ platform: 'shopee', marketplace_sku: '', product_id: '' });
+        renderMappings();
+    }
+
+    function removeMapping(index) {
+        mappings.splice(index, 1);
+        renderMappings();
+    }
+
+    function updateMap(index, key, value) {
+        if (key === 'platform') mappings[index].platform = value;
+        if (key === 'sku') mappings[index].marketplace_sku = value;
+    }
+
+    function prepareSubmit() {
+        // Gather Images
+        const imgInputs = document.querySelectorAll('.img-input');
+        const imgUrls = [];
+        imgInputs.forEach(input => {
+            if (input.value.trim()) imgUrls.push(input.value.trim());
+        });
+        document.getElementById('imageUrlJson').value = JSON.stringify(imgUrls);
+
+        // Gather Mappings
+        const cleanMappings = mappings.map(m => ({
+            platform: m.platform,
+            sku: m.marketplace_sku,
+            product_id: m.product_id
+        })).filter(m => m.sku); // Only send if SKU provides
+
+        document.getElementById('mappingJson').value = JSON.stringify(cleanMappings);
+    }
+
+    // Init
+    renderMappings();
+</script>

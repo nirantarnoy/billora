@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billora | ลงทะเบียนองค์กร</title>
+    <script src="/js/tailwind.min.js"></script>
+    <link href="/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="/js/sweetalert2.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #d1fae5;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Inter', 'Prompt', 'Anuphan', sans-serif;
+            background-color: var(--white);
+            background-image:
+                radial-gradient(circle at top right, var(--primary-light) 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #e0f2fe 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .bg-blob {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: var(--primary-light);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-1 {
+            top: -100px;
+            right: -100px;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            left: -100px;
+            background: #e0f2fe;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(50px, 50px) scale(1.1);
+            }
+        }
+
+        .register-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            animation: cardAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: stepAppear 0.5s ease-out;
+        }
+
+        @keyframes stepAppear {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <!-- Back to Home Button (Left) -->
+    <a href="/"
+        class="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl text-slate-600 hover:text-emerald-600 hover:border-emerald-300 transition-all shadow-lg">
+        <i class="fas fa-arrow-left"></i>
+        <span class="font-semibold">กลับหน้าหลัก</span>
+    </a>
+
+    <!-- Login Button (Right) -->
+    <a href="/login"
+        class="fixed top-6 right-6 z-50 flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-emerald-600/30">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>เข้าสู่ระบบ</span>
+    </a>
+
+    <div class="w-full max-w-2xl relative z-10">
+        <div class="register-card rounded-3xl p-10">
+            <!-- Header -->
+            <div class="flex flex-col items-center mb-8">
+                <div
+                    class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/50 mb-4">
+                    <i class="fas fa-file-invoice text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800">Billora<span class="text-emerald-500">Pro</span></h1>
+                <p class="text-slate-500 mt-2">ลงทะเบียนองค์กรเพื่อเริ่มใช้งาน</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-semibold text-slate-700" id="stepLabel">ข้อมูลองค์กร</span>
+                    <span class="text-sm text-slate-500" id="stepNumber">ขั้นตอน 1/2</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                    <div class="progress-bar bg-emerald-600 h-2 rounded-full" id="progressBar" style="width: 50%">
+                    </div>
+                </div>
+            </div>
+
+            <form id="registerForm">
+                <!-- Step 1: Company Info -->
+                <div class="step active" id="step1">
+                    <h3 class="text-xl font-bold text-slate-800 mb-6">ข้อมูลองค์กร/บริษัท</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ชื่อบริษัท <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="company_name" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="บริษัท ABC จำกัด">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ชื่อบริษัท (ภาษาอังกฤษ)
+                            </label>
+                            <input type="text" id="company_name_en"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="ABC Company Limited">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    เลขประจำตัวผู้เสียภาษี
+                                </label>
+                                <input type="text" id="tax_id" maxlength="13"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    placeholder="0123456789012">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    เบอร์โทรศัพท์
+                                </label>
+                                <input type="tel" id="phone"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    placeholder="021234567">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ที่อยู่
+                            </label>
+                            <textarea id="address" rows="3"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="123 ถนนทดสอบ แขวงทดสอบ เขตทดสอบ กรุงเทพฯ 10100"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                อีเมลบริษัท
+                            </label>
+                            <input type="email" id="company_email"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="info@company.com">
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="nextStep()"
+                        class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] transform active:scale-95">
+                        ถัดไป <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+
+                <!-- Step 2: Owner Info -->
+                <div class="step" id="step2">
+                    <h3 class="text-xl font-bold text-slate-800 mb-6">ข้อมูลผู้ดูแลระบบ (Owner)</h3>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    ชื่อจริง
+                                </label>
+                                <input type="text" id="owner_first_name"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    placeholder="สมชาย">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                    นามสกุล
+                                </label>
+                                <input type="text" id="owner_last_name"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    placeholder="ทดสอบ">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                อีเมล <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" id="owner_email" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="owner@company.com">
+                            <p class="text-xs text-slate-500 mt-1">ใช้สำหรับเข้าสู่ระบบ</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                รหัสผ่าน <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" id="owner_password" required minlength="6"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="อย่างน้อย 6 ตัวอักษร">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                ยืนยันรหัสผ่าน <span class="text-red-500">*</span>
+                            </label>
+                            <input type="password" id="owner_password_confirm" required minlength="6"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="ยืนยันรหัสผ่าน">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                เบอร์โทรศัพท์
+                            </label>
+                            <input type="tel" id="owner_phone"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                placeholder="0812345678">
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" id="accept_terms" required
+                                    class="mt-1 w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm text-slate-700">
+                                    ฉันยอมรับ <a href="#" onclick="openTermsModal(event)"
+                                        class="text-emerald-600 font-semibold hover:underline">ข้อกำหนดการใช้งาน</a>
+                                    และ <a href="#" onclick="openPrivacyModal(event)"
+                                        class="text-emerald-600 font-semibold hover:underline">นโยบายความเป็นส่วนตัว</a>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 mt-6">
+                        <button type="button" onclick="prevStep()"
+                            class="w-1/3 bg-slate-200 hover:bg-slate-300 text-slate-700 py-4 rounded-xl font-bold transition-all">
+                            <i class="fas fa-arrow-left mr-2"></i> ย้อนกลับ
+                        </button>
+                        <button type="submit" id="submitBtn"
+                            class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                            <i class="fas fa-check mr-2"></i> ลงทะเบียน
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="termsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+            <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 text-white">
+                <h3 class="text-2xl font-bold">ข้อกำหนดการใช้งาน</h3>
+                <p class="text-emerald-100 text-sm mt-1">Terms of Service</p>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div class="prose prose-sm max-w-none">
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">1. การยอมรับข้อกำหนด</h4>
+                    <p class="text-slate-600 mb-4">
+                        การใช้งานระบบ Billora ถือว่าคุณยอมรับข้อกำหนดและเงื่อนไขการใช้งานทั้งหมด
+                        หากคุณไม่ยอมรับข้อกำหนดเหล่านี้ กรุณาอย่าใช้งานระบบ
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">2. การใช้งานระบบ</h4>
+                    <p class="text-slate-600 mb-4">
+                        คุณตกลงที่จะใช้งานระบบเพื่อวัตถุประสงค์ทางธุรกิจที่ถูกต้องตามกฎหมายเท่านั้น
+                        ห้ามใช้งานระบบในลักษณะที่ผิดกฎหมายหรือละเมิดสิทธิของผู้อื่น
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">3. ความรับผิดชอบของผู้ใช้</h4>
+                    <p class="text-slate-600 mb-4">
+                        คุณมีความรับผิดชอบในการรักษาความปลอดภัยของบัญชีผู้ใช้และรหัสผ่านของคุณ
+                        คุณต้องแจ้งให้เราทราบทันทีหากพบการใช้งานที่ไม่ได้รับอนุญาต
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">4. ข้อจำกัดความรับผิด</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราจะไม่รับผิดชอบต่อความเสียหายใดๆ ที่เกิดจากการใช้งานหรือไม่สามารถใช้งานระบบได้
+                        รวมถึงการสูญหายของข้อมูลหรือกำไร
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">5. การเปลี่ยนแปลงข้อกำหนด</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราขอสงวนสิทธิ์ในการเปลี่ยนแปลงข้อกำหนดการใช้งานได้ตลอดเวลา
+                        การเปลี่ยนแปลงจะมีผลทันทีเมื่อประกาศบนเว็บไซต์
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 p-4 flex justify-end">
+                <button onclick="closeTermsModal()"
+                    class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+                <h3 class="text-2xl font-bold">นโยบายความเป็นส่วนตัว</h3>
+                <p class="text-blue-100 text-sm mt-1">Privacy Policy</p>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <div class="prose prose-sm max-w-none">
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">1. การเก็บรวบรวมข้อมูล</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราเก็บรวบรวมข้อมูลส่วนบุคคลที่คุณให้ไว้เมื่อลงทะเบียนใช้งาน รวมถึง:
+                    </p>
+                    <ul class="list-disc list-inside text-slate-600 mb-4 space-y-1">
+                        <li>ชื่อ-นามสกุล</li>
+                        <li>อีเมล</li>
+                        <li>เบอร์โทรศัพท์</li>
+                        <li>ข้อมูลบริษัท/องค์กร</li>
+                    </ul>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">2. การใช้ข้อมูล</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราใช้ข้อมูลของคุณเพื่อ:
+                    </p>
+                    <ul class="list-disc list-inside text-slate-600 mb-4 space-y-1">
+                        <li>จัดการบัญชีผู้ใช้และให้บริการ</li>
+                        <li>ปรับปรุงและพัฒนาระบบ</li>
+                        <li>ติดต่อสื่อสารเกี่ยวกับบริการ</li>
+                        <li>ป้องกันการฉ้อโกงและรักษาความปลอดภัย</li>
+                    </ul>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">3. การเปิดเผยข้อมูล</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราจะไม่เปิดเผยข้อมูลส่วนบุคคลของคุณให้กับบุคคลที่สาม
+                        เว้นแต่ได้รับความยินยอมจากคุณหรือเป็นไปตามกฎหมาย
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">4. ความปลอดภัยของข้อมูล</h4>
+                    <p class="text-slate-600 mb-4">
+                        เราใช้มาตรการรักษาความปลอดภัยที่เหมาะสมเพื่อปกป้องข้อมูลของคุณ
+                        จากการเข้าถึง การใช้งาน หรือการเปิดเผยโดยไม่ได้รับอนุญาต
+                    </p>
+
+                    <h4 class="text-lg font-bold text-slate-800 mb-3">5. สิทธิของคุณ</h4>
+                    <p class="text-slate-600 mb-4">
+                        คุณมีสิทธิ์ในการเข้าถึง แก้ไข หรือลบข้อมูลส่วนบุคคลของคุณได้ตลอดเวลา
+                        โดยติดต่อผ่านระบบหรือทีมสนับสนุนของเรา
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-slate-200 p-4 flex justify-end">
+                <button onclick="closePrivacyModal()"
+                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all">
+                    ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function nextStep() {
+            // Validate step 1
+            const companyName = document.getElementById('company_name').value;
+            if (!companyName.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'กรุณากรอกข้อมูล',
+                    text: 'กรุณากรอกชื่อบริษัท',
+                    confirmButtonColor: '#10b981'
+                });
+                return;
+            }
+
+            currentStep = 2;
+            updateStep();
+        }
+
+        function prevStep() {
+            currentStep = 1;
+            updateStep();
+        }
+
+        function updateStep() {
+            // Hide all steps
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+
+            // Show current step
+            document.getElementById('step' + currentStep).classList.add('active');
+
+            // Update progress
+            const progress = (currentStep / 2) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('stepNumber').textContent = `ขั้นตอน ${currentStep}/2`;
+            document.getElementById('stepLabel').textContent = currentStep === 1 ? 'ข้อมูลองค์กร' : 'ข้อมูลผู้ดูแลระบบ';
+        }
+
+        // Modal Functions
+        function openTermsModal(event) {
+            event.preventDefault();
+            document.getElementById('termsModal').classList.remove('hidden');
+        }
+
+        function closeTermsModal() {
+            document.getElementById('termsModal').classList.add('hidden');
+        }
+
+        function openPrivacyModal(event) {
+            event.preventDefault();
+            document.getElementById('privacyModal').classList.remove('hidden');
+        }
+
+        function closePrivacyModal() {
+            document.getElementById('privacyModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('termsModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeTermsModal();
+            }
+        });
+
+        document.getElementById('privacyModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closePrivacyModal();
+            }
+        });
+
+        // Check checkbox and enable/disable submit button
+        const acceptTermsCheckbox = document.getElementById('accept_terms');
+        const submitBtn = document.getElementById('submitBtn');
+
+        acceptTermsCheckbox.addEventListener('change', function () {
+            submitBtn.disabled = !this.checked;
+        });
+
+        // Initially disable submit button
+        submitBtn.disabled = true;
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Double check terms acceptance
+            if (!acceptTermsCheckbox.checked) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณายอมรับข้อกำหนด',
+                    text: 'คุณต้องยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัวก่อนลงทะเบียน',
+                    confirmButtonColor: '#10b981'
+                });
+                return;
+            }
+
+
+            // Validate passwords match
+            const password = document.getElementById('owner_password').value;
+            const confirmPassword = document.getElementById('owner_password_confirm').value;
+
+            if (password !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'รหัสผ่านไม่ตรงกัน',
+                    text: 'กรุณาตรวจสอบรหัสผ่านและยืนยันรหัสผ่านให้ตรงกัน',
+                    confirmButtonColor: '#10b981'
+                });
+                return;
+            }
+
+            // Collect data
+            const data = {
+                company_name: document.getElementById('company_name').value,
+                company_name_en: document.getElementById('company_name_en').value,
+                tax_id: document.getElementById('tax_id').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                email: document.getElementById('company_email').value,
+                owner_first_name: document.getElementById('owner_first_name').value,
+                owner_last_name: document.getElementById('owner_last_name').value,
+                owner_email: document.getElementById('owner_email').value,
+                owner_password: password,
+                owner_phone: document.getElementById('owner_phone').value
+            };
+
+            // Show loading
+            Swal.fire({
+                title: 'กำลังลงทะเบียน...',
+                html: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch('/api/tenants/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลงทะเบียนสำเร็จ!',
+                        html: `
+                            <p class="mb-2">ยินดีต้อนรับสู่ Billora!</p>
+                            <p class="text-sm text-slate-600">รหัสองค์กร: <strong class="text-emerald-600">${result.data.tenant_code}</strong></p>
+                            <p class="text-sm text-slate-600 mt-2">กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...</p>
+                        `,
+                        confirmButtonColor: '#10b981',
+                        timer: 3000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        window.location.href = '/login';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: result.message || 'ไม่สามารถลงทะเบียนได้ กรุณาลองใหม่อีกครั้ง',
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

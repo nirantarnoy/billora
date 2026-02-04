@@ -1,0 +1,657 @@
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 mb-2">
+                    <i class="fas fa-clock text-emerald-600"></i>
+                    Auto Backup Schedules
+                </h1>
+                <p class="text-slate-600">จัดการกำหนดการสำรองข้อมูลอัตโนมัติ</p>
+            </div>
+            <button onclick="openCreateModal()"
+                class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-emerald-600/30 transition-all hover:scale-105">
+                <i class="fas fa-plus mr-2"></i>
+                สร้าง Schedule ใหม่
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-600 text-sm mb-1">Total Schedules</p>
+                    <p class="text-3xl font-bold text-slate-800">
+                        <%= schedules.length %>
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-600 text-sm mb-1">Active</p>
+                    <p class="text-3xl font-bold text-emerald-600">
+                        <%= schedules.filter(s=> s.is_active).length %>
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-check-circle text-2xl text-emerald-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-600 text-sm mb-1">Success Rate</p>
+                    <p class="text-3xl font-bold text-green-600">
+                        <% const totalSuccess=schedules.reduce((sum, s)=> sum + (s.success_count || 0), 0);
+                            const totalFailed = schedules.reduce((sum, s) => sum + (s.failed_count || 0), 0);
+                            const total = totalSuccess + totalFailed;
+                            const rate = total > 0 ? Math.round((totalSuccess / total) * 100) : 100;
+                            %>
+                            <%= rate %>%
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-line text-2xl text-green-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-600 text-sm mb-1">Total Backups</p>
+                    <p class="text-3xl font-bold text-purple-600">
+                        <%= schedules.reduce((sum, s)=> sum + (s.success_count || 0), 0) %>
+                    </p>
+                </div>
+                <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-database text-2xl text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedules List -->
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b border-slate-100">
+            <h2 class="text-xl font-bold text-slate-800">
+                <i class="fas fa-list mr-2"></i>
+                รายการ Schedules
+            </h2>
+        </div>
+
+        <div class="p-6">
+            <% if (schedules.length===0) { %>
+                <div class="text-center py-12">
+                    <i class="fas fa-calendar-times text-6xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-600 text-lg">ยังไม่มี Schedule</p>
+                    <p class="text-slate-400 text-sm mt-2">คลิก "สร้าง Schedule ใหม่" เพื่อเริ่มต้น</p>
+                </div>
+                <% } else { %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <% schedules.forEach(schedule=> { %>
+                            <div
+                                class="schedule-card bg-gradient-to-br from-white to-slate-50 rounded-xl p-6 border-2 <%= schedule.is_active ? 'border-emerald-200' : 'border-slate-200' %> relative overflow-hidden">
+                                <!-- Status Badge -->
+                                <div class="absolute top-4 right-4">
+                                    <span
+                                        class="px-3 py-1 rounded-full text-xs font-semibold <%= schedule.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600' %>">
+                                        <%= schedule.is_active ? '✓ Active' : '○ Inactive' %>
+                                    </span>
+                                </div>
+
+                                <!-- Schedule Info -->
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-bold text-slate-800 mb-2 pr-20">
+                                        <i class="fas fa-clock text-emerald-600 mr-2"></i>
+                                        <%= schedule.name %>
+                                    </h3>
+                                    <p class="text-slate-600 text-sm mb-3">
+                                        <%= schedule.description || '-' %>
+                                    </p>
+
+                                    <div class="space-y-2">
+                                        <div class="flex items-center text-sm">
+                                            <i class="fas fa-calendar-day w-5 text-slate-400"></i>
+                                            <span class="text-slate-600 font-mono">
+                                                <%= schedule.cron_expression %>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center text-sm">
+                                            <i class="fas fa-database w-5 text-slate-400"></i>
+                                            <span class="text-slate-600">
+                                                <%= schedule.backup_type==='full' ? 'Full Backup' : 'Tenant Backup' %>
+                                                    <% if (schedule.tenant_name) { %>
+                                                        (<%= schedule.tenant_name %>)
+                                                            <% } %>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center text-sm">
+                                            <i class="fas fa-history w-5 text-slate-400"></i>
+                                            <span class="text-slate-600">เก็บ <%= schedule.retention_days %> วัน
+                                                    (สูงสุด <%= schedule.max_backups %> ไฟล์)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stats -->
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div class="bg-green-50 rounded-lg p-3 text-center">
+                                        <p class="text-2xl font-bold text-green-600">
+                                            <%= schedule.success_count || 0 %>
+                                        </p>
+                                        <p class="text-xs text-green-700">สำเร็จ</p>
+                                    </div>
+                                    <div class="bg-red-50 rounded-lg p-3 text-center">
+                                        <p class="text-2xl font-bold text-red-600">
+                                            <%= schedule.failed_count || 0 %>
+                                        </p>
+                                        <p class="text-xs text-red-700">ล้มเหลว</p>
+                                    </div>
+                                </div>
+
+                                <!-- Last Run -->
+                                <% if (schedule.last_run_at) { %>
+                                    <div class="text-xs text-slate-500 mb-4">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        รันล่าสุด: <%= new Date(schedule.last_run_at).toLocaleString('th-TH') %>
+                                    </div>
+                                    <% } %>
+
+                                        <!-- Actions -->
+                                        <div class="flex gap-2">
+                                            <button
+                                                onclick="toggleSchedule(<%= schedule.id %>, <%= schedule.is_active ? 'true' : 'false' %>)"
+                                                class="flex-1 <%= schedule.is_active ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' %> py-2 px-4 rounded-lg text-sm font-semibold transition-all">
+                                                <i class="fas fa-<%= schedule.is_active ? 'pause' : 'play' %> mr-1"></i>
+                                                <%= schedule.is_active ? 'ปิด' : 'เปิด' %>
+                                            </button>
+                                            <button onclick="runNow(<%= schedule.id %>)"
+                                                class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-4 rounded-lg text-sm font-semibold transition-all">
+                                                <i class="fas fa-play-circle mr-1"></i>
+                                                รันทันที
+                                            </button>
+                                            <button onclick="editSchedule(<%= schedule.id %>)"
+                                                class="bg-amber-100 hover:bg-amber-200 text-amber-700 py-2 px-4 rounded-lg text-sm font-semibold transition-all">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="deleteSchedule(<%= schedule.id %>)"
+                                                class="bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-lg text-sm font-semibold transition-all">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <% } %>
+        </div>
+    </div>
+
+    <!-- Backup History -->
+    <div class="mt-8 bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-slate-800">
+                <i class="fas fa-history mr-2"></i>
+                ประวัติ Backup ล่าสุด
+            </h2>
+            <button onclick="loadHistory()" class="text-emerald-600 hover:text-emerald-700 font-semibold text-sm">
+                <i class="fas fa-sync-alt mr-1"></i>
+                รีเฟรช
+            </button>
+        </div>
+        <div id="historyContainer" class="p-6">
+            <div class="text-center py-8 text-slate-400">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p>กำลังโหลด...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div id="scheduleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 text-white sticky top-0">
+            <h3 class="text-2xl font-bold" id="modalTitle">สร้าง Schedule ใหม่</h3>
+        </div>
+
+        <form id="scheduleForm" class="p-6 space-y-4">
+            <input type="hidden" id="schedule_id">
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อ Schedule *</label>
+                <input type="text" id="name" required
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    placeholder="เช่น Daily Full Backup">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">คำอธิบาย</label>
+                <textarea id="description" rows="2"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    placeholder="คำอธิบายเพิ่มเติม"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Cron Expression *
+                    <a href="https://crontab.guru/" target="_blank" class="text-emerald-600 text-xs ml-2">
+                        <i class="fas fa-question-circle"></i> ดูตัวอย่าง
+                    </a>
+                </label>
+                <input type="text" id="cron_expression" required
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none font-mono"
+                    placeholder="0 2 * * *">
+                <p class="text-xs text-slate-500 mt-1">
+                    ตัวอย่าง: 0 2 * * * = ทุกวัน 02:00 AM
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภท Backup *</label>
+                    <select id="backup_type" required
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                        <option value="full">Full Backup</option>
+                        <option value="tenant">Tenant Backup</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">เก็บกี่วัน *</label>
+                    <input type="number" id="retention_days" required min="1" value="7"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">เก็บสูงสุดกี่ไฟล์ *</label>
+                <input type="number" id="max_backups" required min="1" value="10"
+                    class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-4">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="notify_on_failure" checked
+                        class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                    <span class="text-sm text-slate-700">แจ้งเตือนเมื่อ Backup ล้มเหลว</span>
+                </label>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal()"
+                    class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-semibold transition-all">
+                    ยกเลิก
+                </button>
+                <button type="submit"
+                    class="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-3 rounded-xl font-semibold transition-all">
+                    <i class="fas fa-save mr-2"></i>
+                    บันทึก
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .schedule-card {
+        transition: all 0.3s ease;
+    }
+
+    .schedule-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<!-- Injected JSON data -->
+<script type="application/json" id="schedules-json">
+    <%- JSON.stringify(schedules || []) %>
+</script>
+
+<script>
+    // Safe injection of data
+    let schedulesData = [];
+    try {
+        const rawData = document.getElementById('schedules-json').textContent;
+        // Handle potential empty content
+        if (rawData && rawData.trim()) {
+            schedulesData = JSON.parse(rawData);
+        }
+    } catch (e) {
+        console.error('Failed to parse schedules data', e);
+    }
+
+    // Load history on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof loadHistory === 'function') {
+            loadHistory();
+        } else {
+            console.error('loadHistory function is not defined');
+        }
+    });
+
+    // Open create modal
+    function openCreateModal() {
+        const modalTitle = document.getElementById('modalTitle');
+        const form = document.getElementById('scheduleForm');
+        const idInput = document.getElementById('schedule_id');
+        const modal = document.getElementById('scheduleModal');
+
+        if (modalTitle) modalTitle.textContent = 'สร้าง Schedule ใหม่';
+        if (form) form.reset();
+        if (idInput) idInput.value = '';
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    // Close modal
+    function closeModal() {
+        const modal = document.getElementById('scheduleModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    // Submit form
+    const scheduleForm = document.getElementById('scheduleForm');
+    if (scheduleForm) {
+        scheduleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const scheduleId = document.getElementById('schedule_id').value;
+            const nameEl = document.getElementById('name');
+            const descEl = document.getElementById('description');
+            const cronEl = document.getElementById('cron_expression');
+            const typeEl = document.getElementById('backup_type');
+            const retentionEl = document.getElementById('retention_days');
+            const maxEl = document.getElementById('max_backups');
+            const notifyEl = document.getElementById('notify_on_failure');
+
+            const data = {
+                name: nameEl.value,
+                description: descEl.value,
+                cron_expression: cronEl.value,
+                backup_type: typeEl.value,
+                retention_days: parseInt(retentionEl.value),
+                max_backups: parseInt(maxEl.value),
+                notify_on_failure: notifyEl.checked
+            };
+
+            try {
+                const url = scheduleId ? `/backup/schedules/${scheduleId}` : '/backup/schedules';
+                const method = scheduleId ? 'PUT' : 'POST';
+
+                // Check csrf token availability
+                const csrfToken = window.getCsrfToken ? window.getCsrfToken() : '';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: result.message,
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: result.message,
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+            } catch (error) {
+                console.error('Submit Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        });
+    }
+
+    // Toggle schedule
+    async function toggleSchedule(id, currentStatus) {
+        try {
+            const csrfToken = window.getCsrfToken ? window.getCsrfToken() : '';
+            const response = await fetch(`/backup/schedules/${id}/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: result.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                confirmButtonColor: '#10b981'
+            });
+        }
+    }
+
+    // Run now
+    async function runNow(id) {
+        Swal.fire({
+            title: 'ยืนยันการทำ Backup?',
+            text: 'ระบบจะทำ Backup ทันที',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const csrfToken = window.getCsrfToken ? window.getCsrfToken() : '';
+                    const response = await fetch(`/backup/schedules/${id}/run`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'เริ่มทำ Backup แล้ว!',
+                            text: 'กรุณารอสักครู่...',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        setTimeout(() => loadHistory(), 2000);
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+            }
+        });
+    }
+
+    // Delete schedule
+    async function deleteSchedule(id) {
+        Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: 'คุณจะไม่สามารถกู้คืนข้อมูลได้',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'ลบ',
+            cancelButtonText: 'ยกเลิก'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const csrfToken = window.getCsrfToken ? window.getCsrfToken() : '';
+                    const response = await fetch(`/backup/schedules/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ลบสำเร็จ!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        confirmButtonColor: '#10b981'
+                    });
+                }
+            }
+        });
+    }
+
+    // Edit schedule (Populate form)
+    function editSchedule(id) {
+        // Use global variable from safe JSON parsing
+        const schedule = schedulesData.find(s => s.id === id);
+        if (!schedule) return;
+
+        const modalTitle = document.getElementById('modalTitle');
+        const modal = document.getElementById('scheduleModal');
+
+        if (modalTitle) modalTitle.textContent = 'แก้ไข Schedule';
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        };
+
+        setVal('schedule_id', schedule.id);
+        setVal('name', schedule.name);
+        setVal('description', schedule.description || '');
+        setVal('cron_expression', schedule.cron_expression);
+        setVal('backup_type', schedule.backup_type);
+        setVal('retention_days', schedule.retention_days);
+        setVal('max_backups', schedule.max_backups);
+
+        const notifyEl = document.getElementById('notify_on_failure');
+        if (notifyEl) notifyEl.checked = !!schedule.notify_on_failure;
+
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    // Load history
+    async function loadHistory() {
+        try {
+            const response = await fetch('/backup/history');
+            const result = await response.json();
+
+            const container = document.getElementById('historyContainer');
+            if (!container) return;
+
+            if (result.success) {
+                if (result.data.length === 0) {
+                    container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>ยังไม่มีประวัติ Backup</p>
+                    </div>
+                `;
+                } else {
+                    container.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">วันที่</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">Schedule</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">ไฟล์</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">ขนาด</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${result.data.map(h => `
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-3 text-sm text-slate-600">
+                                            ${new Date(h.created_at).toLocaleString('th-TH')}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-slate-800">
+                                            ${h.schedule_name || 'Manual'}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-slate-600 font-mono">
+                                            ${h.filename || '-'}
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-slate-600">
+                                            ${h.file_size ? (h.file_size / 1024 / 1024).toFixed(2) + ' MB' : '-'}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold ${h.status === 'success' ? 'bg-green-100 text-green-700' :
+                            h.status === 'failed' ? 'bg-red-100 text-red-700' :
+                                'bg-yellow-100 text-yellow-700'
+                        }">
+                                                ${h.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading history:', error);
+        }
+    }
+</script>

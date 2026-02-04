@@ -1,0 +1,4 @@
+-- This file is intentionally left empty/commented because standard MySQL drivers 
+-- do not support DELIMITER syntax directly, and the columns in this migration 
+-- are already handled by the 'Custom Fix' section in setup-database.js
+-- which checks checks and adds columns safely in JavaScript.

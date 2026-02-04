@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ไม่พบหน้าที่ต้องการ - Billora</title>
+    <script src="/js/tailwind.min.js"></script>
+    <link href="/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(5deg);
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-card max-w-md w-full mx-4 rounded-3xl shadow-2xl p-10 text-center">
+        <!-- Icon -->
+        <div class="mb-6">
+            <div
+                class="w-24 h-24 mx-auto bg-gradient-to-br from-pink-400 to-red-500 rounded-full flex items-center justify-center shadow-lg icon-float">
+                <i class="fas fa-search text-white text-5xl"></i>
+            </div>
+        </div>
+
+        <!-- Error Code -->
+        <div class="mb-4">
+            <h1 class="text-6xl font-bold gradient-text">404</h1>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-2xl font-bold text-slate-800 mb-3">
+            ไม่พบหน้าที่ต้องการ
+        </h2>
+
+        <!-- Message -->
+        <p class="text-slate-600 mb-8 leading-relaxed">
+            ขออภัย หน้าที่คุณกำลังมองหาไม่มีอยู่ในระบบ หรืออาจถูกย้ายไปแล้ว
+        </p>
+
+        <!-- Buttons -->
+        <div class="flex flex-col gap-3">
+            <a href="/dashboard"
+                class="w-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white py-3 px-6 rounded-xl font-semibold shadow-lg shadow-pink-500/30 transition-all hover:scale-105 transform">
+                <i class="fas fa-home mr-2"></i>
+                กลับหน้าหลัก
+            </a>
+            <button onclick="history.back()"
+                class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-6 rounded-xl font-semibold transition-all">
+                <i class="fas fa-arrow-left mr-2"></i>
+                ย้อนกลับ
+            </button>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="mt-8 pt-6 border-t border-slate-200">
+            <p class="text-xs text-slate-400">
+                หากปัญหายังคงอยู่ กรุณาติดต่อผู้ดูแลระบบ
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

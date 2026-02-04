@@ -9,8 +9,13 @@ const BillController = require('../controllers/BillController');
 const SlipController = require('../controllers/SlipController');
 const ChannelController = require('../controllers/ChannelController');
 
+// Multi-tenant Routes
+const tenantRoutes = require('./tenantRoutes');
+const userManagementRoutes = require('./userManagementRoutes');
+
 // Public API
 router.post('/login', AuthController.apiLogin);
+router.post('/change-password', isAuthenticated, AuthController.changePassword);
 
 // Protected API (Used by Flutter)
 router.get('/stats', isAuthenticated, DashboardController.getStats);
@@ -23,5 +28,9 @@ router.get('/history', isAuthenticated, SlipController.getApiHistory);
 router.post('/channels', isAuthenticated, ChannelController.saveChannel);
 router.delete('/channels', isAuthenticated, ChannelController.disconnectChannel);
 router.put('/channels/:id', isAuthenticated, ChannelController.updateBookCode);
+
+// Multi-tenant API
+router.use('/tenants', tenantRoutes);
+router.use('/users', userManagementRoutes);
 
 module.exports = router;

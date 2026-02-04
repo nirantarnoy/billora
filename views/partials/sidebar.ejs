@@ -6,7 +6,7 @@
                 class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
                 <i class="fas fa-file-invoice text-white text-xl"></i>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-800">Billora<span
+            <h1 class="text-2xl font-bold tracking-tight text-slate-800">GoodOper<span
                     class="text-emerald-500">Pro</span></h1>
         </div>
         <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-slate-600">
@@ -16,66 +16,81 @@
 
     <nav class="space-y-6 flex-1 overflow-y-auto no-scrollbar">
         <!-- OCR & Accounting Module -->
-        <% if (user.permissions.ocr_basic || user.role==='admin' ) { %>
+        <% if (typeof user !=='undefined' && user && (user.permissions?.ocr_basic || user.permissions?.dashboard ||
+            user.role==='admin' || user.role==='owner' )) { %>
             <div class="space-y-1">
                 <p class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">OCR &
                     Accounting</p>
                 <a href="/dashboard"
-                    class="flex items-center gap-3 p-3 <%= active === 'dashboard' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'dashboard') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                     <i class="fas fa-th-large w-5"></i> แผงควบคุม
                 </a>
                 <a href="/bills"
-                    class="flex items-center gap-3 p-3 <%= active === 'bills' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'bills') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                     <i class="fas fa-file-invoice-dollar w-5"></i> ใบเสร็จและรายจ่าย
                 </a>
                 <a href="/slips"
-                    class="flex items-center gap-3 p-3 <%= active === 'slips' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'slips') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                     <i class="fas fa-exchange-alt w-5"></i> สลิปโอนเงิน
                 </a>
                 <a href="/reconciliation"
-                    class="flex items-center gap-3 p-3 <%= active === 'reconciliation' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'reconciliation') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                     <i class="fas fa-chart-line w-5"></i> เปรียบเทียบยอดขาย
                 </a>
             </div>
             <% } %>
 
                 <!-- Marketplace Module -->
-                <% if (user.permissions.multichannel || user.role==='admin' ) { %>
+                <% if (typeof user !=='undefined' && user && (user.permissions?.multichannel || user.role==='admin' ||
+                    user.role==='owner' )) { %>
                     <div class="space-y-1">
                         <p class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
                             Marketplace</p>
                         <a href="/channels"
-                            class="flex items-center gap-3 p-3 <%= active === 'channels' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'channels') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-plug w-5"></i> เชื่อมต่อร้านค้า
                         </a>
                         <a href="/orders"
-                            class="flex items-center gap-3 p-3 <%= active === 'orders' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'orders') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-shopping-cart w-5"></i> ออเดอร์ออนไลน์
                         </a>
                         <a href="/sync-history"
-                            class="flex items-center gap-3 p-3 <%= active === 'sync-history' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'sync-history') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-sync-alt w-5"></i> ประวัติการซิงค์
                         </a>
                         <a href="/fee-report"
-                            class="flex items-center gap-3 p-3 <%= active === 'fee-report' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'fee-report') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-file-invoice-dollar w-5"></i> รายงานค่าธรรมเนียม
                         </a>
                     </div>
                     <% } %>
 
                         <!-- Fulfillment Module -->
-                        <% if (user.permissions.fulfillment || user.role==='admin' ) { %>
+                        <% if (typeof user !=='undefined' && user && (user.permissions?.fulfillment ||
+                            user.role==='admin' || user.role==='owner' )) { %>
                             <div class="space-y-1">
                                 <p
                                     class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
                                     Fulfillment</p>
-                                <a href="/inventory"
-                                    class="flex items-center gap-3 p-3 <%= active === 'inventory' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
-                                    <i class="fas fa-boxes w-5"></i> คลังสินค้า
+                                <a href="/fulfillment/warehouses"
+                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory' && (typeof title !== 'undefined' && title && title.includes('คลัง'))) ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                    <i class="fas fa-warehouse w-5"></i> คลังสินค้า
                                 </a>
-                                <a href="/orders"
-                                    class="flex items-center gap-3 p-3 <%= active === 'orders' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
-                                    <i class="fas fa-shopping-bag w-5"></i> รายการสั่งซื้อ
+                                <a href="/fulfillment/products"
+                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory' && (typeof title !== 'undefined' && title && title.includes('สินค้า') && !title.includes('คลัง'))) ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                    <i class="fas fa-box w-5"></i> จัดการสินค้า
+                                </a>
+                                <a href="/inventory/balances"
+                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory-balance') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                    <i class="fas fa-boxes w-5"></i> ยอดคงเหลือ & สต็อก
+                                </a>
+                                <a href="/inventory/transactions"
+                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory-transactions') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                    <i class="fas fa-history w-5"></i> ความเคลื่อนไหว (Stock Card)
+                                </a>
+                                <a href="/inventory/purchase-plan"
+                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory-purchase-plan') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                    <i class="fas fa-clipboard-list w-5"></i> แผนการสั่งซื้อ (Reorder)
                                 </a>
                                 <a href="#"
                                     class="flex items-center gap-3 p-3 text-slate-300 cursor-not-allowed rounded-xl transition-all">
@@ -85,24 +100,25 @@
                             <% } %>
 
                                 <!-- Admin Control -->
-                                <% if (user.role==='admin' ) { %>
+                                <% if (typeof user !=='undefined' && user && (user.role==='admin' || user.role==='owner'
+                                    )) { %>
                                     <div class="space-y-2 border-t border-slate-100 pt-4">
                                         <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                             Admin Control</p>
                                         <a href="/history"
-                                            class="flex items-center gap-3 p-3 <%= active === 'history' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'history') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-history"></i> ประวัติการสแกน
                                         </a>
                                         <a href="/users"
-                                            class="flex items-center gap-3 p-3 <%= active === 'users' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'users') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-users-cog"></i> จัดการผู้ใช้
                                         </a>
-                                        <a href="/admin/backup"
-                                            class="flex items-center gap-3 p-3 <%= active === 'backup' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
-                                            <i class="fas fa-database"></i> สำรองข้อมูล
+                                        <a href="/backup/schedules"
+                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'backup') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                            <i class="fas fa-clock"></i> Auto Backup
                                         </a>
                                         <a href="/admin/logs"
-                                            class="flex items-center gap-3 p-3 <%= active === 'logs' ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-clipboard-list"></i> บันทึกกิจกรรม
                                         </a>
                                     </div>

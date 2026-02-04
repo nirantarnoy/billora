@@ -4,8 +4,8 @@ const bcrypt = require('bcryptjs');
 class UserController {
     async listUsers(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
-            const [users] = await db.execute('SELECT * FROM users WHERE company_id = ?', [companyId]);
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const [users] = await db.execute('SELECT * FROM users WHERE tenant_id = ?', [tenantId]);
             res.render('users', {
                 users,
                 active: 'users',
@@ -19,12 +19,12 @@ class UserController {
     async createUser(req, res) {
         try {
             const { username, password, role, permissions } = req.body;
-            const companyId = req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
             const hashedPassword = await bcrypt.hash(password, 10);
 
             await db.execute(
-                'INSERT INTO users (username, password, role, company_id, permissions) VALUES (?, ?, ?, ?, ?)',
-                [username, hashedPassword, role, companyId, JSON.stringify(permissions)]
+                'INSERT INTO users (username, password_hash, role, tenant_id, permissions) VALUES (?, ?, ?, ?, ?)',
+                [username, hashedPassword, role, tenantId, JSON.stringify(permissions)]
             );
             res.json({ success: true });
         } catch (err) {

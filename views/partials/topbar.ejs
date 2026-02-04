@@ -6,7 +6,7 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="hidden sm:block">
-            <p class="text-sm font-medium text-slate-400">Billora Pro / <%= title %>
+            <p class="text-sm font-medium text-slate-400">GoodOper / <%= typeof title !=='undefined' ? title : '' %>
             </p>
         </div>
     </div>
@@ -26,31 +26,64 @@
             <button class="flex items-center gap-3 p-1.5 hover:bg-slate-50 rounded-2xl transition-all">
                 <div
                     class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-500/20">
-                    <%= user.username.charAt(0).toUpperCase() %>
+                    <% if (typeof user !=='undefined' && user && user.username) { %>
+                        <%= user.username.charAt(0).toUpperCase() %>
+                            <% } else if (typeof user !=='undefined' && user && user.email) { %>
+                                <%= user.email.charAt(0).toUpperCase() %>
+                                    <% } else { %>
+                                        U
+                                        <% } %>
                 </div>
                 <div class="text-left hidden md:block">
                     <p class="text-sm font-bold text-slate-800 leading-tight">
-                        <%= user.username %>
+                        <% if (typeof user !=='undefined' && user) { %>
+                            <%= user.username || user.email || user.first_name || 'User' %>
+                                <% } else { %>
+                                    Guest
+                                    <% } %>
                     </p>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <%= user.role==='admin' ? 'Administrator' : 'General User' %>
+                        <% if (typeof user !=='undefined' && user && user.role) { %>
+                            <%= user.role==='admin' ? 'Administrator' : user.role==='owner' ? 'Owner' : 'General User'
+                                %>
+                                <% } else { %>
+                                    Guest
+                                    <% } %>
                     </p>
                 </div>
                 <i class="fas fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
             </button>
             <div
                 class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
-                    <i class="fas fa-user-circle text-slate-400"></i> โปรไฟล์ของฉัน
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
-                    <i class="fas fa-cog text-slate-400"></i> ตั้งค่าระบบ
-                </a>
-                <div class="h-[1px] bg-slate-50 my-2"></div>
-                <a href="javascript:void(0)" onclick="confirmLogout()"
-                    class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 font-bold">
-                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
-                </a>
+                <% if (typeof user !=='undefined' && user && user.id) { %>
+                    <!-- Logged-in User Menu -->
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+                        <i class="fas fa-user-circle text-slate-400"></i> โปรไฟล์ของฉัน
+                    </a>
+                    <a href="/tenant/settings"
+                        class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+                        <i class="fas fa-cog text-slate-400"></i> ตั้งค่าระบบ
+                    </a>
+                    <a href="#" onclick="openChangePasswordModal()"
+                        class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+                        <i class="fas fa-key text-slate-400"></i> เปลี่ยนรหัสผ่าน
+                    </a>
+                    <div class="h-[1px] bg-slate-50 my-2"></div>
+                    <a href="javascript:void(0)" onclick="confirmLogout()"
+                        class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 font-bold">
+                        <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                    </a>
+                    <% } else { %>
+                        <!-- Guest User Menu -->
+                        <a href="/login"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-emerald-600 hover:bg-emerald-50 font-bold">
+                            <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+                        </a>
+                        <a href="/register"
+                            class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+                            <i class="fas fa-user-plus"></i> ลงทะเบียน
+                        </a>
+                        <% } %>
             </div>
         </div>
     </div>

@@ -1,0 +1,315 @@
+<div class="p-8 max-w-6xl mx-auto" x-data="issueForm()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                    <i class="fas fa-minus"></i>
+                </span>
+                เบิกสินค้าออก (Issue Stock)
+            </h2>
+            <p class="text-slate-500 mt-1 ml-14">สร้างใบเบิกสินค้า (Master-Detail)</p>
+        </div>
+        <a href="/inventory/balances" class="text-slate-500 hover:text-slate-700 font-semibold flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> ยกเลิก/กลับ
+        </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-white rounded-[32px] shadow-lg border border-slate-100 overflow-hidden">
+
+        <!-- Document Header -->
+        <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                    <label
+                        class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">เลขที่เอกสาร</label>
+                    <input type="text" x-model="header.reference_no" placeholder="<%= refNoPreview %> (Auto)"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500 font-mono text-sm">
+                    <p class="text-[10px] text-slate-400 mt-1">*เว้นว่างเพื่อสร้างอัตโนมัติ</p>
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">วันที่ทำรายการ</label>
+                    <input type="date" x-model="header.transaction_date"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">เหตุผล
+                        (Reason)</label>
+                    <select x-model="header.reason"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                        <option value="Stock Out">เบิกจ่ายทั่วไป</option>
+                        <option value="Production">เบิกผลิต</option>
+                        <option value="Damage">ตัดจ่าย (ชำรุด/เสียหาย)</option>
+                        <option value="Expired">หมดอายุ</option>
+                        <option value="Other">อื่นๆ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">หมายเหตุ</label>
+                    <input type="text" x-model="header.note"
+                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="p-8">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-slate-700">รายการสินค้า</h3>
+                <button @click="addItem()" type="button"
+                    class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                    <i class="fas fa-plus"></i> เพิ่มแถว
+                </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-left min-w-[800px]">
+                    <thead
+                        class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider text-left">
+                        <tr>
+                            <th class="px-4 py-3 w-12 text-center">#</th>
+                            <th class="px-4 py-3 w-[30%]">สินค้า</th>
+                            <th class="px-4 py-3 w-[35%]">ตัดจากคลัง / Lot (คงเหลือ)</th>
+                            <th class="px-4 py-3 w-[20%] text-right">จำนวนเบิก</th>
+                            <th class="px-4 py-3 w-12 text-center">ลบ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <template x-for="(item, index) in items" :key="index">
+                            <tr class="group hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3 text-center text-slate-400 font-mono" x-text="index + 1"></td>
+
+                                <!-- Product Select -->
+                                <td class="px-4 py-3 align-top">
+                                    <select x-model="item.product_id" @change="loadStock(index)" required
+                                        class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                                        <option value="">-- เลือกสินค้า --</option>
+                                        <% products.forEach(p=> { %>
+                                            <option value="<%= p.id %>">
+                                                <%= p.name %> (<%= p.sku %>)
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                    <div class="text-[10px] text-slate-400 mt-1" x-show="item.isLoading">
+                                        <i class="fas fa-spinner fa-spin mr-1"></i> กำลังเช็คสต็อก...
+                                    </div>
+                                </td>
+
+                                <!-- Source Select (Dynamic) -->
+                                <td class="px-4 py-3 align-top">
+                                    <select x-model="item.source_key" @change="updateMaxQty(index)" required
+                                        :disabled="!item.product_id || item.stockOptions.length === 0"
+                                        class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-400">
+                                        <option value="">-- เลือกต้นทาง --</option>
+                                        <template x-for="opt in item.stockOptions" :key="opt.key">
+                                            <option :value="opt.key" x-text="opt.label"></option>
+                                        </template>
+                                    </select>
+                                    <div x-show="item.product_id && !item.isLoading && item.stockOptions.length === 0"
+                                        class="text-[10px] text-red-400 mt-1">
+                                        <i class="fas fa-exclamation-circle mr-1"></i> สินค้าหมด / ไม่มีในสต็อก
+                                    </div>
+                                    <div x-show="item.source_key" class="text-[10px] text-emerald-600 mt-1 font-bold">
+                                        <i class="fas fa-check-circle mr-1"></i> คงเหลือ: <span
+                                            x-text="item.maxQty"></span>
+                                    </div>
+                                </td>
+
+                                <!-- Quantity Input -->
+                                <td class="px-4 py-3 align-top">
+                                    <input type="number" x-model="item.quantity" :max="item.maxQty" min="0.01"
+                                        step="0.01" required placeholder="0.00"
+                                        class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-right focus:ring-2 focus:ring-emerald-500 font-mono font-bold text-slate-700"
+                                        :class="{'border-red-300 bg-red-50': parseFloat(item.quantity) > parseFloat(item.maxQty)}">
+                                    <div x-show="parseFloat(item.quantity) > parseFloat(item.maxQty)"
+                                        class="text-[10px] text-red-500 mt-1 text-right">
+                                        เกินยอดคงเหลือ
+                                    </div>
+                                </td>
+
+                                <!-- Delete -->
+                                <td class="px-4 py-3 text-center align-top">
+                                    <button @click="removeItem(index)" type="button"
+                                        class="text-slate-300 hover:text-red-500 transition-colors p-2">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="items.length === 0">
+                            <td colspan="5" class="py-12 text-center text-slate-400">
+                                <i class="fas fa-box-open text-3xl mb-3 block opacity-30"></i>
+                                กดปุ่ม "เพิ่มแถว" เพื่อเริ่มเพิ่มรายการ
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="mt-8 flex justify-end gap-4 border-t border-slate-100 pt-6">
+                <!-- Total Display (Optional) -->
+                <div class="mr-auto flex items-center text-slate-500 text-sm">
+                    รวม <span class="font-bold text-slate-800 mx-1" x-text="items.length"></span> รายการ
+                </div>
+
+                <button @click="saveTransaction" type="button"
+                    :disabled="isSubmitting || items.length === 0 || hasErrors"
+                    class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-lg font-bold px-8 py-3 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                    <span x-show="isSubmitting"><i class="fas fa-spinner fa-spin"></i> บันทึก...</span>
+                    <span x-show="!isSubmitting"><i class="fas fa-save"></i> บันทึกใบเบิกสินค้า</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Alpine.js Logic -->
+<script src="//unpkg.com/alpinejs" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    function issueForm() {
+        return {
+            header: {
+                transaction_date: new Date().toISOString().slice(0, 10),
+                reference_no: '',
+                reason: 'Stock Out',
+                note: ''
+            },
+            items: [],
+            isSubmitting: false,
+
+            init() {
+                this.addItem(); // Start with one row
+            },
+
+            addItem() {
+                this.items.push({
+                    product_id: '',
+                    stockOptions: [], // Array of options { key, label, maxQty, ... }
+                    source_key: '',   // Selected combination key (warehouseId_locId_lotId)
+                    maxQty: 0,
+                    quantity: '',
+                    isLoading: false
+                });
+            },
+
+            removeItem(index) {
+                this.items.splice(index, 1);
+            },
+
+            async loadStock(index) {
+                const item = this.items[index];
+                if (!item.product_id) {
+                    item.stockOptions = [];
+                    item.source_key = '';
+                    item.maxQty = 0;
+                    return;
+                }
+
+                item.isLoading = true;
+                item.stockOptions = [];
+                item.source_key = '';
+                item.maxQty = 0;
+                item.quantity = '';
+
+                try {
+                    const res = await axios.get(`/api/inventory/stock/${item.product_id}`);
+                    const stocks = res.data;
+
+                    // Format options
+                    item.stockOptions = stocks.map(s => {
+                        const locName = s.location_name || 'พื้นที่ทั่วไป';
+                        const lotText = s.lot_no ? `Lot: ${s.lot_no} (Exp: ${s.exp_date ? s.exp_date.slice(0, 10) : '-'})` : 'No Lot';
+
+                        // Create unique key for selection
+                        const key = `${s.warehouse_id}|${s.location_id || ''}|${s.lot_id || ''}`;
+
+                        return {
+                            key: key,
+                            label: `${s.warehouse_name} > ${locName} | ${lotText} | คงเหลือ: ${parseFloat(s.quantity).toLocaleString()}`,
+                            warehouse_id: s.warehouse_id,
+                            location_id: s.location_id,
+                            lot_id: s.lot_id,
+                            maxQty: parseFloat(s.quantity)
+                        };
+                    });
+
+                } catch (e) {
+                    console.error(e);
+                    alert('Error loading stock');
+                } finally {
+                    item.isLoading = false;
+                }
+            },
+
+            updateMaxQty(index) {
+                const item = this.items[index];
+                const selectedOpt = item.stockOptions.find(o => o.key === item.source_key);
+                if (selectedOpt) {
+                    item.maxQty = selectedOpt.maxQty;
+                    // Auto fill max if empty? No, let user type.
+                } else {
+                    item.maxQty = 0;
+                }
+            },
+
+            get hasErrors() {
+                // Check if any qty > maxQty or qty <= 0 or empty fields
+                return this.items.some(item => {
+                    if (!item.product_id || !item.source_key) return true;
+                    const qty = parseFloat(item.quantity);
+                    if (isNaN(qty) || qty <= 0) return true;
+                    if (qty > item.maxQty) return true;
+                    return false;
+                });
+            },
+
+            async saveTransaction() {
+                if (this.hasErrors) {
+                    alert('กรุณาตรวจสอบข้อมูลให้ถูกต้อง (สินค้า, คลัง, จำนวน)');
+                    return;
+                }
+
+                if (!confirm('ยืนยันการบันทึกรายการ?')) return;
+
+                this.isSubmitting = true;
+
+                // Prepare payload
+                const payloadItems = this.items.map(item => {
+                    const opt = item.stockOptions.find(o => o.key === item.source_key);
+                    return {
+                        product_id: item.product_id,
+                        warehouse_id: opt.warehouse_id,
+                        location_id: opt.location_id || null,
+                        lot_id: opt.lot_id || null,
+                        quantity: item.quantity
+                    };
+                });
+
+                const payload = {
+                    type: 'ISSUE',
+                    ...this.header,
+                    items: payloadItems
+                };
+
+                try {
+                    const res = await axios.post('/inventory/transaction/bulk', payload);
+                    if (res.data.success) {
+                        window.location.href = '/inventory/transactions?success=1';
+                    } else {
+                        throw new Error(res.data.message || 'Unknown error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('บันทึกไม่สำเร็จ: ' + (e.response?.data?.message || e.message));
+                    this.isSubmitting = false;
+                }
+            }
+        };
+    }
+</script>

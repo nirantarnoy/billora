@@ -1,0 +1,124 @@
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800">Inventory Balance</h2>
+            <p class="text-slate-500 mt-1">ตรวจสอบยอดคงเหลือแยกตามคลังและ Lot</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="/inventory/issue/create"
+                class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-4 py-2 rounded-xl font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-minus-circle"></i> เบิกสินค้า (Issue)
+            </a>
+            <a href="/inventory/transaction/return"
+                class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 rounded-xl font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-undo"></i> รับคืน (Return)
+            </a>
+            <a href="/inventory/transaction/adjustment"
+                class="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-xl font-semibold transition-colors flex items-center gap-2">
+                <i class="fas fa-sliders-h"></i> ปรับยอด (Adjust)
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-6 rounded-[24px] shadow-sm border border-slate-100 mb-6">
+        <form method="GET" action="/inventory/balances" class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ค้นหาสินค้า</label>
+                <input type="text" name="product" value="<%= filters.product || '' %>" placeholder="ชื่อสินค้า, SKU..."
+                    class="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="w-full md:w-64">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">คลังสินค้า</label>
+                <select name="warehouse"
+                    class="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                    <option value="">ทั้งหมด</option>
+                    <% warehouses.forEach(wh=> { %>
+                        <option value="<%= wh.id %>" <%=filters.warehouse==wh.id ? 'selected' : '' %>><%= wh.name %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+            <button type="submit"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-colors shadow-lg shadow-emerald-600/20">
+                <i class="fas fa-search mr-2"></i> ค้นหา
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">สินค้า</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">คลัง /
+                            ตำแหน่ง</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lot No.
+                        </th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                            จำนวน</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <% if (balances.length===0) { %>
+                        <tr>
+                            <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                                <i class="fas fa-box-open text-3xl mb-3 block opacity-50"></i>
+                                ไม่พบข้อมูลสินค้าในคลัง
+                            </td>
+                        </tr>
+                        <% } else { %>
+                            <% balances.forEach(item=> { %>
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="font-bold text-slate-700">
+                                            <%= item.product_name %>
+                                        </div>
+                                        <div class="text-xs text-slate-400 font-mono mt-0.5">
+                                            <%= item.sku %>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-xs font-bold">
+                                                <%= item.warehouse_name %>
+                                            </span>
+                                            <% if (item.location_name) { %>
+                                                <i class="fas fa-chevron-right text-[10px] text-slate-300"></i>
+                                                <span class="text-xs text-slate-500">
+                                                    <%= item.location_name %>
+                                                </span>
+                                                <% } %>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <% if (item.lot_no) { %>
+                                            <div class="font-mono text-sm text-slate-600">
+                                                <%= item.lot_no %>
+                                            </div>
+                                            <% if (item.exp_date) { %>
+                                                <div class="text-[10px] text-red-400 mt-0.5">Exp: <%= new
+                                                        Date(item.exp_date).toLocaleDateString('th-TH') %>
+                                                </div>
+                                                <% } %>
+                                                    <% } else { %>
+                                                        <span class="text-slate-300 text-xs italic">- No Lot -</span>
+                                                        <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <span class="font-bold text-lg text-emerald-600">
+                                            <%= parseFloat(item.quantity).toLocaleString() %>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

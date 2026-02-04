@@ -2,8 +2,23 @@
   "name": "billora",
   "version": "1.0.0",
   "main": "index.js",
+  "bin": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup-db": "node database/setup-database.js",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "build": "npx pkg . --targets node18-win-x64 --out-path dist --compress GZip",
+    "build:linux": "npx pkg . --targets node18-linux-x64 --out-path dist --compress GZip"
+  },
+  "pkg": {
+    "scripts": "src/**/*.js",
+    "assets": [
+      "views/**/*",
+      "public/**/*",
+      "database/**/*",
+      "node_modules/canvas/build/Release/*.node"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -13,6 +28,7 @@
     "@google-cloud/vision": "^5.3.4",
     "@line/bot-sdk": "^10.6.0",
     "axios": "^1.13.4",
+    "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.3",
     "canvas": "^3.2.1",
     "cors": "^2.8.6",
@@ -28,6 +44,7 @@
     "lusca": "^1.7.0",
     "multer": "^2.0.2",
     "mysql2": "^3.16.2",
+    "node-cron": "^4.2.1",
     "openai": "^6.17.0",
     "socket.io": "^4.8.3"
   },

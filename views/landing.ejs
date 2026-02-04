@@ -86,8 +86,6 @@
         nav.scrolled {
             background: var(--white);
             height: 70px;
-            border-bottom: 1px solid #e5e7eb;
-            box-shadow: var(--shadow-sm);
         }
 
         .logo {
@@ -176,7 +174,7 @@
             font-size: 0.875rem;
             font-weight: 600;
             margin-bottom: 1.5rem;
-            animation: fadeInDown 0.5s ease;
+            margin-bottom: 1.5rem;
         }
 
         h1 {
@@ -209,10 +207,7 @@
             max-width: 1000px;
             margin: 0 auto;
             border-radius: 20px;
-            box-shadow: var(--shadow-lg);
             overflow: hidden;
-            border: 8px solid var(--white);
-            animation: fadeInUp 0.8s ease;
         }
 
         .hero-mockup img {
@@ -253,14 +248,11 @@
             border-radius: 16px;
             background-color: var(--bg-light);
             transition: var(--transition);
-            border: 1px solid #f3f4f6;
         }
 
         .feature-card:hover {
             transform: translateY(-10px);
             background-color: var(--white);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-light);
         }
 
         .feature-icon {
@@ -303,10 +295,8 @@
             padding: 3rem 2rem;
             border-radius: 20px;
             text-align: center;
-            box-shadow: var(--shadow);
             position: relative;
             transition: var(--transition);
-            border: 1px solid #e5e7eb;
         }
 
         .pricing-card.featured {
@@ -497,29 +487,7 @@
         }
 
         /* Animations */
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        /* Animations Removed */
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
@@ -542,6 +510,64 @@
 
             .pricing-card.featured {
                 transform: scale(1);
+            }
+        }
+
+        /* Split Section (New) */
+        .split-section {
+            padding: 100px 0;
+            background-color: var(--white);
+            overflow: hidden;
+        }
+
+        .split-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .split-content h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+        .split-content p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .split-image {
+            position: relative;
+        }
+
+        .split-image img {
+            width: 100%;
+            border-radius: 20px;
+        }
+
+
+
+        @media (max-width: 768px) {
+            .split-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .split-image {
+                order: -1;
+                margin-bottom: 2rem;
+            }
+
+            .split-content ul {
+                text-align: left;
+                display: inline-block;
             }
         }
     </style>
@@ -571,7 +597,7 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <span class="badge">✨ ใหม่! รองรับการอ่านบิลด้วย AI แม่นยำ 99%</span>
+                <span class="badge">ใหม่! รองรับการอ่านบิลด้วย AI แม่นยำ 99%</span>
                 <h1>เปลี่ยนบิลกองโต ให้เป็น <span>ข้อมูลอัจฉริยะ</span></h1>
                 <p>ระบบจัดการบิลและใบเสร็จอัตโนมัติ ช่วยลดเวลาทำงานให้นักบัญชีและเจ้าของธุรกิจ ด้วยระบบ OCR
                     อัจฉริยะที่เชื่อมต่อ LINE และ Mobile App</p>
@@ -582,8 +608,52 @@
                 </div>
             </div>
             <div class="hero-mockup">
-                <img src="/img/dashboard_preview.png" alt="Billora Dashboard"
-                    onerror="this.src='https://placehold.co/1200x800/white/10b981?text=Billora+Dashboard+Preview'">
+                <img src="/img/dashboard_preview.png" alt="Billora Dashboard">
+            </div>
+        </div>
+    </section>
+
+    <section class="split-section">
+        <div class="split-container">
+            <div class="split-content">
+                <h2>แม่นยำกว่าด้วยพลัง AI<br>อ่านสลิปธนาคารในเสี้ยววินาที</h2>
+                <p>ลืมการกรอกข้อมูลด้วยมือไปได้เลย Billora ใช้ Deep Learning Model ที่ผ่านการเทรนด้วยสลิปกว่า 1 ล้านใบ
+                    เพื่อความถูกต้องและแม่นยำสูงสุด แม้ภาพจะไม่ชัด</p>
+                <ul style="margin-bottom: 2rem; color: var(--text-muted);">
+                    <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                            style="color: var(--primary); margin-right: 10px;"></i> รองรับทุกธนาคารในไทย</li>
+                    <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                            style="color: var(--primary); margin-right: 10px;"></i> ตรวจจับยอดเงินและบัญชีอัตโนมัติ</li>
+                    <li><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                        แยกแยะสลิปจริง/ปลอมได้ทันที</li>
+                </ul>
+                <a href="/login?register=true" class="btn btn-primary">ทดลองใช้ฟรี</a>
+            </div>
+            <div class="split-image">
+                <img src="/img/ai_concept.png" alt="AI Scan Technology">
+            </div>
+        </div>
+    </section>
+
+    <section class="split-section" style="background-color: var(--bg-light);">
+        <div class="split-container">
+            <div class="split-image">
+                <img src="/img/multichannel_sync.png" alt="Multichannel Integration System">
+            </div>
+            <div class="split-content">
+                <h2>รวมทุกร้านค้าออนไลน์<br>ไว้ในที่เดียว</h2>
+                <p>เชื่อมต่อยอดขายจาก Shopee, Lazada และ TikTok Shop เข้าสู่ระบบบัญชีโดยอัตโนมัติ
+                    ไม่ต้องมานั่งรวมยอดเองให้ปวดหัว</p>
+                <ul style="margin-bottom: 2rem; color: var(--text-muted);">
+                    <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                            style="color: var(--primary); margin-right: 10px;"></i> ดึงออเดอร์และยอดขาย Real-time</li>
+                    <li style="margin-bottom: 0.5rem;"><i class="fas fa-check-circle"
+                            style="color: var(--primary); margin-right: 10px;"></i> ตัดสต็อกสินค้าจากทุกช่องทางพร้อมกัน
+                    </li>
+                    <li><i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                        สรุปกำไร-ขาดทุน แยกตามร้านค้าชัดเจน</li>
+                </ul>
+                <a href="/login?register=true" class="btn btn-outline">ดูแพ็กเกจราคา</a>
             </div>
         </div>
     </section>
@@ -638,12 +708,12 @@
             <div class="pricing-grid">
                 <!-- Basic -->
                 <div class="pricing-card">
-                    <h3>Starter</h3>
+                    <h3>Basic</h3>
                     <div class="price">
                         <span class="currency">฿</span><span class="amount">0</span><span class="period">/เดือน</span>
                     </div>
                     <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> จำกัด 50 บิล/เดือน</li>
+                        <li><i class="fas fa-check"></i> จำกัด 30 บิล/เดือน</li>
                         <li><i class="fas fa-check"></i> ใช้งาน LINE Bot พื้นฐาน</li>
                         <li><i class="fas fa-check"></i> แดชบอร์ดสรุปผล</li>
                         <li><i class="fas fa-check"></i> จัดเก็บข้อมูล 3 เดือน</li>
@@ -656,9 +726,9 @@
                 <!-- Pro -->
                 <div class="pricing-card featured">
                     <div class="popular-tag">ยอดนิยม</div>
-                    <h3>Pro Business</h3>
+                    <h3>Pro</h3>
                     <div class="price">
-                        <span class="currency">฿</span><span class="amount">490</span><span class="period">/เดือน</span>
+                        <span class="currency">฿</span><span class="amount">199</span><span class="period">/เดือน</span>
                     </div>
                     <ul class="pricing-features">
                         <li><i class="fas fa-check"></i> ไม่จำกัดจำนวนบิล</li>
@@ -683,7 +753,7 @@
                         <li><i class="fas fa-check"></i> เชื่อมต่อ Webhook/API</li>
                         <li><i class="fas fa-check"></i> ติดตั้งลงบน Server ส่วนตัว</li>
                         <li><i class="fas fa-check"></i> ปรับแต่งฟีเจอร์เฉพาะทาง</li>
-                        <li><i class="fas fa-check"></i> ผู้ดูแลส่วนตัว (Account Manager)</li>
+                        <li><i class="fas fa-check"></i> เชื่อมต่อระบบต่างๆ (ERP, POS, WMS)</li>
                     </ul>
                     <a href="#contact" class="btn btn-outline">ติดต่อฝ่ายขาย</a>
                 </div>

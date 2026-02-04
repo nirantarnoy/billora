@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { isAuthenticated, isAdmin, hasPermission } = require('../middleware/auth');
+const { loadTenant } = require('../middleware/tenant');
 const DashboardController = require('../controllers/DashboardController');
 const BillController = require('../controllers/BillController');
 const UserController = require('../controllers/UserController');
@@ -9,6 +10,8 @@ const SlipController = require('../controllers/SlipController');
 const ChannelController = require('../controllers/ChannelController');
 const ExportController = require('../controllers/ExportController');
 const GeneralController = require('../controllers/GeneralController');
+const WebTenantController = require('../controllers/WebTenantController');
+const FulfillmentController = require('../controllers/FulfillmentController');
 
 // Dashboard
 router.get('/dashboard', isAuthenticated, DashboardController.viewDashboard);
@@ -37,14 +40,55 @@ router.get('/reconciliation', isAuthenticated, GeneralController.viewReconciliat
 // Users (Admin Only)
 router.get('/users', isAuthenticated, isAdmin, UserController.listUsers);
 
+// Multi-tenant Routes
+router.get('/register', WebTenantController.showRegisterPage); // Public - ลูกค้าลงทะเบียนเอง
+router.get('/tenant/users', isAuthenticated, loadTenant, WebTenantController.showUserManagementPage); // จัดการ users ในแต่ละ tenant
+router.get('/tenant/settings', isAuthenticated, loadTenant, WebTenantController.showTenantSettings); // ตั้งค่า tenant
+
 // Management (Admin Only)
 router.get('/admin/backup', isAuthenticated, isAdmin, ManagementController.listBackups);
 router.post('/admin/backup/create', isAuthenticated, isAdmin, ManagementController.createBackup);
+router.post('/admin/backup/delete', isAuthenticated, isAdmin, ManagementController.deleteBackup);
+router.post('/admin/backup/restore', isAuthenticated, isAdmin, ManagementController.restoreBackup);
 router.get('/admin/logs', isAuthenticated, isAdmin, ManagementController.listLogs);
+
+// Backup Schedules (Admin Only)
+const BackupScheduleController = require('../controllers/BackupScheduleController');
+router.get('/backup/schedules', isAuthenticated, isAdmin, BackupScheduleController.index);
+router.post('/backup/schedules', isAuthenticated, isAdmin, BackupScheduleController.create);
+router.put('/backup/schedules/:id', isAuthenticated, isAdmin, BackupScheduleController.update);
+router.delete('/backup/schedules/:id', isAuthenticated, isAdmin, BackupScheduleController.delete);
+router.post('/backup/schedules/:id/toggle', isAuthenticated, isAdmin, BackupScheduleController.toggle);
+router.post('/backup/schedules/:id/run', isAuthenticated, isAdmin, BackupScheduleController.runNow);
+router.get('/backup/history', isAuthenticated, isAdmin, BackupScheduleController.history);
 
 // Export
 router.get('/api/export/express', isAuthenticated, ExportController.exportExpress);
 router.get('/api/export', isAuthenticated, ExportController.exportCustom);
+
+// Inventory Management
+const InventoryController = require('../controllers/InventoryController');
+router.get('/inventory/transactions', isAuthenticated, InventoryController.viewTransactions);
+router.get('/inventory/balances', isAuthenticated, InventoryController.viewBalances);
+router.get('/inventory/purchase-plan', isAuthenticated, InventoryController.viewPurchasePlan); // Purchase Plan
+router.get('/inventory/issue/create', isAuthenticated, InventoryController.viewIssueForm); // New Master-Detail Form
+router.get('/inventory/transaction/:type', isAuthenticated, InventoryController.viewTransactionForm); // Old Form (keep for other types)
+router.post('/inventory/transaction', isAuthenticated, InventoryController.createTransaction);
+router.post('/inventory/transaction/bulk', isAuthenticated, InventoryController.createBulkTransaction); // New Bulk Submit
+router.get('/api/inventory/warehouse/:warehouseId/locations', isAuthenticated, InventoryController.getLocations);
+router.get('/api/inventory/stock/:productId', isAuthenticated, InventoryController.getStockForProduct); // New Stock API
+
+// Fulfillment Module
+router.get('/fulfillment/warehouses', isAuthenticated, FulfillmentController.viewWarehouses);
+router.post('/fulfillment/warehouses', isAuthenticated, FulfillmentController.createWarehouse);
+router.post('/fulfillment/warehouses/delete', isAuthenticated, FulfillmentController.deleteWarehouse);
+router.get('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, FulfillmentController.viewLocations);
+router.post('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, FulfillmentController.createLocation);
+
+router.get('/fulfillment/products', isAuthenticated, FulfillmentController.viewProducts);
+router.get('/fulfillment/products/create', isAuthenticated, FulfillmentController.viewProductForm);
+router.get('/fulfillment/products/:id/edit', isAuthenticated, FulfillmentController.viewProductForm);
+router.post('/fulfillment/products', isAuthenticated, FulfillmentController.saveProduct);
 
 // Other pages can be added here (History, Slips, etc.)
 // router.get('/slips', isAuthenticated, hasPermission('slips'), SlipController.listSlips);

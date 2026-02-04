@@ -1,0 +1,180 @@
+<div class="px-6 py-6 max-w-[1600px] mx-auto">
+
+    <!-- Header Actions -->
+    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">รายการสินค้า</h1>
+            <p class="text-slate-500">จัดการข้อมูลสินค้า ราคา และการเชื่อมต่อ Marketplace</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <!-- Search -->
+            <form action="/fulfillment/products" method="GET" class="relative group">
+                <input type="text" name="q" placeholder="ค้นหา (ชื่อ, SKU, Code)..."
+                    value="<%= pagination.search || '' %>"
+                    class="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:border-emerald-300 transition-all">
+                <i
+                    class="fas fa-search absolute left-3 top-2.5 text-slate-400 group-hover:text-emerald-500 transition-colors"></i>
+                <% if(pagination.limit !==20) { %>
+                    <input type="hidden" name="limit" value="<%= pagination.limit %>">
+                    <% } %>
+            </form>
+
+            <a href="/fulfillment/products/create"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
+                <i class="fas fa-plus"></i> เพิ่มสินค้าใหม่
+            </a>
+        </div>
+    </div>
+
+    <!-- Controls & Filters -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="text-sm text-slate-500">
+            แสดง <%= (pagination.page - 1) * (pagination.limit==='all' ? pagination.totalItems : pagination.limit) + 1
+                %>
+                ถึง <%= Math.min(pagination.page * (pagination.limit==='all' ? pagination.totalItems :
+                    pagination.limit), pagination.totalItems) %>
+                    จากทั้งหมด <%= pagination.totalItems %> รายการ
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500">แสดงต่อหน้า:</span>
+            <select onchange="window.location.href='?limit='+this.value+'&q=<%= pagination.search %>'"
+                class="text-xs border-slate-200 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 p-1.5">
+                <option value="20" <%=pagination.limit==20 ? 'selected' : '' %>>20</option>
+                <option value="50" <%=pagination.limit==50 ? 'selected' : '' %>>50</option>
+                <option value="100" <%=pagination.limit==100 ? 'selected' : '' %>>100</option>
+                <option value="all" <%=pagination.limit=='all' ? 'selected' : '' %>>ทั้งหมด</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left divide-y divide-gray-200">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold text-slate-700 w-[80px]">รูปภาพ</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700">สินค้า</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700">รหัส / SKU</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700 text-right">ราคาต้นทุน</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700 text-right">ราคาขาย</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700 text-right">คงเหลือ</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700 w-[100px] text-center">สถานะ</th>
+                        <th class="px-6 py-4 font-semibold text-slate-700 w-[100px] text-right">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    <% if (products.length===0) { %>
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-box-open text-slate-300 text-4xl mb-3"></i>
+                                    <h3 class="font-medium text-slate-900">ไม่พบรายการสินค้า</h3>
+                                    <p class="text-sm mt-1">ลองเพิ่มสินค้าใหม่ หรือค้นหาด้วยคำอื่น</p>
+                                    <% if(pagination.search) { %>
+                                        <a href="/fulfillment/products"
+                                            class="mt-2 text-emerald-600 hover:underline">ล้างคำค้นหา</a>
+                                        <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                        <% } else { %>
+                            <% products.forEach(p=> {
+                                let images = [];
+                                try { images = JSON.parse(p.image_urls); } catch(e) {}
+                                const mainImage = images.length > 0 ? images[0] :
+                                'https://via.placeholder.com/50?text=No+Img';
+                                %>
+                                <tr class="hover:bg-slate-50 transition-colors group">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div
+                                            class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center">
+                                            <img src="<%= mainImage %>" alt="Product"
+                                                class="w-full h-full object-cover">
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div
+                                            class="font-bold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors">
+                                            <%= p.name %>
+                                        </div>
+                                        <div class="text-xs text-slate-500 truncate max-w-[250px] mt-0.5">
+                                            <%= p.description || '-' %>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex flex-col gap-1">
+                                            <span
+                                                class="text-[10px] font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded w-fit text-slate-600 border border-slate-200">
+                                                <%= p.code %>
+                                            </span>
+                                            <span class="text-xs text-slate-500 font-mono">Sku: <span
+                                                    class="text-slate-700">
+                                                    <%= p.sku %>
+                                                </span></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 whitespace-nowrap text-sm">
+                                        <%= parseFloat(p.cost).toLocaleString('th-TH', { minimumFractionDigits: 2 }) %>
+                                    </td>
+                                    <td
+                                        class="px-6 py-4 text-right font-bold text-slate-800 font-mono whitespace-nowrap text-sm">
+                                        <%= parseFloat(p.sale_price).toLocaleString('th-TH', { minimumFractionDigits: 2
+                                            }) %>
+                                    </td>
+                                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                                        <% if(parseFloat(p.total_quantity)> 0) { %>
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+                                                <i class="fas fa-cubes text-[10px]"></i>
+                                                <%= parseFloat(p.total_quantity).toLocaleString() %>
+                                            </span>
+                                            <% } else { %>
+                                                <span class="text-slate-300 text-xs italic">หมด/0</span>
+                                                <% } %>
+                                    </td>
+                                    <td class="px-6 py-4 text-center whitespace-nowrap">
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset <%= p.status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-slate-50 text-slate-600 ring-slate-500/10' %>">
+                                            <%= p.status %>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                                        <a href="/fulfillment/products/<%= p.id %>/edit"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination Footer -->
+    <% if (pagination.totalPages> 1) { %>
+        <div class="flex justify-center pb-8">
+            <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <a href="?page=<%= Math.max(1, pagination.page - 1) %>&limit=<%= pagination.limit %>&q=<%= pagination.search %>"
+                    class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50">
+                    <span class="sr-only">Previous</span>
+                    <i class="fas fa-chevron-left h-5 w-5"></i>
+                </a>
+
+                <% for(let i=1; i <=pagination.totalPages; i++) { %>
+                    <a href="?page=<%= i %>&limit=<%= pagination.limit %>&q=<%= pagination.search %>"
+                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold <%= i === pagination.page ? 'z-10 bg-emerald-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0' %>">
+                        <%= i %>
+                    </a>
+                    <% } %>
+
+                        <a href="?page=<%= Math.min(pagination.totalPages, pagination.page + 1) %>&limit=<%= pagination.limit %>&q=<%= pagination.search %>"
+                            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right h-5 w-5"></i>
+                        </a>
+            </nav>
+        </div>
+        <% } %>
+</div>

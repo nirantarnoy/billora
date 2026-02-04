@@ -1,0 +1,277 @@
+# API Testing Examples
+# ใช้กับ REST Client extension ใน VS Code หรือ copy ไปใช้กับ Postman
+
+### Variables
+@baseUrl = http://localhost:5000
+@token = YOUR_JWT_TOKEN_HERE
+
+###############################################
+# 1. TENANT REGISTRATION
+###############################################
+
+### 1.1 ลงทะเบียนองค์กรใหม่
+POST {{baseUrl}}/api/tenants/register
+Content-Type: application/json
+
+{
+  "company_name": "บริษัท ทดสอบ จำกัด",
+  "company_name_en": "Test Company Ltd.",
+  "tax_id": "0123456789012",
+  "address": "123 ถนนทดสอบ แขวงทดสอบ เขตทดสอบ กรุงเทพฯ 10100",
+  "phone": "021234567",
+  "email": "info@testcompany.com",
+  "owner_username": "owner",
+  "owner_email": "owner@testcompany.com",
+  "owner_password": "Password123!",
+  "owner_first_name": "สมชาย",
+  "owner_last_name": "ทดสอบ",
+  "owner_phone": "0812345678"
+}
+
+###############################################
+# 2. AUTHENTICATION
+###############################################
+
+### 2.1 Login (Owner)
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "owner@testcompany.com",
+  "password": "Password123!"
+}
+
+### 2.2 Login (User)
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "user@testcompany.com",
+  "password": "Password123!"
+}
+
+###############################################
+# 3. TENANT MANAGEMENT
+###############################################
+
+### 3.1 ดูข้อมูลองค์กรปัจจุบัน
+GET {{baseUrl}}/api/tenants/current
+Authorization: Bearer {{token}}
+
+### 3.2 อัพเดทข้อมูลองค์กร
+PUT {{baseUrl}}/api/tenants/current
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "company_name": "บริษัท ทดสอบใหม่ จำกัด",
+  "phone": "021234568",
+  "address": "456 ถนนใหม่ แขวงใหม่ เขตใหม่ กรุงเทพฯ 10200"
+}
+
+### 3.3 ดูข้อมูล Subscription
+GET {{baseUrl}}/api/tenants/subscription
+Authorization: Bearer {{token}}
+
+### 3.4 ตรวจสอบ Quota - Users
+GET {{baseUrl}}/api/tenants/quota/users
+Authorization: Bearer {{token}}
+
+### 3.5 ตรวจสอบ Quota - Transactions
+GET {{baseUrl}}/api/tenants/quota/transactions
+Authorization: Bearer {{token}}
+
+###############################################
+# 4. USER MANAGEMENT
+###############################################
+
+### 4.1 ดูรายการผู้ใช้ทั้งหมด
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+
+### 4.2 ดูรายการผู้ใช้ (กรองตาม role)
+GET {{baseUrl}}/api/users?role=admin
+Authorization: Bearer {{token}}
+
+### 4.3 ดูรายการผู้ใช้ (ค้นหา)
+GET {{baseUrl}}/api/users?search=สมชาย
+Authorization: Bearer {{token}}
+
+### 4.4 ดูข้อมูลผู้ใช้ตาม ID
+GET {{baseUrl}}/api/users/1
+Authorization: Bearer {{token}}
+
+### 4.5 สร้างผู้ใช้ใหม่ (Admin)
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "admin1",
+  "email": "admin@testcompany.com",
+  "password": "Password123!",
+  "first_name": "สมหญิง",
+  "last_name": "ผู้ดูแล",
+  "phone": "0823456789",
+  "role": "admin",
+  "permissions": {
+    "dashboard": true,
+    "users": true,
+    "bills": true,
+    "reports": true,
+    "settings": true
+  }
+}
+
+### 4.6 สร้างผู้ใช้ใหม่ (User)
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "user@testcompany.com",
+  "password": "Password123!",
+  "first_name": "สมศรี",
+  "last_name": "ผู้ใช้",
+  "phone": "0834567890",
+  "role": "user",
+  "permissions": {
+    "dashboard": true,
+    "bills": true,
+    "reports": false
+  }
+}
+
+### 4.7 อัพเดทข้อมูลผู้ใช้
+PUT {{baseUrl}}/api/users/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "first_name": "สมหญิง",
+  "last_name": "ผู้ดูแลใหม่",
+  "phone": "0823456780",
+  "permissions": {
+    "dashboard": true,
+    "users": true,
+    "bills": true,
+    "reports": true,
+    "settings": false
+  }
+}
+
+### 4.8 เปลี่ยนรหัสผ่าน
+POST {{baseUrl}}/api/users/1/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "old_password": "Password123!",
+  "new_password": "NewPassword456!"
+}
+
+### 4.9 เปลี่ยน Role
+PUT {{baseUrl}}/api/users/2/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "manager"
+}
+
+### 4.10 ระงับผู้ใช้
+PUT {{baseUrl}}/api/users/2/toggle-active
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### 4.11 เปิดใช้งานผู้ใช้
+PUT {{baseUrl}}/api/users/2/toggle-active
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "is_active": true
+}
+
+### 4.12 ลบผู้ใช้
+DELETE {{baseUrl}}/api/users/2
+Authorization: Bearer {{token}}
+
+###############################################
+# 5. ERROR CASES (สำหรับทดสอบ)
+###############################################
+
+### 5.1 ลงทะเบียนซ้ำ (ควรได้ error)
+POST {{baseUrl}}/api/tenants/register
+Content-Type: application/json
+
+{
+  "company_name": "บริษัท ทดสอบ จำกัด",
+  "owner_email": "owner@testcompany.com",
+  "owner_password": "Password123!",
+  "owner_first_name": "สมชาย",
+  "owner_last_name": "ทดสอบ"
+}
+
+### 5.2 Login ผิดรหัสผ่าน (ควรได้ error)
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "owner@testcompany.com",
+  "password": "WrongPassword"
+}
+
+### 5.3 สร้างผู้ใช้เกิน quota (ควรได้ error ถ้าเกิน limit)
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "user99@testcompany.com",
+  "password": "Password123!",
+  "first_name": "ผู้ใช้",
+  "last_name": "เกิน",
+  "role": "user"
+}
+
+### 5.4 เข้าถึงโดยไม่มี token (ควรได้ 401)
+GET {{baseUrl}}/api/tenants/current
+
+### 5.5 User ธรรมดาพยายามสร้างผู้ใช้ใหม่ (ควรได้ 403)
+# ต้อง login ด้วย user ธรรมดาก่อน
+POST {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "newuser@testcompany.com",
+  "password": "Password123!",
+  "first_name": "ผู้ใช้",
+  "last_name": "ใหม่",
+  "role": "user"
+}
+
+###############################################
+# 6. DASHBOARD & EXISTING APIS
+###############################################
+
+### 6.1 Dashboard Stats
+GET {{baseUrl}}/api/stats
+Authorization: Bearer {{token}}
+
+### 6.2 Dashboard Data
+GET {{baseUrl}}/api/dashboard/data
+Authorization: Bearer {{token}}
+
+### 6.3 History
+GET {{baseUrl}}/api/history
+Authorization: Bearer {{token}}
+
+### 6.4 History with Date Filter
+GET {{baseUrl}}/api/history?date_from=2026-01-01&date_to=2026-12-31
+Authorization: Bearer {{token}}

@@ -1,0 +1,453 @@
+<div class="p-10">
+    <header class="flex justify-between items-center mb-10">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800">จัดการผู้ใช้งาน</h2>
+            <p class="text-slate-500 text-sm">
+                องค์กร: <strong class="text-emerald-600">
+                    <%= tenant.company_name %>
+                </strong>
+                (<%= tenant.tenant_code %>)
+            </p>
+            <p class="text-slate-400 text-xs mt-1">
+                แพ็กเกจ: <%= tenant.subscription_plan %> |
+                    ผู้ใช้: <%= users.length %>/<%= tenant.max_users %> คน
+            </p>
+        </div>
+        <button onclick="openModal()"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-emerald-600/30">
+            <i class="fas fa-user-plus mr-2"></i> เพิ่มผู้ใช้ใหม่
+        </button>
+    </header>
+
+    <!-- Quota Warning -->
+    <% if (users.length>= tenant.max_users) { %>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-exclamation-triangle text-amber-600 text-xl"></i>
+                <div>
+                    <p class="font-semibold text-amber-800">ถึงขีดจำกัดจำนวนผู้ใช้แล้ว</p>
+                    <p class="text-sm text-amber-700">
+                        คุณใช้ผู้ใช้ครบ <%= tenant.max_users %> คนแล้ว
+                            <a href="/tenant/settings"
+                                class="text-emerald-600 font-semibold hover:underline">อัพเกรดแพ็กเกจ</a>
+                            เพื่อเพิ่มจำนวนผู้ใช้
+                    </p>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-slate-400 text-sm border-b border-slate-100">
+                            <th class="p-6 font-medium">ผู้ใช้</th>
+                            <th class="p-6 font-medium">บทบาท</th>
+                            <th class="p-6 font-medium">สถานะ</th>
+                            <th class="p-6 font-medium">สิทธิ์การใช้งาน</th>
+                            <th class="p-6 font-medium text-right">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        <% users.forEach(u=> { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="p-6">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                                            <span class="text-emerald-600 font-bold">
+                                                <%= (u.first_name || u.email.charAt(0)).charAt(0).toUpperCase() %>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-slate-700">
+                                                <%= u.first_name %>
+                                                    <%= u.last_name %>
+                                            </p>
+                                            <p class="text-sm text-slate-500">
+                                                <%= u.email %>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="p-6">
+                                    <span class="px-3 py-1 <%= 
+                            u.role === 'owner' ? 'bg-purple-100 text-purple-600' :
+                            u.role === 'admin' ? 'bg-blue-100 text-blue-600' :
+                            u.role === 'manager' ? 'bg-indigo-100 text-indigo-600' :
+                            u.role === 'accountant' ? 'bg-cyan-100 text-cyan-600' :
+                            'bg-slate-100 text-slate-600'
+                        %> text-xs rounded-full font-bold uppercase">
+                                        <%= u.role %>
+                                    </span>
+                                </td>
+                                <td class="p-6">
+                                    <% if (u.is_active) { %>
+                                        <span class="flex items-center gap-2 text-emerald-600">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span class="text-sm font-semibold">ใช้งาน</span>
+                                        </span>
+                                        <% } else { %>
+                                            <span class="flex items-center gap-2 text-red-600">
+                                                <i class="fas fa-ban"></i>
+                                                <span class="text-sm font-semibold">ระงับ</span>
+                                            </span>
+                                            <% } %>
+                                </td>
+                                <td class="p-6">
+                                    <div class="flex gap-2 flex-wrap">
+                                        <% const perms=typeof u.permissions==='string' ? JSON.parse(u.permissions) :
+                                            u.permissions; %>
+                                            <% if (perms.dashboard) { %>
+                                                <span
+                                                    class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">Dashboard</span>
+                                                <% } %>
+                                                    <% if (perms.bills) { %>
+                                                        <span
+                                                            class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">Bills</span>
+                                                        <% } %>
+                                                            <% if (perms.reports) { %>
+                                                                <span
+                                                                    class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">Reports</span>
+                                                                <% } %>
+                                                                    <% if (perms.users) { %>
+                                                                        <span
+                                                                            class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">Users</span>
+                                                                        <% } %>
+                                    </div>
+                                </td>
+                                <td class="p-6 text-right">
+                                    <div class="flex justify-end gap-3">
+                                        <% if (u.id !==user.id) { %>
+                                            <button onclick='editUser(this)' data-user='<%= JSON.stringify(u) %>'
+                                                class="text-amber-400 hover:text-amber-600 transition-colors"
+                                                title="แก้ไข">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button onclick="toggleActive(<%= u.id %>, <%= !u.is_active %>)"
+                                                class="<%= u.is_active ? 'text-orange-400 hover:text-orange-600' : 'text-emerald-400 hover:text-emerald-600' %> transition-colors"
+                                                title="<%= u.is_active ? 'ระงับ' : 'เปิดใช้งาน' %>">
+                                                <i class="fas fa-<%= u.is_active ? 'ban' : 'check-circle' %>"></i>
+                                            </button>
+                                            <% if (u.role !=='owner' ) { %>
+                                                <button onclick="deleteUser(<%= u.id %>)"
+                                                    class="text-red-400 hover:text-red-600 transition-colors"
+                                                    title="ลบ">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                                <% } %>
+                                                    <% } else { %>
+                                                        <span class="text-slate-400 text-sm">(คุณ)</span>
+                                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div id="userModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm modal modal-hidden">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <h3 id="modalTitle" class="text-xl font-bold text-slate-800">เพิ่มผู้ใช้งานใหม่</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="userForm" class="p-8 space-y-6">
+            <input type="hidden" id="userId">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">ชื่อจริง</label>
+                    <input type="text" id="first_name" required
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">นามสกุล</label>
+                    <input type="text" id="last_name" required
+                        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">อีเมล</label>
+                <input type="email" id="email" required
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">รหัสผ่าน</label>
+                <input type="password" id="password"
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">เบอร์โทรศัพท์</label>
+                <input type="tel" id="phone"
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">บทบาท</label>
+                <select id="role" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                    <option value="user">User (ผู้ใช้งานทั่วไป)</option>
+                    <option value="accountant">Accountant (นักบัญชี)</option>
+                    <option value="manager">Manager (ผู้จัดการ)</option>
+                    <option value="admin">Admin (ผู้ดูแลระบบ)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-4">กำหนดสิทธิ์การเข้าถึงโมดูล</label>
+                <div class="space-y-3 p-4 bg-slate-50 rounded-2xl">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="perm_dashboard" checked
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-slate-700">Dashboard</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="perm_bills" checked
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-slate-700">Bills & Receipts</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="perm_reports"
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-slate-700">Reports</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="perm_users"
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-slate-700">User Management</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="perm_settings"
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-slate-700">Settings</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/30">
+                บันทึกข้อมูลผู้ใช้
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="/js/sweetalert2.all.min.js"></script>
+<script>
+    const modal = document.getElementById('userModal');
+    const userForm = document.getElementById('userForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const userIdInput = document.getElementById('userId');
+
+    function openModal() {
+        // Check quota
+        const currentUsers = <%= users.length %>;
+        const maxUsers = <%= tenant.max_users %>;
+
+        if (currentUsers >= maxUsers) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ถึงขีดจำกัดจำนวนผู้ใช้',
+                html: 'คุณใช้ผู้ใช้ครบ ' + maxUsers + ' คนแล้ว<br><a href="/tenant/settings" class="text-emerald-600 font-semibold hover:underline">อัพเกรดแพ็กเกจ</a> เพื่อเพิ่มจำนวนผู้ใช้',
+                confirmButtonColor: '#10b981'
+            });
+            return;
+        }
+
+        modalTitle.textContent = 'เพิ่มผู้ใช้งานใหม่';
+        userForm.reset();
+        userIdInput.value = '';
+        document.getElementById('password').required = true;
+        modal.classList.remove('modal-hidden');
+    }
+
+    function editUser(btn) {
+        const user = JSON.parse(btn.getAttribute('data-user'));
+        modalTitle.textContent = 'แก้ไขข้อมูลผู้ใช้: ' + user.first_name + ' ' + user.last_name;
+        userIdInput.value = user.id;
+        document.getElementById('first_name').value = user.first_name || '';
+        document.getElementById('last_name').value = user.last_name || '';
+        document.getElementById('email').value = user.email;
+        document.getElementById('phone').value = user.phone || '';
+        document.getElementById('password').value = '';
+        document.getElementById('password').required = false;
+        document.getElementById('role').value = user.role;
+
+        const perms = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+        document.getElementById('perm_dashboard').checked = perms.dashboard || false;
+        document.getElementById('perm_bills').checked = perms.bills || false;
+        document.getElementById('perm_reports').checked = perms.reports || false;
+        document.getElementById('perm_users').checked = perms.users || false;
+        document.getElementById('perm_settings').checked = perms.settings || false;
+
+        modal.classList.remove('modal-hidden');
+    }
+
+    function closeModal() {
+        modal.classList.add('modal-hidden');
+    }
+
+    userForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = userIdInput.value;
+        const data = {
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('password').value,
+            role: document.getElementById('role').value,
+            permissions: {
+                dashboard: document.getElementById('perm_dashboard').checked,
+                bills: document.getElementById('perm_bills').checked,
+                reports: document.getElementById('perm_reports').checked,
+                users: document.getElementById('perm_users').checked,
+                settings: document.getElementById('perm_settings').checked
+            }
+        };
+
+        const url = id ? `/api/users/${id}` : '/api/users';
+        const method = id ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: id ? 'แก้ไขข้อมูลผู้ใช้สำเร็จ' : 'เพิ่มผู้ใช้ใหม่สำเร็จ',
+                    confirmButtonColor: '#10b981'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: result.message || 'ไม่สามารถบันทึกข้อมูลได้',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                confirmButtonColor: '#10b981'
+            });
+        }
+    };
+
+    async function toggleActive(userId, isActive) {
+        try {
+            const res = await fetch(`/api/users/${userId}/toggle-active`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                body: JSON.stringify({ is_active: isActive })
+            });
+
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ!',
+                    text: isActive ? 'เปิดใช้งานผู้ใช้แล้ว' : 'ระงับผู้ใช้แล้ว',
+                    confirmButtonColor: '#10b981',
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: result.message || 'ไม่สามารถดำเนินการได้',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                confirmButtonColor: '#10b981'
+            });
+        }
+    }
+
+    async function deleteUser(userId) {
+        const result = await Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: 'คุณต้องการลบผู้ใช้นี้หรือไม่?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'ลบ',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch(`/api/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                }
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ลบสำเร็จ!',
+                    text: 'ลบผู้ใช้เรียบร้อยแล้ว',
+                    confirmButtonColor: '#10b981',
+                    timer: 1500
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: data.message || 'ไม่สามารถลบผู้ใช้ได้',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                confirmButtonColor: '#10b981'
+            });
+        }
+    }
+</script>

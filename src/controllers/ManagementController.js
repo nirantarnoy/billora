@@ -2,7 +2,43 @@ const db = require('../config/db');
 const { recordAction } = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
+
+// Helper function to find mysqldump executable
+function findMysqldump() {
+    // Try to find mysqldump using 'where' command on Windows
+    try {
+        const result = execSync('where mysqldump', { encoding: 'utf8' });
+        const paths = result.trim().split('\n');
+        if (paths.length > 0 && paths[0]) {
+            return `"${paths[0].trim()}"`;
+        }
+    } catch (err) {
+        // 'where' command failed, mysqldump not in PATH
+    }
+
+    // Common MySQL installation paths on Windows
+    const possiblePaths = [
+        'E:\\xampp\\mysql\\bin\\mysqldump.exe',
+        'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe',
+        'C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe',
+        'C:\\Program Files (x86)\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe',
+        'C:\\Program Files (x86)\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe',
+        'C:\\wamp64\\bin\\mysql\\mysql8.0.27\\bin\\mysqldump.exe',
+        'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe',
+        'C:\\MariaDB\\bin\\mysqldump.exe'
+    ];
+
+    // Find the first existing path
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+            return `"${p}"`;
+        }
+    }
+
+    // Fallback to just 'mysqldump' and hope it's in PATH
+    return 'mysqldump';
+}
 
 class ManagementController {
     // Backup & Restore
@@ -27,7 +63,9 @@ class ManagementController {
             success: req.query.success || null,
             error: req.query.error || null,
             active: 'backup',
-            title: 'สำรองและคืนค่าข้อมูล'
+            title: 'สำรองและคืนค่าข้อมูล',
+            user: req.session.user,
+            _csrf: req.csrfToken ? req.csrfToken() : ''
         });
     }
 
@@ -36,14 +74,97 @@ class ManagementController {
         const fileName = `backup-${timestamp}.sql`;
         const filePath = path.join(__dirname, '../../backups', fileName);
 
-        // Command depends on environment, simplified here
-        const cmd = `mysqldump -u root bill_ocr > "${filePath}"`;
+        // Get MySQL credentials from environment
+        const dbUser = process.env.DB_USER || 'root';
+        const dbPassword = process.env.DB_PASSWORD || '';
+        const dbName = process.env.DB_NAME || 'bill_ocr';
 
-        exec(cmd, async (err) => {
-            if (err) return res.redirect('/admin/backup?error=' + encodeURIComponent(err.message));
+        // Find mysqldump executable
+        const mysqldumpCmd = findMysqldump();
+
+        // Build command with password handling
+        let cmd;
+        if (dbPassword) {
+            cmd = `${mysqldumpCmd} -u ${dbUser} -p${dbPassword} ${dbName} > "${filePath}"`;
+        } else {
+            cmd = `${mysqldumpCmd} -u ${dbUser} ${dbName} > "${filePath}"`;
+        }
+
+        console.log('Backup command:', cmd.replace(/-p\S+/, '-p***')); // Log without password
+
+        exec(cmd, async (err, stdout, stderr) => {
+            if (err) {
+                console.error('Backup Error:', err);
+                console.error('stderr:', stderr);
+                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถสำรองข้อมูลได้: ' + err.message));
+            }
             await recordAction(req.session.user.id, 'Create Backup', `สร้างไฟล์สำรอง ${fileName}`, req);
             res.redirect('/admin/backup?success=' + encodeURIComponent('สำรองข้อมูลสำเร็จ: ' + fileName));
         });
+    }
+
+    async deleteBackup(req, res) {
+        const { fileName } = req.body;
+        const filePath = path.join(__dirname, '../../backups', fileName);
+
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่พบไฟล์ที่ต้องการลบ'));
+            }
+
+            // Delete file
+            fs.unlinkSync(filePath);
+
+            await recordAction(req.session.user.id, 'Delete Backup', `ลบไฟล์สำรอง ${fileName}`, req);
+            res.redirect('/admin/backup?success=' + encodeURIComponent('ลบไฟล์สำรองสำเร็จ'));
+        } catch (err) {
+            console.error('Delete Backup Error:', err);
+            res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถลบไฟล์ได้: ' + err.message));
+        }
+    }
+
+    async restoreBackup(req, res) {
+        const { fileName } = req.body;
+        const filePath = path.join(__dirname, '../../backups', fileName);
+
+        try {
+            // Check if file exists
+            if (!fs.existsSync(filePath)) {
+                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่พบไฟล์ที่ต้องการคืนค่า'));
+            }
+
+            // Get MySQL credentials from environment
+            const dbUser = process.env.DB_USER || 'root';
+            const dbPassword = process.env.DB_PASSWORD || '';
+            const dbName = process.env.DB_NAME || 'bill_ocr';
+
+            // Find mysql executable
+            const mysqlCmd = findMysqldump().replace('mysqldump', 'mysql');
+
+            // Build restore command
+            let cmd;
+            if (dbPassword) {
+                cmd = `${mysqlCmd} -u ${dbUser} -p${dbPassword} ${dbName} < "${filePath}"`;
+            } else {
+                cmd = `${mysqlCmd} -u ${dbUser} ${dbName} < "${filePath}"`;
+            }
+
+            console.log('Restore command:', cmd.replace(/-p\S+/, '-p***'));
+
+            exec(cmd, async (err, stdout, stderr) => {
+                if (err) {
+                    console.error('Restore Error:', err);
+                    console.error('stderr:', stderr);
+                    return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถคืนค่าข้อมูลได้: ' + err.message));
+                }
+                await recordAction(req.session.user.id, 'Restore Backup', `คืนค่าข้อมูลจากไฟล์ ${fileName}`, req);
+                res.redirect('/admin/backup?success=' + encodeURIComponent('คืนค่าข้อมูลสำเร็จ'));
+            });
+        } catch (err) {
+            console.error('Restore Backup Error:', err);
+            res.redirect('/admin/backup?error=' + encodeURIComponent('เกิดข้อผิดพลาด: ' + err.message));
+        }
     }
 
     // Action Logs

@@ -23,4 +23,12 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+
+  // เริ่มต้น Backup Scheduler
+  const backupScheduler = require('./src/services/BackupScheduler');
+  backupScheduler.init().then(() => {
+    console.log('✓ Backup Scheduler initialized');
+  }).catch(err => {
+    console.error('✗ Backup Scheduler initialization failed:', err.message);
+  });
 });
