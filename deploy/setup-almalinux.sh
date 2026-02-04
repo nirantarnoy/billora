@@ -16,8 +16,10 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 1. Update System
-echo "[1/6] Updating system packages..."
+echo "[1/7] Updating system packages..."
 dnf update -y
+# Install EPEL & Git & basic tools
+dnf install epel-release git -y
 
 # 2. Install Node.js 18 (LTS)
 echo "[2/6] Installing Node.js 18..."
@@ -43,12 +45,24 @@ dnf install mariadb -y
 
 # 6. Install PM2 (Process Manager)
 # Recommended for running Node.js apps in production
-echo "[6/6] Installing PM2 (Process Manager)..."
+echo "[6/8] Installing PM2 (Process Manager)..."
 npm install -g pm2
 
-# Setup Firewall (Optional - opens port 3000)
+# 7. Install Nginx
+echo "[7/8] Installing Nginx..."
+dnf install nginx -y
+systemctl enable nginx
+systemctl start nginx
+
+# 8. Install Certbot (SSL)
+echo "[8/8] Installing Certbot (for free SSL)..."
+dnf install certbot python3-certbot-nginx -y
+
+# Setup Firewall (Optional - opens ports)
 # echo "Configuring Firewall..."
-# firewall-cmd --permanent --add-port=3000/tcp
+# firewall-cmd --permanent --add-port=80/tcp
+# firewall-cmd --permanent --add-port=443/tcp
+# firewall-cmd --permanent --add-port=3000/tcp # If you still want direct access
 # firewall-cmd --reload
 
 echo "========================================================"
