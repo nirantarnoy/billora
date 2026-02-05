@@ -34,8 +34,8 @@ class SlipController {
 
             let query = `SELECT * FROM payment_slips ${whereClause} ORDER BY id DESC`;
             if (limit) {
-                query += ` LIMIT ? OFFSET ?`;
-                params.push(parseInt(limit), parseInt(offset));
+                query += ` LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
+                // params.push(parseInt(limit), parseInt(offset));
             }
 
             const [slips] = await db.execute(query, params);
@@ -97,11 +97,11 @@ class SlipController {
         }
 
         countQuery += where;
-        dataQuery += where + " ORDER BY l.created_at DESC LIMIT ? OFFSET ?";
+        dataQuery += where + ` ORDER BY l.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
 
         try {
             const [[{ total }]] = await db.execute(countQuery, params);
-            const [logs] = await db.execute(dataQuery, [...params, parseInt(limit), parseInt(offset)]);
+            const [logs] = await db.execute(dataQuery, params);
 
             res.render('history', {
                 user: req.session.user,

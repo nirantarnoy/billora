@@ -33,14 +33,14 @@ class FulfillmentController {
                 countParams.push(searchTerm, searchTerm);
             }
 
-            sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-            params.push(Number(limitVal), Number(offsetVal));
+            sql += ` ORDER BY created_at DESC LIMIT ${Number(limitVal)} OFFSET ${Number(offsetVal)}`;
+            // params.push(Number(limitVal), Number(offsetVal));
 
             // Execute
             const [warehouses] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
             const totalItems = countRows[0].total;
-            const totalPages = Math.ceil(totalItems / limit);
+            const totalPages = Math.ceil(totalItems / limitVal);
 
             // Fetch locations count for each warehouse (Ideally should be a JOIN/Subquery for performance, but loop is fine for small limits)
             for (let wh of warehouses) {
@@ -108,13 +108,13 @@ class FulfillmentController {
                 countParams.push(searchTerm, searchTerm, searchTerm);
             }
 
-            sql += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-            params.push(Number(limitVal), Number(offsetVal));
+            sql += ` ORDER BY p.created_at DESC LIMIT ${Number(limitVal)} OFFSET ${Number(offsetVal)}`;
+            // params.push(Number(limitVal), Number(offsetVal));
 
             const [products] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
             const totalItems = countRows[0].total;
-            const totalPages = Math.ceil(totalItems / limit);
+            const totalPages = Math.ceil(totalItems / limitVal);
 
             res.render('fulfillment/products', {
                 user: req.session.user,
@@ -208,13 +208,13 @@ class FulfillmentController {
                 countParams.push(searchTerm, searchTerm);
             }
 
-            sql += ' ORDER BY name ASC LIMIT ? OFFSET ?';
-            params.push(Number(limitVal), Number(offsetVal));
+            sql += ` ORDER BY name ASC LIMIT ${Number(limitVal)} OFFSET ${Number(offsetVal)}`;
+            // params.push(Number(limitVal), Number(offsetVal));
 
             const [locations] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
             const totalItems = countRows[0].total;
-            const totalPages = Math.ceil(totalItems / limit);
+            const totalPages = Math.ceil(totalItems / limitVal);
 
             res.render('fulfillment/locations', {
                 user: req.session.user,

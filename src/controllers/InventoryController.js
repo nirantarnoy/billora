@@ -67,8 +67,8 @@ class InventoryController {
             const totalPages = Math.ceil(totalItems / limit);
 
             // Fetch Data
-            sql += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
-            params.push(Number(limit), Number(offset));
+            sql += ` ORDER BY t.transaction_date DESC LIMIT ${Number(limit)} OFFSET ${Number(offset)}`;
+            // params.push(Number(limit), Number(offset));
 
             const [transactions] = await db.execute(sql, params);
 
