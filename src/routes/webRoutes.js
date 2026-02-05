@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { isAuthenticated, isAdmin, hasPermission } = require('../middleware/auth');
+const { isAuthenticated, isAdmin, isSuperAdmin, hasPermission } = require('../middleware/auth');
 const { loadTenant } = require('../middleware/tenant');
 const DashboardController = require('../controllers/DashboardController');
 const BillController = require('../controllers/BillController');
@@ -12,6 +12,8 @@ const ExportController = require('../controllers/ExportController');
 const GeneralController = require('../controllers/GeneralController');
 const WebTenantController = require('../controllers/WebTenantController');
 const FulfillmentController = require('../controllers/FulfillmentController');
+const AdminTenantController = require('../controllers/AdminTenantController');
+
 
 // Dashboard
 router.get('/dashboard', isAuthenticated, DashboardController.viewDashboard);
@@ -53,6 +55,13 @@ router.post('/admin/backup/create', isAuthenticated, isAdmin, ManagementControll
 router.post('/admin/backup/delete', isAuthenticated, isAdmin, ManagementController.deleteBackup);
 router.post('/admin/backup/restore', isAuthenticated, isAdmin, ManagementController.restoreBackup);
 router.get('/admin/logs', isAuthenticated, isAdmin, ManagementController.listLogs);
+
+// Tenant Management (Super Admin Only)
+router.get('/admin/tenants', isAuthenticated, isSuperAdmin, AdminTenantController.listTenants);
+router.post('/admin/tenants/:id/status', isAuthenticated, isSuperAdmin, AdminTenantController.apiUpdateStatus);
+router.post('/admin/tenants/:id/plan', isAuthenticated, isSuperAdmin, AdminTenantController.apiChangePlan);
+router.delete('/admin/tenants/:id', isAuthenticated, isSuperAdmin, AdminTenantController.apiDeleteTenant);
+
 
 // Backup Schedules (Admin Only)
 const BackupScheduleController = require('../controllers/BackupScheduleController');

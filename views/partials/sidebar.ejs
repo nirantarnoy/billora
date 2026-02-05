@@ -117,6 +117,10 @@
                                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'backup') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-clock"></i> Auto Backup
                                         </a>
+                                        <a href="/admin/tenants"
+                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-tenants') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                            <i class="fas fa-building"></i> จัดการ Tenant
+                                        </a>
                                         <a href="/admin/logs"
                                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-clipboard-list"></i> บันทึกกิจกรรม
