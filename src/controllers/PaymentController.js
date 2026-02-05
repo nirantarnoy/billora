@@ -88,7 +88,9 @@ class PaymentController {
                 const payment = await PaymentModel.findByChargeId(charge.id);
                 console.log(`[Omise Webhook] Found local payment: ${payment ? 'Yes' : 'No'}`);
 
-                if (payment && payment.status !== 'succeeded' && charge.status === 'succeeded') {
+                const isSuccess = charge.status === 'succeeded' || charge.status === 'successful';
+
+                if (payment && payment.status !== 'succeeded' && isSuccess) {
                     // 1. อัพเดทสถานะการจ่ายเงิน
                     await PaymentModel.updateStatus(charge.id, 'succeeded', { raw: charge });
                     console.log(`[Omise Webhook] Payment status updated to succeeded for charge: ${charge.id}`);
@@ -130,8 +132,9 @@ class PaymentController {
 
             // 1. ถาม Omise ตรงๆ
             const charge = await omise.charges.retrieve(chargeId);
+            const isSuccess = charge.status === 'succeeded' || charge.status === 'successful';
 
-            if (charge.status === 'succeeded') {
+            if (isSuccess) {
                 const payment = await PaymentModel.findByChargeId(charge.id);
 
                 if (payment && payment.status !== 'succeeded') {
