@@ -529,8 +529,16 @@
                         imageWidth: 300, imageHeight: 300,
                         confirmButtonText: 'ชำระเงินเสร็จแล้ว',
                         confirmButtonColor: '#059669',
-                        footer: '<p class="text-sm text-slate-400 italic">แผนของคุณจะเริ่มทันทีหลังจากชำระเงินสำเร็จ</p>'
-                    }).then(() => window.location.reload());
+                        showCancelButton: true,
+                        cancelButtonText: 'ปิดหน้าจอ',
+                        footer: '<p class="text-sm text-slate-400 italic">หลังจากชำระแล้ว กรุณากดปุ่มเพื่ออัปเดตระบบ</p>'
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            verifyPayment(result.chargeId);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
                 } else {
                     Swal.fire({ title: 'Success', text: 'ชำระเงินเรียบร้อย แผนใหม่เริ่มใช้งานได้ทันที', icon: 'success', confirmButtonColor: '#059669' })
                         .then(() => window.location.reload());
@@ -540,6 +548,33 @@
             }
         } catch (err) {
             Swal.fire({ title: 'Error', text: 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้', icon: 'error', confirmButtonColor: '#ef4444' });
+        }
+    }
+
+    async function verifyPayment(chargeId) {
+        try {
+            Swal.fire({ title: 'Verifying...', text: 'กำลังตรวจสอบสถานะการชำระเงิน', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const response = await fetch(`/api/payments/sync/${chargeId}`);
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire('สำเร็จ', result.message, 'success').then(() => window.location.reload());
+            } else {
+                Swal.fire({
+                    title: 'ยังไม่พบยอดเงิน',
+                    text: result.message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'ลองอีกครั้ง',
+                    cancelButtonText: 'ไว้ตรวจสอบภายหลัง'
+                }).then((res) => {
+                    if (res.isConfirmed) verifyPayment(chargeId);
+                    else window.location.reload();
+                });
+            }
+        } catch (err) {
+            Swal.fire('Error', 'เกิดข้อผิดพลาดในการตรวจสอบสถานะ', 'error');
         }
     }
 

@@ -63,6 +63,7 @@ class PaymentController {
                 status: charge.status,
                 authorize_uri: charge.authorize_uri, // สำหรับ 3D Secure
                 qr_code_url: charge.source ? (charge.source.scannable_code ? charge.source.scannable_code.image.download_uri : null) : null, // สำหรับ PromptPay
+                chargeId: charge.id, // ส่ง ID กลับไปให้เช็คสถานะ
                 message: charge.status === 'succeeded' ? 'ชำระเงินสำเร็จ' : 'กำลังรอการชำระเงิน'
             });
 
@@ -82,26 +83,30 @@ class PaymentController {
 
             if (event.key === 'charge.complete') {
                 const charge = event.data;
+                console.log(`[Omise Webhook] Processing charge: ${charge.id}, Status: ${charge.status}`);
+
                 const payment = await PaymentModel.findByChargeId(charge.id);
+                console.log(`[Omise Webhook] Found local payment: ${payment ? 'Yes' : 'No'}`);
 
                 if (payment && payment.status !== 'succeeded' && charge.status === 'succeeded') {
                     // 1. อัพเดทสถานะการจ่ายเงิน
                     await PaymentModel.updateStatus(charge.id, 'succeeded', { raw: charge });
+                    console.log(`[Omise Webhook] Payment status updated to succeeded for charge: ${charge.id}`);
 
                     // 2. เปิดใช้งาน Subscription
                     const tenantId = charge.metadata.tenant_id;
                     const planId = charge.metadata.plan_id;
+
+                    console.log(`[Omise Webhook] Activating plan ${planId} for tenant ${tenantId}`);
                     const [[plan]] = await pool.query('SELECT * FROM subscription_plans WHERE id = ?', [planId]);
 
                     if (plan) {
                         await PaymentController.activateSubscription(tenantId, plan, charge);
+                    } else {
+                        console.warn(`[Omise Webhook] Plan ${planId} not found in database!`);
                     }
-                } else if (charge.status === 'failed') {
-                    await PaymentModel.updateStatus(charge.id, 'failed', {
-                        failure_code: charge.failure_code,
-                        failure_message: charge.failure_message,
-                        raw: charge
-                    });
+                } else {
+                    console.log(`[Omise Webhook] No action needed for charge: ${charge.id}. Local status: ${payment?.status}, Omise status: ${charge.status}`);
                 }
             }
 
@@ -109,6 +114,50 @@ class PaymentController {
         } catch (error) {
             console.error('Webhook Error:', error);
             res.status(500).send('Internal Server Error');
+        }
+    }
+
+    /**
+     * ดึงสถานะปัจจุบันจาก Omise และอัปเดตระบบ (Sync)
+     * ใช้กรณี Webhook ล่าช้าหรือมีปัญหา
+     */
+    static async syncPaymentStatus(req, res) {
+        try {
+            const { chargeId } = req.params;
+            const tenantId = req.session.user.tenant_id;
+
+            console.log(`[Payment Sync] Checking status for charge: ${chargeId}`);
+
+            // 1. ถาม Omise ตรงๆ
+            const charge = await omise.charges.retrieve(chargeId);
+
+            if (charge.status === 'succeeded') {
+                const payment = await PaymentModel.findByChargeId(charge.id);
+
+                if (payment && payment.status !== 'succeeded') {
+                    // ทำเหมือน Webhook
+                    await PaymentModel.updateStatus(charge.id, 'succeeded', { raw: charge });
+
+                    const planId = charge.metadata.plan_id;
+                    const [[plan]] = await pool.query('SELECT * FROM subscription_plans WHERE id = ?', [planId]);
+
+                    if (plan) {
+                        await PaymentController.activateSubscription(tenantId, plan, charge);
+                        return res.json({ success: true, message: 'อัปเดตสถานะและเปิดใช้งานแผนเรียบร้อยแล้ว' });
+                    }
+                } else if (payment && payment.status === 'succeeded') {
+                    return res.json({ success: true, message: 'รายการนี้ชำระเงินเรียบร้อยแล้ว' });
+                }
+            }
+
+            res.json({
+                success: false,
+                message: charge.status === 'pending' ? 'ยังไม่ได้ชำระเงิน' : 'สถานะชำระเงินไม่ถูกต้อง',
+                status: charge.status
+            });
+        } catch (error) {
+            console.error('Sync Error:', error);
+            res.status(500).json({ success: false, message: error.message });
         }
     }
 

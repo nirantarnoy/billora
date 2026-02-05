@@ -57,6 +57,7 @@ router.use('/users', userManagementRoutes);
 
 // Omise Payment API
 router.post('/payments/checkout', isAuthenticated, PaymentController.checkout);
+router.get('/payments/sync/:chargeId', isAuthenticated, PaymentController.syncPaymentStatus);
 router.post('/payments/webhook', PaymentController.handleWebhook); // Public Webhook
 
 
