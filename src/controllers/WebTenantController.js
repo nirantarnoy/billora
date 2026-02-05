@@ -56,7 +56,7 @@ class WebTenantController {
             // ดึงข้อมูล subscription
             const pool = require('../config/db');
             const [subscriptions] = await pool.query(`
-                SELECT ts.*, sp.name as plan_name, sp.price, sp.features
+                SELECT ts.*, sp.plan_name, sp.price_monthly as price, sp.features
                 FROM tenant_subscriptions ts
                 LEFT JOIN subscription_plans sp ON ts.plan_id = sp.id
                 WHERE ts.tenant_id = ?

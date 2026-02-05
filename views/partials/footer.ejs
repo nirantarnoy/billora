@@ -115,6 +115,35 @@
             }
         });
     }
+    // Socket.io Notification Logic
+    const socket = io();
+    socket.on('new_upload', (data) => {
+        const badge = document.getElementById('notifBadge');
+        if (badge) {
+            let currentCount = parseInt(badge.textContent) || 0;
+            badge.textContent = currentCount + (data.count || 1);
+            badge.classList.remove('hidden');
+        }
+
+        // Show Toast Notification
+        Swal.fire({
+            title: 'พบเอกสารใหม่!',
+            text: `มีการแนบไฟล์เข้ามาใหม่ ${data.count || 1} รายการ`,
+            icon: 'info',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            },
+            customClass: {
+                popup: 'rounded-2xl'
+            }
+        });
+    });
 </script>
 </body>
 
