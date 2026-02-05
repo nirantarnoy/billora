@@ -91,6 +91,10 @@ async function setupDatabase() {
             {
                 file: '012_add_remote_backup_config.sql',
                 name: 'เพิ่มการตั้งค่า Remote Backup (SFTP)'
+            },
+            {
+                file: '013_add_line_user_id_to_users.sql',
+                name: 'เพิ่มคอลัมน์ line_user_id ในตาราง Users'
             }
         ];
 
@@ -112,6 +116,10 @@ async function setupDatabase() {
             } catch (error) {
                 if (error.code === 'ER_TABLE_EXISTS_ERROR') {
                     log.warning(`${migration.name} - ตารางมีอยู่แล้ว (ข้าม)`);
+                } else if (error.code === 'ER_DUP_FIELDNAME') {
+                    log.warning(`${migration.name} - คอลัมน์มีอยู่แล้ว (ข้าม)`);
+                } else if (error.code === 'ER_DUP_KEYNAME') {
+                    log.warning(`${migration.name} - Index มีอยู่แล้ว (ข้าม)`);
                 } else {
                     throw error;
                 }
