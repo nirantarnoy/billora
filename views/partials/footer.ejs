@@ -128,19 +128,28 @@
         // Show Toast Notification
         Swal.fire({
             title: 'พบเอกสารใหม่!',
-            text: `มีการแนบไฟล์เข้ามาใหม่ ${data.count || 1} รายการ`,
+            text: `มีการแนบไฟล์เข้ามาใหม่ ${data.count || 1} รายการ (คลิกเพื่อดู)`,
             icon: 'info',
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 5000,
+            timer: 8000,
             timerProgressBar: true,
             didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                toast.style.cursor = 'pointer';
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+                toast.addEventListener('click', () => {
+                    const firstResult = data.results && data.results[0];
+                    if (firstResult && firstResult.type === 'BANK_SLIP') {
+                        window.location.href = '/slips';
+                    } else {
+                        window.location.href = '/bills';
+                    }
+                });
             },
             customClass: {
-                popup: 'rounded-2xl'
+                popup: 'rounded-2xl shadow-xl border-l-4 border-emerald-500'
             }
         });
     });
