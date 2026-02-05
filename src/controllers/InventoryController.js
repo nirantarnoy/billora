@@ -68,7 +68,7 @@ class InventoryController {
 
             // Fetch Data
             sql += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
-            params.push(limit, offset.toString()); // limit/offset as strings sometimes safer with some drivers but number is standard
+            params.push(limit, parseInt(offset)); // Ensure offset is integer
 
             const [transactions] = await db.execute(sql, params);
 

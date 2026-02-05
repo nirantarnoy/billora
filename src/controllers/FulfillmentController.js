@@ -8,9 +8,13 @@ class FulfillmentController {
             const tenantId = req.session.user.tenant_id;
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            const limit = req.query.limit === 'all' ? 1000000 : (parseInt(req.query.limit) || 20);
-            const search = req.query.q || '';
-            const offset = (page - 1) * limit;
+            let limitVal = 20;
+            if (req.query.limit === 'all') {
+                limitVal = 1000000;
+            } else {
+                limitVal = parseInt(req.query.limit) || 20;
+            }
+            const offsetVal = (page - 1) * limitVal;
 
             // Base Query
             let sql = 'SELECT * FROM warehouses WHERE tenant_id = ?';
@@ -29,7 +33,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-            params.push(limit, offset);
+            params.push(limitVal, offsetVal);
 
             // Execute
             const [warehouses] = await db.execute(sql, params);
@@ -74,9 +78,13 @@ class FulfillmentController {
 
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            const limit = req.query.limit === 'all' ? 1000000 : (parseInt(req.query.limit) || 20);
-            const search = req.query.q || '';
-            const offset = (page - 1) * limit;
+            let limitVal = 20;
+            if (req.query.limit === 'all') {
+                limitVal = 1000000;
+            } else {
+                limitVal = parseInt(req.query.limit) || 20;
+            }
+            const offsetVal = (page - 1) * limitVal;
 
             let sql = `
                 SELECT p.*, 
@@ -99,7 +107,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-            params.push(limit, offset);
+            params.push(limitVal, offsetVal);
 
             const [products] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
@@ -164,9 +172,14 @@ class FulfillmentController {
 
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            const limit = req.query.limit === 'all' ? 1000000 : (parseInt(req.query.limit) || 20);
+            let limitVal = 20;
+            if (req.query.limit === 'all') {
+                limitVal = 1000000;
+            } else {
+                limitVal = parseInt(req.query.limit) || 20;
+            }
+            const offsetVal = (page - 1) * limitVal;
             const search = req.query.q || '';
-            const offset = (page - 1) * limit;
 
             const [warehouse] = await db.execute(
                 'SELECT * FROM warehouses WHERE id = ? AND tenant_id = ?',
@@ -194,7 +207,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY name ASC LIMIT ? OFFSET ?';
-            params.push(limit, offset);
+            params.push(limitVal, offsetVal);
 
             const [locations] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);

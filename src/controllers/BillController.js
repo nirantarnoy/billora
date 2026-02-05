@@ -36,7 +36,7 @@ class BillController {
             let query = `SELECT * FROM bills ${whereClause} ORDER BY id DESC`;
             if (limit) {
                 query += ` LIMIT ? OFFSET ?`;
-                params.push(limit, offset);
+                params.push(parseInt(limit), parseInt(offset));
             }
 
             const [bills] = await db.execute(query, params);

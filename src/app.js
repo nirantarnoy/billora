@@ -17,7 +17,7 @@ const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
-app.set('trust proxy', 1);  // <------ เพิ่มบรรทัดนี้ ใช้งาน nginx บน production จริง
+app.set('trust proxy', true);  // Trust all proxies (needed for Nginx/Cloudflare)
 
 // LINE Webhook BEFORE express.json()
 app.post('/webhook', line.middleware(lineConfig), (req, res) => {
@@ -54,7 +54,8 @@ app.use(session({
     cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production'
+        // secure: process.env.NODE_ENV === 'production' // Temporarily disable secure cookie to fix proxy issues
+        secure: false
     }
 }));
 
