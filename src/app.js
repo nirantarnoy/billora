@@ -69,7 +69,8 @@ const security = lusca({
 });
 
 app.use((req, res, next) => {
-    if (req.path.startsWith('/api') || req.path === '/webhook' || req.path === '/inventory/transaction/bulk') {
+    // console.log('Request URL:', req.originalUrl); // Debugging
+    if (req.originalUrl.startsWith('/api') || req.originalUrl === '/webhook' || req.originalUrl === '/inventory/transaction/bulk') {
         return next();
     }
     security(req, res, next);
