@@ -660,32 +660,4 @@
                 }
             });
         });
-
-    function showNotifications() {
-        Swal.fire({
-            title: 'การแจ้งเตือน',
-            text: 'ไม่มีการแจ้งเตือนใหม่ในขณะนี้',
-            icon: 'info',
-            confirmButtonColor: '#10b981',
-            customClass: { popup: 'rounded-3xl' }
-        });
-    }
-
-    function confirmLogout() {
-        Swal.fire({
-            title: 'ออกจากระบบ?',
-            text: "คุณต้องการออกจากระบบใช่หรือไม่?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#f43f5e',
-            confirmButtonText: 'ใช่, ออกจากระบบ',
-            cancelButtonText: 'ยกเลิก',
-            customClass: { popup: 'rounded-3xl' }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '/logout';
-            }
-        });
-    }
 </script>

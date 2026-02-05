@@ -69,11 +69,16 @@ const security = lusca({
 });
 
 app.use((req, res, next) => {
-    if (req.originalUrl.startsWith('/api') || req.originalUrl === '/webhook' || req.originalUrl === '/inventory/transaction/bulk') {
+    const isApi = req.originalUrl.startsWith('/api');
+    const isWebhook = req.originalUrl === '/webhook';
+    const isInventoryBulk = req.originalUrl === '/inventory/transaction/bulk';
+    const isRootPost = (req.originalUrl === '/' || req.originalUrl === '') && req.method === 'POST';
+
+    if (isApi || isWebhook || isInventoryBulk || isRootPost) {
         return next();
     }
 
-    // Log potential CSRF issues
+    // Log potential CSRF issues (for other paths)
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
         console.log(`[CSRF Check] ${req.method} ${req.originalUrl}`);
     }
