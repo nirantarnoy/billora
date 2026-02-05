@@ -5,6 +5,16 @@
             <h2 class="text-3xl font-bold text-slate-800">สลิปการโอนเงิน</h2>
             <p class="text-slate-500 text-sm">จัดการและตรวจสอบหลักฐานการโอนเงินผ่านธนาคาร</p>
         </div>
+        <div class="flex flex-wrap items-center gap-4">
+            <button onclick="openModal()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                <i class="fas fa-cloud-upload-alt"></i> สแกนเอกสารใหม่
+            </button>
+            <button onclick="window.location.reload()"
+                class="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
     </header>
 
     <!-- Filters -->
@@ -60,7 +70,8 @@
             <table class="w-full">
                 <thead>
                     <tr class="text-left border-b border-slate-100 bg-slate-50/50">
-                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">รหัสรายการ
+                        <th class="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            รหัสรายการ
                         </th>
                         <th class="px-6 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ผู้โอน
                             (ต้นทาง)</th>
@@ -298,3 +309,7 @@
         closeExportModal();
     }
 </script>
+<script>
+    window.SHOULD_RELOAD_ON_UPLOAD = true;
+</script>
+<%- include('partials/scan-modal') %>

@@ -2,7 +2,11 @@ const line = require('@line/bot-sdk');
 const fs = require('fs');
 const path = require('path');
 const db = require('../config/db');
+const ocrQueue = require('../queues/ocrQueue');
+const { getIsRedisOffline } = require('../config/redis');
 const { handleFileProcessing } = require('../services/OcrService');
+
+
 
 const lineConfig = {
     channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || 'YOUR_CHANNEL_ACCESS_TOKEN',
@@ -58,40 +62,63 @@ async function handleLineEvent(event, io) {
         return new Promise((resolve, reject) => {
             writer.on('finish', async () => {
                 try {
-                    const result = await handleFileProcessing({ path: relativePath, originalname: fileName }, userId, 'LINE');
+                    // Fallback: If Redis is offline, process synchronously
+                    if (getIsRedisOffline()) {
+                        console.log('[LINE] Fallback: Redis is offline, processing in SYNC mode');
+                        const result = await handleFileProcessing({ path: relativePath, originalname: fileName }, userId, 'LINE');
 
-                    let replyText = '';
-                    if (result.type === 'BANK_SLIP') {
-                        if (result.status === 'duplicate') {
-                            replyText = `⚠️ ตรวจพบสลิปซ้ำ!\n🔢 เลขที่รายการ: ${result.transId}\nสลิปนี้เคยมีการบันทึกในระบบแล้วครับ`;
-                        } else if (result.status === 'warning') {
-                            replyText = `🚫 ตรวจพบสลิปที่อาจมีความผิดปกติ!\nกรุณาตรวจสอบความถูกต้องของสลิปนี้อีกครั้งเพื่อป้องกันการทุจริต`;
+                        let replyText = '';
+                        if (result.type === 'BANK_SLIP') {
+                            if (result.status === 'duplicate') {
+                                replyText = `⚠️ ตรวจพบสลิปซ้ำ!\n🔢 เลขที่รายการ: ${result.transId}\nสลิปนี้เคยมีการบันทึกในระบบแล้วครับ`;
+                            } else if (result.status === 'warning') {
+                                replyText = `🚫 ตรวจพบสลิปที่อาจมีความผิดปกติ!\nกรุณาตรวจสอบความถูกต้องของสลิปนี้อีกครั้งเพื่อป้องกันการทุจริต`;
+                            } else {
+                                replyText = `✅ บันทึกสลิปสำเร็จ\n💰 ยอดเงิน: ${result.amount} บาท\n👤 จาก: ${result.sName}\n➡️ ถึง: ${result.rName}`;
+                            }
                         } else {
-                            replyText = `✅ บันทึกสลิปสำเร็จ\n💰 ยอดเงิน: ${result.amount} บาท\n👤 จาก: ${result.sName}\n➡️ ถึง: ${result.rName}`;
+                            replyText = `✅ บันทึกใบเสร็จสำเร็จ\n💰 ยอดเงิน: ${result.amount} บาท`;
                         }
-                    } else {
-                        replyText = `✅ บันทึกใบเสร็จสำเร็จ\n💰 ยอดเงิน: ${result.amount} บาท`;
+
+                        if (io) {
+                            io.emit('new_upload', {
+                                count: 1,
+                                results: [{
+                                    type: result.type,
+                                    amount: result.amount,
+                                    sender: result.sName || 'ร้านค้า (ไม่ระบุ)',
+                                    receiver: result.rName,
+                                    status: result.status || 'success'
+                                }]
+                            });
+                        }
+
+                        await lineClient.replyMessage(event.replyToken, { type: 'text', text: replyText });
+                        return resolve(result);
                     }
 
-                    io.emit('new_upload', {
-                        count: 1,
-                        results: [{
-                            type: result.type,
-                            amount: result.amount,
-                            sender: result.sName || 'ร้านค้า (ไม่ระบุ)',
-                            receiver: result.rName,
-                            status: result.status || 'success'
-                        }]
+                    // Send initial response
+                    await lineClient.replyMessage(event.replyToken, {
+                        type: 'text',
+                        text: 'คิวได้รับรูปภาพแล้ว กำลังเริ่มวิเคราะห์ข้อมูลด้วย AI สักครู่ครับ... ⏳'
                     });
 
-                    await lineClient.replyMessage(event.replyToken, { type: 'text', text: replyText });
-                    resolve(result);
+                    // Add to queue
+                    await ocrQueue.add('ocr-job', {
+                        file: { path: relativePath, originalname: fileName },
+                        userId,
+                        lineUserId,
+                        source: 'LINE'
+                    });
+
+                    resolve(true);
                 } catch (err) {
                     console.error('Processing error:', err);
-                    await lineClient.replyMessage(event.replyToken, { type: 'text', text: `❌ เกิดข้อผิดพลาด: ${err.message}` });
                     resolve(null);
                 }
             });
+
+
             writer.on('error', reject);
         });
 

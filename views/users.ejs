@@ -34,8 +34,8 @@
                         </td>
                         <td class="p-6">
                             <div class="flex gap-2">
-                                <% const perms=typeof u.permissions==='string' ? JSON.parse(u.permissions) :
-                                    u.permissions; %>
+                                <% let perms=typeof u.permissions==='string' ? JSON.parse(u.permissions) :
+                                    u.permissions; perms=perms || {}; %>
                                     <% if(perms.dashboard) { %><span
                                             class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">Dashboard</span>
                                         <% } %>

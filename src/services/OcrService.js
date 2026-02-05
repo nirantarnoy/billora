@@ -153,9 +153,9 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
         }
 
         await db.execute(
-            `INSERT INTO payment_slips (user_id, tenant_id, company_id, trans_id, sender_name, sender_bank, receiver_name, receiver_bank, amount, datetime, status, raw_text, image_path, source, forgery_score, forgery_reasons, ai_audit_result)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, tenantId, tenantId, transId, slipData.sender, sBank, slipData.receiver, rBank, amount, slipData.datetime || new Date(), status, rawText, filePath, source, forgeryResult.score, JSON.stringify(forgeryResult.reasons), aiResult ? JSON.stringify(aiResult) : null]
+            `INSERT INTO payment_slips (user_id, tenant_id, trans_id, sender_name, sender_bank, receiver_name, receiver_bank, amount, datetime, status, raw_text, image_path, source, forgery_score, forgery_reasons, ai_audit_result)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, tenantId, transId, slipData.sender, sBank, slipData.receiver, rBank, amount, slipData.datetime || new Date(), status, rawText, filePath, source, forgeryResult.score, JSON.stringify(forgeryResult.reasons), aiResult ? JSON.stringify(aiResult) : null]
         );
 
         await db.execute(
@@ -174,18 +174,50 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
             items: aiResult.data.items || []
         } : parseReceipt(rawText);
 
-        const [billResult] = await db.execute(
-            `INSERT INTO bills (user_id, tenant_id, company_id, store_name, date, total_amount, vat, items, raw_text, image_path, source, ai_audit_result)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, tenantId, tenantId, receiptData.storeName, receiptData.date, receiptData.amount, receiptData.vat, JSON.stringify(receiptData.items), rawText, filePath, source, aiResult ? JSON.stringify(aiResult) : null]
-        );
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
 
-        await db.execute(
-            `INSERT INTO ocr_logs (user_id, tenant_id, type, source, status, amount, image_path, ai_processed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, tenantId, 'RECEIPT', source, 'success', receiptData.amount, filePath, !!aiResult]
-        );
+            const [billResult] = await connection.execute(
+                `INSERT INTO bills (user_id, tenant_id, store_name, date, total_amount, vat, items, raw_text, image_path, source, ai_audit_result)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, tenantId, receiptData.storeName, receiptData.date, receiptData.amount, receiptData.vat, JSON.stringify(receiptData.items), rawText, filePath, source, aiResult ? JSON.stringify(aiResult) : null]
+            );
 
-        return { type: 'RECEIPT', id: billResult.insertId, amount: receiptData.amount, storeName: receiptData.storeName, status: 'success', source, ai_audited: !!aiResult };
+            const billId = billResult.insertId;
+
+            // Save items to bill_items table
+            if (receiptData.items && receiptData.items.length > 0) {
+                const itemValues = receiptData.items.map(item => [
+                    tenantId,
+                    billId,
+                    item.name || item.product_name || 'ไม่ระบุ',
+                    item.qty || item.quantity || 1,
+                    item.price || 0,
+                    item.total || ((item.qty || 1) * (item.price || 0))
+                ]);
+
+                await connection.query(
+                    `INSERT INTO bill_items (tenant_id, bill_id, product_name, quantity, price, total) VALUES ?`,
+                    [itemValues]
+                );
+            }
+
+            await connection.execute(
+                `INSERT INTO ocr_logs (user_id, tenant_id, type, source, status, amount, image_path, ai_processed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, tenantId, 'RECEIPT', source, 'success', receiptData.amount, filePath, !!aiResult]
+            );
+
+            await connection.commit();
+            return { type: 'RECEIPT', id: billId, amount: receiptData.amount, storeName: receiptData.storeName, status: 'success', source, ai_audited: !!aiResult };
+
+        } catch (error) {
+            await connection.rollback();
+            console.error("[OCR] Error saving receipt/items:", error);
+            throw error;
+        } finally {
+            connection.release();
+        }
     }
 }
 

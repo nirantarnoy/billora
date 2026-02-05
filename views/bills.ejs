@@ -5,10 +5,16 @@
             <h2 class="text-3xl font-bold text-slate-800">จัดการรายจ่ายและใบเสร็จ</h2>
             <p class="text-slate-500 text-sm">ตรวจสอบและจัดการข้อมูลรายจ่ายจากการสแกนใบเสร็จ (OCR)</p>
         </div>
-        <a href="/samples/receipt_sample.png" download
-            class="bg-indigo-50 text-indigo-600 px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-100 border border-indigo-100 transition-all text-sm">
-            <i class="fas fa-download"></i> ดูไฟล์แนบตัวอย่างสำหรับทดสอบ
-        </a>
+        <div class="flex flex-wrap items-center gap-4">
+            <button onclick="openModal()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                <i class="fas fa-cloud-upload-alt"></i> สแกนเอกสารใหม่
+            </button>
+            <a href="/samples/receipt_sample.png" download
+                class="bg-indigo-50 text-indigo-600 px-6 py-2.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-100 border border-indigo-100 transition-all text-sm">
+                <i class="fas fa-download"></i> ดูตัวอย่าง
+            </a>
+        </div>
     </header>
 
     <!-- Filters -->
@@ -136,7 +142,7 @@
                                     <td class="px-8 py-5 text-right">
                                         <div class="flex items-center justify-end gap-3">
                                             <button
-                                                onclick='viewDetails(<%= JSON.stringify(bill.items || []) %>, "<%= bill.store_name %>")'
+                                                onclick="viewDetails(<%= JSON.stringify(bill.items || []) %>, <%= JSON.stringify(bill.store_name || 'ไม่ระบุ') %>, <%= bill.total_amount || 0 %>, <%= bill.vat || 0 %>)"
                                                 class="text-slate-400 hover:text-indigo-600 transition-colors"><i
                                                     class="fas fa-list-ul"></i></button>
                                             <button onclick="deleteBill(<%= bill.id %>)"
@@ -193,21 +199,57 @@
             }
         });
     }
-    function viewDetails(items, storeName) {
+    function viewDetails(items, storeName, totalAmount = 0, vat = 0) {
         const itemsList = Array.isArray(items) ? items : [];
-        const itemsHtml = itemsList.map(item => `
-            <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0 text-left">
-                <span class="text-sm font-medium text-slate-700">${item.name}</span>
-                <span class="text-sm font-bold text-slate-800 ml-4">฿${Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+        const itemsHtml = itemsList.map(item => {
+            const name = item.name || item.product_name || 'ไม่ระบุรายการ';
+            const qty = item.qty || item.quantity || 1;
+            const price = item.price || 0;
+            const total = item.total || (qty * price);
+            return `
+            <div class="py-3 border-b border-slate-100 last:border-0 text-left">
+                <div class="flex justify-between items-start mb-1">
+                    <span class="text-sm font-bold text-slate-800 flex-1">${name}</span>
+                    <span class="text-sm font-black text-indigo-600 ml-4">฿${Number(total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="flex justify-between text-[11px] text-slate-500 font-medium">
+                    <span>จำนวน: ${Number(qty).toLocaleString()} x ฿${Number(price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
             </div>
-        `).join('');
+        `}).join('');
+
+        const subtotal = Number(totalAmount) - Number(vat);
+        const summaryHtml = `
+            <div class="mt-6 pt-6 border-t-2 border-dashed border-slate-100">
+                <div class="flex justify-between items-center mb-2 text-slate-500 text-sm">
+                    <span>ยอดรวมก่อนภาษี (Subtotal)</span>
+                    <span>฿${Number(subtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="flex justify-between items-center mb-3 text-slate-500 text-sm">
+                    <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
+                    <span>฿${Number(vat).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                    <span class="font-bold text-slate-800">ยอดรวมสุทธิ (Grand Total)</span>
+                    <span class="text-xl font-black text-indigo-600">฿${Number(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        `;
 
         Swal.fire({
             title: `<div class="text-left"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">รายละเอียดรายการ</p><h3 class="text-xl font-bold text-slate-800">${storeName || 'ไม่ระบุร้านค้า'}</h3></div>`,
-            html: `<div class="mt-4 max-h-60 overflow-y-auto pr-2">${itemsHtml || '<p class="text-slate-400 py-4">ไม่พบรายละเอียดรายการ</p>'}</div>`,
+            html: `
+                <div class="mt-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">${itemsHtml || '<p class="text-slate-400 py-4 text-center">ไม่พบรายละเอียดรายการ</p>'}</div>
+                ${summaryHtml}
+            `,
             showCloseButton: true,
             showConfirmButton: false,
-            customClass: { popup: 'rounded-[32px] p-8' }
+            customClass: { popup: 'rounded-[32px] p-8 w-full max-w-lg' }
         });
     }
 </script>
+
+<%- include('partials/scan-modal') %>
+    <script>
+        window.SHOULD_RELOAD_ON_UPLOAD = true;
+    </script>

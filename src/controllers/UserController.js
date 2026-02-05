@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 class UserController {
     async listUsers(req, res) {
         try {
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const [users] = await db.execute('SELECT * FROM users WHERE tenant_id = ?', [tenantId]);
             res.render('users', {
                 users,
@@ -19,7 +19,7 @@ class UserController {
     async createUser(req, res) {
         try {
             const { username, password, role, permissions } = req.body;
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const hashedPassword = await bcrypt.hash(password, 10);
 
             await db.execute(
@@ -69,7 +69,7 @@ class UserController {
     async showProfile(req, res) {
         try {
             const userId = req.session.user.id;
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
 
             // Get User full info
             const [[user]] = await db.execute('SELECT * FROM users WHERE id = ?', [userId]);

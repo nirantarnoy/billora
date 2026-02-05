@@ -93,7 +93,7 @@ class WebTenantController {
     static async changePlan(req, res) {
         try {
             const { planId } = req.body;
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const pool = require('../config/db');
             const TenantModel = require('../models/TenantModel');
 

@@ -3,22 +3,22 @@ const db = require('../config/db');
 class DashboardController {
     async viewDashboard(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
 
             const [[summary]] = await db.execute(`
         SELECT 
-          (SELECT COUNT(*) FROM bills WHERE company_id=?) AS bill_count,
-          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE company_id=?) AS total_sales,
-          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE company_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE company_id=?) AS slip_count
-      `, [companyId, companyId, companyId, companyId]);
+          (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
+          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
+          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
+          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count
+      `, [tenantId, tenantId, tenantId, tenantId]);
 
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
         FROM payment_slips 
-        WHERE company_id = ? AND status = 'success'
+        WHERE tenant_id = ? AND status = 'success'
         GROUP BY source
-      `, [companyId]);
+      `, [tenantId]);
 
             const slipStats = { BROWSER: 0, MOBILE: 0, LINE: 0, TOTAL: 0 };
             slipStatsRaw.forEach(row => {
@@ -27,8 +27,8 @@ class DashboardController {
                 slipStats.TOTAL += amount;
             });
 
-            const [bills] = await db.execute(`SELECT * FROM bills WHERE company_id=? ORDER BY id DESC LIMIT 10`, [companyId]);
-            const [slips] = await db.execute(`SELECT * FROM payment_slips WHERE company_id=? ORDER BY id DESC LIMIT 10`, [companyId]);
+            const [bills] = await db.execute(`SELECT * FROM bills WHERE tenant_id=? ORDER BY id DESC LIMIT 10`, [tenantId]);
+            const [slips] = await db.execute(`SELECT * FROM payment_slips WHERE tenant_id=? ORDER BY id DESC LIMIT 10`, [tenantId]);
 
             res.render('dashboard', {
                 summary, bills, slips, slipStats,
@@ -43,24 +43,24 @@ class DashboardController {
     // API for Mobile Dashboard
     async getApiDashboardData(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
 
             const [summaryRows] = await db.execute(`
         SELECT 
-          (SELECT COUNT(*) FROM bills WHERE company_id=?) AS bill_count,
-          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE company_id=?) AS total_sales,
-          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE company_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE company_id=?) AS slip_count
-      `, [companyId, companyId, companyId, companyId]);
+          (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
+          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
+          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
+          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count
+      `, [tenantId, tenantId, tenantId, tenantId]);
 
             const summary = summaryRows[0] || { bill_count: 0, total_sales: 0, total_vat: 0, slip_count: 0 };
 
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
         FROM payment_slips 
-        WHERE company_id = ? AND status = 'success'
+        WHERE tenant_id = ? AND status = 'success'
         GROUP BY source
-      `, [companyId]);
+      `, [tenantId]);
 
             const slipStats = { BROWSER: 0, MOBILE: 0, LINE: 0, TOTAL: 0 };
             slipStatsRaw.forEach(row => {
@@ -69,8 +69,8 @@ class DashboardController {
                 slipStats.TOTAL += amount;
             });
 
-            const [latestBills] = await db.execute(`SELECT id, store_name, total_amount, date FROM bills WHERE company_id=? ORDER BY id DESC LIMIT 5`, [companyId]);
-            const [latestSlips] = await db.execute(`SELECT id, trans_id, amount, datetime, source FROM payment_slips WHERE company_id=? ORDER BY id DESC LIMIT 5`, [companyId]);
+            const [latestBills] = await db.execute(`SELECT id, store_name, total_amount, date FROM bills WHERE tenant_id=? ORDER BY id DESC LIMIT 5`, [tenantId]);
+            const [latestSlips] = await db.execute(`SELECT id, trans_id, amount, datetime, source FROM payment_slips WHERE tenant_id=? ORDER BY id DESC LIMIT 5`, [tenantId]);
 
             res.json({
                 success: true,
@@ -91,7 +91,7 @@ class DashboardController {
 
     async getStats(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const [rows] = await db.execute(`
         SELECT 
           DATE_FORMAT(datetime, '%d/%m') as date_label, 
@@ -99,12 +99,12 @@ class DashboardController {
           source,
           SUM(amount) as value
         FROM payment_slips
-        WHERE company_id = ? 
+        WHERE tenant_id = ? 
           AND status = 'success'
           AND datetime >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 DAY)
         GROUP BY 2, 1, 3
         ORDER BY 2 ASC
-      `, [companyId]);
+      `, [tenantId]);
             res.json(rows);
         } catch (err) {
             console.error('getStats Error:', err);
@@ -114,18 +114,18 @@ class DashboardController {
 
     async clearTestData(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const role = req.session.user.role;
 
             if (role !== 'admin' && role !== 'owner') {
                 return res.status(403).json({ success: false, message: 'สิทธิ์ไม่เพียงพอ' });
             }
 
-            // ลบข้อมูลโดยอิงตาม company_id (หรือ tenant_id ถ้ามีใช้ในโปรเจกต์นี้)
-            await db.execute(`DELETE FROM bill_items WHERE bill_id IN (SELECT id FROM bills WHERE company_id = ?)`, [companyId]);
-            await db.execute(`DELETE FROM bills WHERE company_id = ?`, [companyId]);
-            await db.execute(`DELETE FROM payment_slips WHERE company_id = ?`, [companyId]);
-            await db.execute(`DELETE FROM ocr_logs WHERE user_id = ?`, [req.session.user.id]);
+            // ลบข้อมูลโดยอิงตาม tenant_id
+            await db.execute(`DELETE FROM bill_items WHERE tenant_id = ?`, [tenantId]);
+            await db.execute(`DELETE FROM bills WHERE tenant_id = ?`, [tenantId]);
+            await db.execute(`DELETE FROM payment_slips WHERE tenant_id = ?`, [tenantId]);
+            await db.execute(`DELETE FROM ocr_logs WHERE tenant_id = ?`, [tenantId]);
 
             res.json({ success: true, message: 'เคลียร์ข้อมูลทดสอบเรียบร้อยแล้ว' });
         } catch (err) {

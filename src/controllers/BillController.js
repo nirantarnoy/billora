@@ -1,13 +1,17 @@
 const db = require('../config/db');
 const { recordAction } = require('../utils/logger');
+const ocrQueue = require('../queues/ocrQueue');
+const { getIsRedisOffline } = require('../config/redis');
 const { handleFileProcessing } = require('../services/OcrService');
+
+
 
 class BillController {
     // Web: List Bills
     async listBills(req, res) {
         try {
             const userId = req.session.user.id;
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const page = parseInt(req.query.page) || 1;
             const limitParam = req.query.limit || '20';
             const limit = limitParam === 'all' ? null : parseInt(limitParam);
@@ -42,8 +46,17 @@ class BillController {
 
             const [bills] = await db.execute(query, params);
 
+            // Ensure items is an array (handle stringified JSON from DB)
+            const processedBills = bills.map(bill => {
+                let items = bill.items;
+                if (typeof items === 'string') {
+                    try { items = JSON.parse(items); } catch (e) { items = []; }
+                }
+                return { ...bill, items: items || [] };
+            });
+
             res.render('bills', {
-                bills,
+                bills: processedBills,
                 user: req.session.user,
                 page,
                 limit: limitParam,
@@ -63,7 +76,7 @@ class BillController {
         }
     }
 
-    // API: Upload (Used by both Web & Flutter)
+    // API: Upload (Modified to use Queue)
     async upload(req, res) {
         const uploadedFiles = [];
         if (req.files['files']) uploadedFiles.push(...req.files['files']);
@@ -75,46 +88,67 @@ class BillController {
 
         const userId = req.session.user.id;
         const source = req.headers['x-source'] || (req.headers['authorization'] ? 'MOBILE' : 'BROWSER');
-        const results = [];
-        const errors = [];
 
-        // Process all files in parallel for much faster performance
-        const processPromises = uploadedFiles.map(async (file) => {
-            try {
-                const result = await handleFileProcessing(file, userId, source, req);
-                return { success: true, fileName: file.originalname, ...result };
-            } catch (err) {
-                console.error('Upload processing error:', err);
-                return { success: false, fileName: file.originalname, error: err.message };
+        // Fallback: If Redis is offline, process synchronously
+        if (getIsRedisOffline()) {
+            console.log('[Upload] Fallback: Redis is offline, processing in SYNC mode');
+            const results = [];
+            const errors = [];
+
+            for (const file of uploadedFiles) {
+                try {
+                    const result = await handleFileProcessing(file, userId, source);
+                    results.push({ success: true, fileName: file.originalname, ...result });
+                } catch (err) {
+                    errors.push({ fileName: file.originalname, error: err.message });
+                }
             }
-        });
 
-        const allResults = await Promise.all(processPromises);
-
-        // Separate results and errors
-        allResults.forEach(res => {
-            if (res.success) {
-                const { success, ...data } = res;
-                results.push(data);
-            } else {
-                errors.push({ fileName: res.fileName, error: res.error });
+            // Emit update via socket
+            if (results.length > 0) {
+                const io = req.app.get('io');
+                if (io) {
+                    io.emit('new_upload', {
+                        count: results.length,
+                        results: results.map(r => ({
+                            type: r.type,
+                            amount: r.amount,
+                            sender: r.sName || r.storeName,
+                            receiver: r.rName
+                        }))
+                    });
+                }
             }
-        });
-
-        if (results.length > 0) {
-            req.app.get('io').emit('new_upload', {
-                count: results.length,
-                results: results.map(r => ({
-                    type: r.type,
-                    amount: r.amount,
-                    sender: r.sName || r.store_name,
-                    receiver: r.rName
-                }))
-            });
+            return res.json({ success: true, results, errors, mode: 'sync' });
         }
 
-        res.json({ success: true, results, errors });
+        try {
+            const jobs = await Promise.all(uploadedFiles.map(file => {
+                return ocrQueue.add('ocr-job', {
+                    file: {
+                        path: file.path,
+                        originalname: file.originalname,
+                        mimetype: file.mimetype,
+                        size: file.size
+                    },
+                    userId,
+                    source
+                });
+            }));
+
+            res.json({
+                success: true,
+                message: `กำลังประมวลผล ${jobs.length} ไฟล์ในระบบคิว`,
+                jobIds: jobs.map(j => j.id),
+                mode: 'queue'
+            });
+        } catch (err) {
+            console.error('Queue error:', err);
+            res.status(500).json({ success: false, error: "ไม่สามารถเพิ่มงานลงในคิวได้" });
+        }
+
     }
+
 
     // API: Delete Bill
     async deleteBill(req, res) {

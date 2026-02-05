@@ -60,6 +60,26 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
+-- Table structure for online_channels
+-- ----------------------------
+DROP TABLE IF EXISTS `online_channels`;
+CREATE TABLE `online_channels` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` int(11) NOT NULL,
+  `platform` varchar(50) NOT NULL,
+  `shop_name` varchar(255) DEFAULT NULL,
+  `shop_id` varchar(100) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `access_token` text DEFAULT NULL,
+  `express_book_code` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_tenant_platform` (`tenant_id`,`platform`),
+  CONSTRAINT `fk_channels_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
 -- Table structure for subscription_plans
 -- ----------------------------
 DROP TABLE IF EXISTS `subscription_plans`;
@@ -118,6 +138,26 @@ CREATE TABLE `bills` (
   KEY `idx_bills_tenant` (`tenant_id`),
   KEY `idx_bills_user` (`user_id`),
   CONSTRAINT `fk_bills_tenant_info` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
+-- Table structure for bill_items
+-- ----------------------------
+DROP TABLE IF EXISTS `bill_items`;
+CREATE TABLE `bill_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` int(11) NOT NULL,
+  `bill_id` int(11) NOT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
+  `quantity` decimal(15,2) DEFAULT 1.00,
+  `price` decimal(15,2) DEFAULT 0.00,
+  `total` decimal(15,2) DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_item_bill` (`bill_id`),
+  KEY `idx_item_tenant` (`tenant_id`),
+  CONSTRAINT `fk_items_bill` FOREIGN KEY (`bill_id`) REFERENCES `bills` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_items_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
@@ -208,12 +248,37 @@ CREATE TABLE `backup_schedules` (
   `remote_username` varchar(255) DEFAULT NULL,
   `remote_password` varchar(255) DEFAULT NULL,
   `remote_path` varchar(255) DEFAULT '/',
+  `notify_on_success` tinyint(1) DEFAULT 0,
+  `notify_on_failure` tinyint(1) DEFAULT 1,
+  `notification_email` varchar(255) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `last_run_at` timestamp NULL DEFAULT NULL,
   `next_run_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_backup_user` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
+-- Table structure for backup_history
+-- ----------------------------
+DROP TABLE IF EXISTS `backup_history`;
+CREATE TABLE `backup_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `schedule_id` int(11) NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `file_path` varchar(255) NOT NULL,
+  `file_size` bigint(20) DEFAULT NULL,
+  `status` enum('success','failed') DEFAULT 'success',
+  `error_message` text DEFAULT NULL,
+  `remote_storage` tinyint(1) DEFAULT 0,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_history_schedule` (`schedule_id`),
+  CONSTRAINT `fk_history_schedule` FOREIGN KEY (`schedule_id`) REFERENCES `backup_schedules` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
@@ -321,7 +386,13 @@ CREATE TABLE `inventory_transactions` (
   `location_id` int(11) DEFAULT NULL,
   `lot_id` int(11) DEFAULT NULL,
   `quantity` decimal(15,2) NOT NULL,
+  `stock_in` decimal(15,2) DEFAULT 0.00,
+  `stock_out` decimal(15,2) DEFAULT 0.00,
+  `value_amount` decimal(15,2) DEFAULT 0.00,
   `reference_no` varchar(100) DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_trans_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
@@ -344,8 +415,8 @@ INSERT INTO `tenants` (`id`, `tenant_code`, `company_name`, `subscription_plan`,
 (1, 'BILLORA001', 'Default Organization', 'professional', 1);
 
 -- 3. Default Admin User (password: admin123)
-INSERT INTO `users` (`id`, `tenant_id`, `username`, `email`, `password_hash`, `role`) VALUES
-(1, 1, 'admin', 'admin@billora.ai', '$2a$10$R9h/lIPzHZ7W.O3G2S6WruB0t6kK.k1C1.0/kG6Y.k.k.k', 'admin');
+INSERT INTO `users` (`id`, `tenant_id`, `username`, `email`, `password_hash`, `role`, `permissions`) VALUES
+(1, 1, 'admin', 'admin@billora.ai', '$2b$10$KrukT75i0Gla5l10SUgvLe/BRE4f0pYclOJtpRQC/F2Z0JdnC14.C', 'admin', '{\"dashboard\": true, \"bills\": true, \"slips\": true, \"users\": true, \"inventory\": true}');
 
 -- 4. Active Subscription for Default Tenant
 INSERT INTO `tenant_subscriptions` (`tenant_id`, `plan_id`, `status`, `start_date`, `end_date`) VALUES

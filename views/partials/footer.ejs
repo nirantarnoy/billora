@@ -275,7 +275,20 @@
             }
         });
     });
+
+    // Handle user-specific upload completion
+    const currentUserId = '<%= typeof user !== "undefined" ? user.id : "" %>';
+    if (currentUserId) {
+        socket.on(`upload_complete_${currentUserId}`, (data) => {
+            console.log('✅ Job completed for user:', data);
+            if (data.success && window.SHOULD_RELOAD_ON_UPLOAD) {
+                // Delay a bit to let the user see the success toast from new_upload if any
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
 </script>
+
 
 <!-- Global Bell Notification Alert -->
 <div id="bellNotif"

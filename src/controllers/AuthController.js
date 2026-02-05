@@ -44,7 +44,6 @@ class AuthController {
                         email: user.email,
                         role: user.role,
                         tenant_id: user.tenant_id,
-                        company_id: user.company_id || user.tenant_id || 1,
                         permissions: typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions
                     };
                     await recordAction(user.id, 'Login', 'เข้าสู่ระบบผ่าน Web Browser', req);
@@ -96,7 +95,6 @@ class AuthController {
                         email: user.email,
                         role: user.role,
                         tenant_id: user.tenant_id,
-                        company_id: user.company_id || user.tenant_id || 1,
                         permissions: permissions
                     };
                     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });

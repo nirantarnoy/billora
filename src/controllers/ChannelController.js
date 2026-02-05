@@ -4,8 +4,8 @@ const EcommerceAPI = require('../utils/ecommerce');
 class ChannelController {
     async listChannels(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
-            const [channels] = await db.execute('SELECT * FROM online_channels WHERE company_id = ?', [companyId]);
+            const tenantId = req.session.user.tenant_id || 1;
+            const [channels] = await db.execute('SELECT * FROM online_channels WHERE tenant_id = ?', [tenantId]);
             res.render('channels', {
                 channels,
                 user: req.session.user,
@@ -20,9 +20,9 @@ class ChannelController {
 
     async saveChannel(req, res) {
         const { platform, shop_name, shop_id } = req.body;
-        const companyId = req.session.user.company_id || 1;
+        const tenantId = req.session.user.tenant_id || 1;
         try {
-            const [existing] = await db.execute('SELECT id FROM online_channels WHERE company_id = ? AND platform = ?', [companyId, platform]);
+            const [existing] = await db.execute('SELECT id FROM online_channels WHERE tenant_id = ? AND platform = ?', [tenantId, platform]);
 
             if (existing.length > 0) {
                 await db.execute(
@@ -31,8 +31,8 @@ class ChannelController {
                 );
             } else {
                 await db.execute(
-                    'INSERT INTO online_channels (company_id, platform, shop_name, shop_id, status) VALUES (?, ?, ?, ?, "active")',
-                    [companyId, platform, shop_name, shop_id]
+                    'INSERT INTO online_channels (tenant_id, platform, shop_name, shop_id, status) VALUES (?, ?, ?, ?, "active")',
+                    [tenantId, platform, shop_name, shop_id]
                 );
             }
             res.json({ success: true });
@@ -54,9 +54,9 @@ class ChannelController {
 
     async disconnectChannel(req, res) {
         const { platform } = req.query;
-        const companyId = req.session.user.company_id || 1;
+        const tenantId = req.session.user.tenant_id || 1;
         try {
-            await db.execute('DELETE FROM online_channels WHERE company_id = ? AND platform = ?', [companyId, platform]);
+            await db.execute('DELETE FROM online_channels WHERE tenant_id = ? AND platform = ?', [tenantId, platform]);
             res.json({ success: true });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
@@ -78,13 +78,13 @@ class ChannelController {
 
     async shopeeCallback(req, res) {
         const { code, shop_id } = req.query;
-        const companyId = req.session.user.company_id || 1;
+        const tenantId = req.session.user.tenant_id || 1;
         try {
             await db.execute(
-                `INSERT INTO online_channels (company_id, platform, shop_name, shop_id, status, access_token) 
+                `INSERT INTO online_channels (tenant_id, platform, shop_name, shop_id, status, access_token) 
          VALUES (?, 'shopee', ?, ?, 'active', ?) 
          ON DUPLICATE KEY UPDATE shop_name = VALUES(shop_name), shop_id = VALUES(shop_id), status = 'active', access_token = VALUES(access_token)`,
-                [companyId, `Shopee Shop ${shop_id}`, shop_id, code]
+                [tenantId, `Shopee Shop ${shop_id}`, shop_id, code]
             );
             res.redirect('/channels?success=shopee');
         } catch (err) {
@@ -94,13 +94,13 @@ class ChannelController {
 
     async tiktokCallback(req, res) {
         const { code } = req.query;
-        const companyId = req.session.user.company_id || 1;
+        const tenantId = req.session.user.tenant_id || 1;
         try {
             await db.execute(
-                `INSERT INTO online_channels (company_id, platform, shop_name, shop_id, status, access_token) 
+                `INSERT INTO online_channels (tenant_id, platform, shop_name, shop_id, status, access_token) 
          VALUES (?, 'tiktok', 'My TikTok Shop', 'tiktok_shop_id', 'active', ?) 
          ON DUPLICATE KEY UPDATE status = 'active', access_token = VALUES(access_token)`,
-                [companyId, code]
+                [tenantId, code]
             );
             res.redirect('/channels?success=tiktok');
         } catch (err) {
@@ -110,13 +110,13 @@ class ChannelController {
 
     async lazadaCallback(req, res) {
         const { code } = req.query;
-        const companyId = req.session.user.company_id || 1;
+        const tenantId = req.session.user.tenant_id || 1;
         try {
             await db.execute(
-                `INSERT INTO online_channels (company_id, platform, shop_name, shop_id, status, access_token) 
+                `INSERT INTO online_channels (tenant_id, platform, shop_name, shop_id, status, access_token) 
          VALUES (?, 'lazada', 'My Lazada Shop', 'lazada_shop_id', 'active', ?) 
          ON DUPLICATE KEY UPDATE status = 'active', access_token = VALUES(access_token)`,
-                [companyId, code]
+                [tenantId, code]
             );
             res.redirect('/channels?success=lazada');
         } catch (err) {

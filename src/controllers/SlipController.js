@@ -4,7 +4,7 @@ class SlipController {
     async listSlips(req, res) {
         try {
             const userId = req.session.user.id;
-            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const tenantId = req.session.user.tenant_id || 1;
             const page = parseInt(req.query.page) || 1;
             const limitParam = req.query.limit || '20';
             const limit = limitParam === 'all' ? null : parseInt(limitParam);
@@ -129,13 +129,13 @@ class SlipController {
         const userId = req.session.user.id;
         try {
             const [bills] = await db.execute(
-                'SELECT id, store_name, date, total_amount, image_path, created_at, "RECEIPT" as type FROM bills WHERE user_id = ? ORDER BY created_at DESC',
-                [userId]
+                'SELECT id, store_name, date, total_amount, image_path, created_at, "RECEIPT" as type FROM bills WHERE tenant_id = ? ORDER BY created_at DESC',
+                [req.session.user.tenant_id]
             );
 
             const [slips] = await db.execute(
-                'SELECT id, trans_id, sender_name, receiver_name, amount, datetime, image_path, created_at, "BANK_SLIP" as type FROM payment_slips WHERE user_id = ? ORDER BY created_at DESC',
-                [userId]
+                'SELECT id, trans_id, sender_name, receiver_name, amount, datetime, image_path, created_at, "BANK_SLIP" as type FROM payment_slips WHERE tenant_id = ? ORDER BY created_at DESC',
+                [req.session.user.tenant_id]
             );
 
             const history = [...bills, ...slips].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
