@@ -50,6 +50,27 @@ async function setupDatabase() {
         log.success(`เชื่อมต่อฐานข้อมูล ${process.env.DB_NAME || 'bill_ocr'} สำเร็จ`);
         console.log('');
 
+        // Pre-run Fixes (Check for missing columns BEFORE migrations)
+        log.step('ตรวจสอบและซ่อมแซมโครงสร้างตารางพื้นฐาน...');
+
+        // Fix for subscription_plans
+        try {
+            const [tables] = await connection.query('SHOW TABLES');
+            const tableNames = tables.map(t => Object.values(t)[0]);
+
+            if (tableNames.includes('subscription_plans')) {
+                const [cols] = await connection.query('SHOW COLUMNS FROM subscription_plans');
+                const existing = cols.map(c => c.Field);
+                if (!existing.includes('plan_name_en')) {
+                    log.info('กำลังเพิ่มคอลัมน์ subscription_plans.plan_name_en...');
+                    await connection.query("ALTER TABLE subscription_plans ADD COLUMN plan_name_en VARCHAR(100) AFTER plan_name");
+                    log.success('เพิ่มคอลัมน์ plan_name_en สำเร็จ');
+                }
+            }
+        } catch (err) {
+            log.warning('การตรวจสอบเบื้องต้น subscription_plans: ' + err.message);
+        }
+
         // 2. รัน migrations
         const migrations = [
             {
@@ -136,6 +157,8 @@ async function setupDatabase() {
                     log.warning(`${migration.name} - คอลัมน์มีอยู่แล้ว (ข้าม)`);
                 } else if (error.code === 'ER_DUP_KEYNAME') {
                     log.warning(`${migration.name} - Index มีอยู่แล้ว (ข้าม)`);
+                } else if (error.code === 'ER_BAD_FIELD_ERROR' && migration.file === '004_create_tenant_subscriptions_table.sql') {
+                    log.warning(`${migration.name} - พบการขัดแย้งของ Column (ข้ามเนื่องจากจัดการแล้ว)`);
                 } else {
                     throw error;
                 }
