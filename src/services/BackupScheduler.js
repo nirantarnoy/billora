@@ -391,13 +391,14 @@ class BackupScheduler {
         try {
             await pool.query(`
                 INSERT INTO backup_history 
-                (schedule_id, status, error_message, created_at)
-                VALUES (?, 'failed', ?, NOW())
+                (schedule_id, filename, file_path, status, error_message, created_at)
+                VALUES (?, 'FAILED_BACKUP', 'NONE', 'failed', ?, NOW())
             `, [scheduleId, errorMessage]);
         } catch (error) {
             console.error('Error logging backup error:', error);
         }
     }
+
 
     /**
      * ลบไฟล์ Backup เก่า

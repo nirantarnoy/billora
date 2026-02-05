@@ -268,8 +268,9 @@ DROP TABLE IF EXISTS `backup_history`;
 CREATE TABLE `backup_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `schedule_id` int(11) NOT NULL,
-  `filename` varchar(255) NOT NULL,
-  `file_path` varchar(255) NOT NULL,
+  `filename` varchar(255) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+
   `file_size` bigint(20) DEFAULT NULL,
   `status` enum('success','failed') DEFAULT 'success',
   `error_message` text DEFAULT NULL,
