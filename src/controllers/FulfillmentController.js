@@ -15,6 +15,7 @@ class FulfillmentController {
                 limitVal = parseInt(req.query.limit) || 20;
             }
             const offsetVal = (page - 1) * limitVal;
+            const search = req.query.q || '';
 
             // Base Query
             let sql = 'SELECT * FROM warehouses WHERE tenant_id = ?';
@@ -85,6 +86,7 @@ class FulfillmentController {
                 limitVal = parseInt(req.query.limit) || 20;
             }
             const offsetVal = (page - 1) * limitVal;
+            const search = req.query.q || '';
 
             let sql = `
                 SELECT p.*, 
