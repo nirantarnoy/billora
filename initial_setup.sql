@@ -274,8 +274,11 @@ CREATE TABLE `backup_history` (
   `status` enum('success','failed') DEFAULT 'success',
   `error_message` text DEFAULT NULL,
   `remote_storage` tinyint(1) DEFAULT 0,
+  `remote_status` enum('success','failed') DEFAULT NULL,
+  `remote_error_message` text DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
   PRIMARY KEY (`id`),
   KEY `idx_history_schedule` (`schedule_id`),
   CONSTRAINT `fk_history_schedule` FOREIGN KEY (`schedule_id`) REFERENCES `backup_schedules` (`id`) ON DELETE CASCADE

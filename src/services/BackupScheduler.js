@@ -356,9 +356,10 @@ class BackupScheduler {
 
             const [result] = await pool.query(`
                 INSERT INTO backup_history 
-                (schedule_id, filename, filepath, file_size, status, created_at)
+                (schedule_id, filename, file_path, file_size, status, created_at)
                 VALUES (?, ?, ?, ?, 'success', NOW())
             `, [scheduleId, filename, filepath, stats.size]);
+
 
             return result.insertId;
         } catch (error) {
@@ -408,16 +409,18 @@ class BackupScheduler {
 
             // ลบจากฐานข้อมูล
             const [oldBackups] = await pool.query(`
-                SELECT filepath FROM backup_history 
+                SELECT file_path FROM backup_history 
                 WHERE created_at < ? AND status = 'success'
             `, [cutoffDate]);
 
+
             // ลบไฟล์
             for (const backup of oldBackups) {
-                if (fs.existsSync(backup.filepath)) {
-                    fs.unlinkSync(backup.filepath);
+                if (fs.existsSync(backup.file_path)) {
+                    fs.unlinkSync(backup.file_path);
                 }
             }
+
 
             // ลบ record จากฐานข้อมูล
             await pool.query(`
