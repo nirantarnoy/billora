@@ -69,10 +69,15 @@ const security = lusca({
 });
 
 app.use((req, res, next) => {
-    // console.log('Request URL:', req.originalUrl); // Debugging
     if (req.originalUrl.startsWith('/api') || req.originalUrl === '/webhook' || req.originalUrl === '/inventory/transaction/bulk') {
         return next();
     }
+
+    // Log potential CSRF issues
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+        console.log(`[CSRF Check] ${req.method} ${req.originalUrl}`);
+    }
+
     security(req, res, next);
 });
 
