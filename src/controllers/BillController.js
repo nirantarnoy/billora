@@ -7,6 +7,7 @@ class BillController {
     async listBills(req, res) {
         try {
             const userId = req.session.user.id;
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
             const page = parseInt(req.query.page) || 1;
             const limitParam = req.query.limit || '20';
             const limit = limitParam === 'all' ? null : parseInt(limitParam);
@@ -14,12 +15,12 @@ class BillController {
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
             const startDate = req.query.startDate;
             const endDate = req.query.endDate;
-            const startUploadDate = req.query.startUploadDate !== undefined ? req.query.startUploadDate : today;
-            const endUploadDate = req.query.endUploadDate !== undefined ? req.query.endUploadDate : today;
+            const startUploadDate = req.query.startUploadDate; // Removed default today
+            const endUploadDate = req.query.endUploadDate; // Removed default today
             const offset = (page - 1) * (limit || 0);
 
-            let whereClause = 'WHERE user_id = ?';
-            let params = [userId];
+            let whereClause = 'WHERE tenant_id = ?';
+            let params = [tenantId];
 
             if (search) {
                 whereClause += ' AND (store_name LIKE ? OR raw_text LIKE ?)';
@@ -77,15 +78,28 @@ class BillController {
         const results = [];
         const errors = [];
 
-        for (const file of uploadedFiles) {
+        // Process all files in parallel for much faster performance
+        const processPromises = uploadedFiles.map(async (file) => {
             try {
                 const result = await handleFileProcessing(file, userId, source, req);
-                results.push({ fileName: file.originalname, ...result });
+                return { success: true, fileName: file.originalname, ...result };
             } catch (err) {
                 console.error('Upload processing error:', err);
-                errors.push({ fileName: file.originalname, error: err.message });
+                return { success: false, fileName: file.originalname, error: err.message };
             }
-        }
+        });
+
+        const allResults = await Promise.all(processPromises);
+
+        // Separate results and errors
+        allResults.forEach(res => {
+            if (res.success) {
+                const { success, ...data } = res;
+                results.push(data);
+            } else {
+                errors.push({ fileName: res.fileName, error: res.error });
+            }
+        });
 
         if (results.length > 0) {
             req.app.get('io').emit('new_upload', {

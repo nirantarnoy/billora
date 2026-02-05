@@ -57,7 +57,8 @@
                 class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                 <% if (typeof user !=='undefined' && user && user.id) { %>
                     <!-- Logged-in User Menu -->
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
+                    <a href="/profile"
+                        class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50">
                         <i class="fas fa-user-circle text-slate-400"></i> โปรไฟล์ของฉัน
                     </a>
                     <a href="/tenant/settings"

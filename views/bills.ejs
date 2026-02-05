@@ -86,8 +86,19 @@
                         <% } %>
                             <% bills.forEach(bill=> { %>
                                 <tr class="hover:bg-slate-50 transition-all group">
-                                    <td class="px-8 py-5 font-bold text-slate-800">
-                                        <%= bill.store_name || 'ไม่ระบุ' %>
+                                    <td class="px-8 py-5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-slate-800">
+                                                <%= bill.store_name || 'ไม่ระบุ' %>
+                                            </span>
+                                            <% if (bill.ai_audit_result) { %>
+                                                <span
+                                                    class="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-500 rounded text-[9px] font-bold border border-indigo-100"
+                                                    title="ตรวจสอบโดย AI">
+                                                    <i class="fas fa-sparkles"></i> AI
+                                                </span>
+                                                <% } %>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-5">
                                         <div class="flex flex-col">

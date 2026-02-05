@@ -95,6 +95,18 @@ async function setupDatabase() {
             {
                 file: '013_add_line_user_id_to_users.sql',
                 name: 'เพิ่มคอลัมน์ line_user_id ในตาราง Users'
+            },
+            {
+                file: '014_add_ai_audit_columns.sql',
+                name: 'เพิ่มคอลัมน์ AI Audit ในตาราง Slips และ Bills'
+            },
+            {
+                file: '015_enable_ai_feature_in_plans.sql',
+                name: 'เปิดใช้งานฟีเจอร์ AI Audit ในแพ็กเกจ Professional และ Enterprise'
+            },
+            {
+                file: '016_add_tenant_id_to_ocr_logs.sql',
+                name: 'เพิ่ม tenant_id ให้กับตาราง ocr_logs'
             }
         ];
 

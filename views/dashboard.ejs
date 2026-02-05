@@ -494,7 +494,8 @@
 
             if (result.success) {
                 showSuccess(`อัปโหลดสำเร็จ ${result.results.length} รายการ`);
-                setTimeout(() => window.location.reload(), 1500);
+                // setTimeout(() => window.location.reload(), 1500); // Remove this to prevent unexpected refresh
+                closeModal();
             } else {
                 alert(result.error || 'เกิดข้อผิดพลาดในการอัปโหลด');
                 resetUpload();

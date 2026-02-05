@@ -3,18 +3,21 @@ const db = require('../config/db');
 class SlipController {
     async listSlips(req, res) {
         try {
-            const companyId = req.session.user.company_id || 1;
+            const userId = req.session.user.id;
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
             const page = parseInt(req.query.page) || 1;
             const limitParam = req.query.limit || '20';
             const limit = limitParam === 'all' ? null : parseInt(limitParam);
             const search = req.query.search || '';
             const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-            const startDate = req.query.startDate !== undefined ? req.query.startDate : today;
-            const endDate = req.query.endDate !== undefined ? req.query.endDate : today;
+            const startDate = req.query.startDate;
+            const endDate = req.query.endDate;
+            const startUploadDate = req.query.startUploadDate; // Removed default today
+            const endUploadDate = req.query.endUploadDate; // Removed default today
             const offset = (page - 1) * (limit || 0);
 
-            let whereClause = 'WHERE company_id = ?';
-            let params = [companyId];
+            let whereClause = 'WHERE tenant_id = ?';
+            let params = [tenantId];
 
             if (search) {
                 whereClause += ' AND (sender_name LIKE ? OR receiver_name LIKE ? OR trans_id LIKE ? OR raw_text LIKE ?)';

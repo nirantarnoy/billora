@@ -65,6 +65,50 @@ class UserController {
             res.status(500).json({ success: false, error: err.message });
         }
     }
+
+    async showProfile(req, res) {
+        try {
+            const userId = req.session.user.id;
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+
+            // Get User full info
+            const [[user]] = await db.execute('SELECT * FROM users WHERE id = ?', [userId]);
+
+            // Get Tenant info
+            const [[tenant]] = await db.execute('SELECT * FROM tenants WHERE id = ?', [tenantId]);
+
+            // Get Current Subscription
+            const [subscriptions] = await db.execute(`
+                SELECT ts.*, sp.plan_name, sp.plan_code, sp.features, sp.price_monthly
+                FROM tenant_subscriptions ts
+                JOIN subscription_plans sp ON ts.plan_id = sp.id
+                WHERE ts.tenant_id = ? AND ts.status = 'active'
+                ORDER BY ts.created_at DESC
+                LIMIT 1
+            `, [tenantId]);
+
+            const subscription = subscriptions[0] || null;
+
+            // NEW: Fetch all plans if admin
+            let plans = [];
+            if (user.role === 'admin' || user.role === 'owner') {
+                const [allPlans] = await db.execute('SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY price_monthly ASC');
+                plans = allPlans;
+            }
+
+            res.render('profile', {
+                user,
+                tenant,
+                subscription,
+                plans,
+                active: 'profile',
+                title: 'โปรไฟล์ของฉัน'
+            });
+        } catch (err) {
+            console.error('showProfile Error:', err);
+            res.status(500).send(err.message);
+        }
+    }
 }
 
 module.exports = new UserController();

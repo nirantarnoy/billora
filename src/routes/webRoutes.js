@@ -39,11 +39,13 @@ router.get('/reconciliation', isAuthenticated, GeneralController.viewReconciliat
 
 // Users (Admin Only)
 router.get('/users', isAuthenticated, isAdmin, UserController.listUsers);
+router.get('/profile', isAuthenticated, UserController.showProfile);
 
 // Multi-tenant Routes
 router.get('/register', WebTenantController.showRegisterPage); // Public - ลูกค้าลงทะเบียนเอง
 router.get('/tenant/users', isAuthenticated, loadTenant, WebTenantController.showUserManagementPage); // จัดการ users ในแต่ละ tenant
 router.get('/tenant/settings', isAuthenticated, loadTenant, WebTenantController.showTenantSettings); // ตั้งค่า tenant
+router.post('/tenant/change-plan', isAuthenticated, isAdmin, WebTenantController.changePlan); // เปลี่ยนแพ็กเกจ (Admin Only)
 
 // Management (Admin Only)
 router.get('/admin/backup', isAuthenticated, isAdmin, ManagementController.listBackups);

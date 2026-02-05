@@ -55,6 +55,7 @@ class WebTenantController {
 
             // ดึงข้อมูล subscription
             const pool = require('../config/db');
+
             const [subscriptions] = await pool.query(`
                 SELECT ts.*, sp.plan_name, sp.price_monthly as price, sp.features
                 FROM tenant_subscriptions ts
@@ -70,7 +71,7 @@ class WebTenantController {
             const [plans] = await pool.query(`
                 SELECT * FROM subscription_plans
                 WHERE is_active = TRUE
-                ORDER BY price ASC
+                ORDER BY price_monthly ASC
             `);
 
             res.render('tenant-settings', {
@@ -83,6 +84,50 @@ class WebTenantController {
         } catch (error) {
             console.error('Error showing tenant settings:', error);
             res.status(500).send('Internal Server Error');
+        }
+    }
+
+    /**
+     * เปลี่ยนแพ็กเกจ (สำหรับ Admin)
+     */
+    static async changePlan(req, res) {
+        try {
+            const { planId } = req.body;
+            const tenantId = req.session.user.tenant_id || req.session.user.company_id || 1;
+            const pool = require('../config/db');
+            const TenantModel = require('../models/TenantModel');
+
+            // 1. ดึงข้อมูลแผนใหม่
+            const [[plan]] = await pool.query('SELECT * FROM subscription_plans WHERE id = ?', [planId]);
+            if (!plan) {
+                return res.status(404).json({ success: false, message: 'ไม่พบแพ็กเกจที่ระบุ' });
+            }
+
+            // 2. ปิดแพ็กเกจเดิมก่อน (Deactivate old ones)
+            await pool.query('UPDATE tenant_subscriptions SET status = "expired" WHERE tenant_id = ? AND status = "active"', [tenantId]);
+
+            // 3. อัพเดทข้อมูลในตาราง tenants
+            await TenantModel.updateSubscription(tenantId, {
+                subscription_plan: plan.plan_code,
+                subscription_status: 'active',
+                subscription_end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // +1 year
+                max_users: plan.max_users || 5, // fallback
+                max_storage_mb: plan.max_storage_mb || 1024,
+                max_transactions_per_month: plan.max_transactions_per_month || 1000,
+                features: typeof plan.features === 'string' ? JSON.parse(plan.features) : plan.features
+            });
+
+            // 3. เพิ่มบันทึกในตาราง tenant_subscriptions (ถ้ามี)
+            // เช็คว่ามี table นี้จริงไหม (ดูจาก UserController.js บรรทัด 81)
+            await pool.query(`
+                INSERT INTO tenant_subscriptions (tenant_id, plan_id, status, start_date, end_date)
+                VALUES (?, ?, 'active', NOW(), DATE_ADD(NOW(), INTERVAL 1 YEAR))
+            `, [tenantId, planId]);
+
+            res.json({ success: true, message: `เปลี่ยนเป็นแพ็กเกจ ${plan.plan_name} เรียบร้อยแล้ว` });
+        } catch (error) {
+            console.error('Change Plan Error:', error);
+            res.status(500).json({ success: false, message: error.message });
         }
     }
 }

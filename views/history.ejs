@@ -102,7 +102,13 @@
                                                     <% } %>
                                     </td>
                                     <td class="px-6 py-5 text-sm font-medium text-slate-600">
-                                        <%= log.type==='BANK_SLIP' ? 'สลิปโอนเงิน' : 'ใบเสร็จ' %>
+                                        <div class="flex items-center gap-2">
+                                            <%= log.type==='BANK_SLIP' ? 'สลิปโอนเงิน' : 'ใบเสร็จ' %>
+                                                <% if (log.ai_processed) { %>
+                                                    <i class="fas fa-sparkles text-indigo-400 text-[10px]"
+                                                        title="ประมวลผลด้วย AI"></i>
+                                                    <% } %>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-5">
                                         <span class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">

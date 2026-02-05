@@ -727,7 +727,13 @@
                     <div class="popular-tag">ยอดนิยม</div>
                     <h3>Pro</h3>
                     <div class="price">
-                        <span class="currency">฿</span><span class="amount">199</span><span class="period">/เดือน</span>
+                        <% if (1> 0) { %>
+                            <span class="currency">฿</span><span class="amount">Comming Soon</span><span
+                                class="period">/เดือน</span>
+                            <% } else { %>
+                                <span class="currency">฿</span><span class="amount">199</span><span
+                                    class="period">/เดือน</span>
+                                <% } %>
                     </div>
                     <ul class="pricing-features">
                         <li><i class="fas fa-check"></i> ไม่จำกัดจำนวนบิล</li>

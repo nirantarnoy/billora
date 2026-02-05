@@ -56,12 +56,41 @@
             count = badge ? parseInt(badge.textContent) : 0;
         }
 
+        // Clear count when going to page
+        sessionStorage.removeItem('notifCount');
+
         const path = (lastNotifType === 'BANK_SLIP') ? '/slips' : '/bills';
         const url = count > 0 ? `${path}?newCount=${count}` : path;
         window.location.href = url;
     }
 
+    function updateBadge(newItemsCount) {
+        const badge = document.getElementById('notifBadge');
+        if (!badge) return;
+
+        let currentCount = parseInt(sessionStorage.getItem('notifCount')) || 0;
+        currentCount += newItemsCount;
+
+        sessionStorage.setItem('notifCount', currentCount);
+        badge.textContent = currentCount;
+
+        if (currentCount > 0) {
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        // Restore badge from storage
+        const savedCount = parseInt(sessionStorage.getItem('notifCount')) || 0;
+        if (savedCount > 0) {
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+                badge.textContent = savedCount;
+                badge.classList.remove('hidden');
+            }
+        }
         // Handle redirect alert from query param
         const urlParams = new URLSearchParams(window.location.search);
         const newCount = urlParams.get('newCount');
@@ -213,12 +242,7 @@
             lastNotifType = firstResult.type;
         }
 
-        const badge = document.getElementById('notifBadge');
-        if (badge) {
-            let currentCount = parseInt(badge.textContent) || 0;
-            badge.textContent = currentCount + (data.count || 1);
-            badge.classList.remove('hidden');
-        }
+        updateBadge(data.count || 1);
 
         // Show Toast Notification with explicit View button
         Swal.fire({
@@ -241,7 +265,8 @@
                 popup: 'rounded-2xl shadow-xl'
             }
         }).then((result) => {
-            if (result.isConfirmed || result.dismiss === Swal.DismissReason.backdrop) {
+            // ONLY redirect if they explicitly clicked the confirm button
+            if (result.isConfirmed) {
                 if (lastNotifType === 'BANK_SLIP') {
                     window.location.href = '/slips';
                 } else {
