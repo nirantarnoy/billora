@@ -117,7 +117,17 @@
     }
     // Socket.io Notification Logic
     const socket = io();
+
+    socket.on('connect', () => {
+        console.log('✅ Connected to Notification Server');
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('❌ Socket Connection Error:', error);
+    });
+
     socket.on('new_upload', (data) => {
+        console.log('📢 New Notification received:', data);
         const badge = document.getElementById('notifBadge');
         if (badge) {
             let currentCount = parseInt(badge.textContent) || 0;
@@ -125,31 +135,35 @@
             badge.classList.remove('hidden');
         }
 
-        // Show Toast Notification
+        // Show Toast Notification with explicit View button
         Swal.fire({
             title: 'พบเอกสารใหม่!',
-            text: `มีการแนบไฟล์เข้ามาใหม่ ${data.count || 1} รายการ (คลิกเพื่อดู)`,
+            text: `มีการแนบไฟล์เข้ามาใหม่ ${data.count || 1} รายการ`,
             icon: 'info',
             toast: true,
             position: 'top-end',
-            showConfirmButton: false,
-            timer: 8000,
+            showConfirmButton: true,
+            confirmButtonText: 'ดูรายการ',
+            confirmButtonColor: '#10b981',
+            timer: 10000,
             timerProgressBar: true,
             didOpen: (toast) => {
                 toast.style.cursor = 'pointer';
                 toast.addEventListener('mouseenter', Swal.stopTimer);
                 toast.addEventListener('mouseleave', Swal.resumeTimer);
-                toast.addEventListener('click', () => {
-                    const firstResult = data.results && data.results[0];
-                    if (firstResult && firstResult.type === 'BANK_SLIP') {
-                        window.location.href = '/slips';
-                    } else {
-                        window.location.href = '/bills';
-                    }
-                });
             },
             customClass: {
-                popup: 'rounded-2xl shadow-xl border-l-4 border-emerald-500'
+                popup: 'rounded-2xl shadow-xl'
+            }
+        }).then((result) => {
+            if (result.isConfirmed || result.dismiss === Swal.DismissReason.backdrop) {
+                // If user clicks the button or the toast itself (if logic allows)
+                const firstResult = data.results && data.results[0];
+                if (firstResult && firstResult.type === 'BANK_SLIP') {
+                    window.location.href = '/slips';
+                } else {
+                    window.location.href = '/bills';
+                }
             }
         });
     });
