@@ -38,11 +38,7 @@
         const count = badge ? parseInt(badge.textContent) : 0;
 
         if (count > 0) {
-            if (lastNotifType === 'BANK_SLIP') {
-                window.location.href = '/slips';
-            } else {
-                window.location.href = '/bills';
-            }
+            goToNotifPage(count);
         } else {
             Swal.fire({
                 title: 'การแจ้งเตือน',
@@ -53,6 +49,75 @@
             });
         }
     }
+
+    function goToNotifPage(count = null) {
+        if (!count) {
+            const badge = document.getElementById('notifBadge');
+            count = badge ? parseInt(badge.textContent) : 0;
+        }
+
+        const path = (lastNotifType === 'BANK_SLIP') ? '/slips' : '/bills';
+        const url = count > 0 ? `${path}?newCount=${count}` : path;
+        window.location.href = url;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Handle redirect alert from query param
+        const urlParams = new URLSearchParams(window.location.search);
+        const newCount = urlParams.get('newCount');
+
+        if (newCount) {
+            const mainContent = document.querySelector('.p-10');
+            if (mainContent) {
+                // Create a horizontal banner alert
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'pageBannerAlert';
+                alertDiv.className = 'mb-6 transform -translate-y-4 opacity-0 transition-all duration-500 ease-out';
+                alertDiv.innerHTML = `
+                    <div class="bg-emerald-600 text-white px-6 py-4 rounded-3xl shadow-lg flex items-center justify-between border border-emerald-400/30 backdrop-blur-md">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-check-double text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-lg">พบรายการใหม่!</p>
+                                <p class="text-sm opacity-90">ระบบตรวจพบข้อมูลใหม่จำนวน <span class="font-bold underline">${newCount} รายการ</span> ที่เพิ่งอัปโหลดเข้ามา</p>
+                            </div>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-white/60 hover:text-white transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                `;
+
+                // Insert after the header (first child of .p-10 is usually header)
+                const header = mainContent.querySelector('header');
+                if (header) {
+                    header.after(alertDiv);
+                } else {
+                    mainContent.prepend(alertDiv);
+                }
+
+                // Animate in
+                setTimeout(() => {
+                    alertDiv.classList.remove('-translate-y-4', 'opacity-0');
+                    alertDiv.classList.add('translate-y-0', 'opacity-100');
+                }, 100);
+
+                // Auto hide after 8 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentElement) {
+                        alertDiv.classList.add('-translate-y-4', 'opacity-0');
+                        setTimeout(() => alertDiv.remove(), 500);
+                    }
+
+                    // Clean up URL without refreshing
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, newUrl);
+                }, 8000);
+            }
+        }
+    });
 
     function openChangePasswordModal() {
         Swal.fire({
@@ -186,6 +251,24 @@
         });
     });
 </script>
+
+<!-- Global Bell Notification Alert -->
+<div id="bellNotif"
+    class="fixed top-20 right-6 z-[100] transform translate-x-full opacity-0 transition-all duration-500 ease-in-out hidden">
+    <div onclick="goToNotifPage()"
+        class="cursor-pointer bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-emerald-400/50 backdrop-blur-md hover:bg-emerald-700 transition-colors">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-bell text-lg"></i>
+        </div>
+        <div>
+            <p class="font-bold">แจ้งเตือนใหม่</p>
+            <p class="text-sm opacity-90" id="bellNotifText">มีรายการใหม่ 0 รายการ (คลิกเพื่อดู)</p>
+        </div>
+        <div class="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-white/10">
+            <i class="fas fa-chevron-right text-[10px]"></i>
+        </div>
+    </div>
+</div>
 </body>
 
 </html>
