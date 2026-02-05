@@ -568,6 +568,10 @@
     fetch('/api/stats')
         .then(res => res.json())
         .then(data => {
+            if (!Array.isArray(data)) {
+                console.error('API Stats Error:', data);
+                return;
+            }
             // Process Data for Grouped Bar Chart
             const dates = [...new Set(data.map(d => d.date_label))]; // Unique Dates
 

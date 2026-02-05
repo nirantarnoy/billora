@@ -102,11 +102,12 @@ class DashboardController {
         WHERE company_id = ? 
           AND status = 'success'
           AND datetime >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 DAY)
-        GROUP BY date_val, source
-        ORDER BY date_val ASC
+        GROUP BY 2, 1, 3
+        ORDER BY 2 ASC
       `, [companyId]);
             res.json(rows);
         } catch (err) {
+            console.error('getStats Error:', err);
             res.status(500).json({ success: false, error: err.message });
         }
     }
