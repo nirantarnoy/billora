@@ -40,8 +40,10 @@ async function handleLineEvent(event, io) {
     const { message, source } = event;
     const lineUserId = source.userId;
 
-    const [users] = await db.execute('SELECT id FROM users WHERE line_user_id = ?', [lineUserId]);
-    let userId = users.length > 0 ? users[0].id : null;
+    const [users] = await db.execute('SELECT id, tenant_id FROM users WHERE line_user_id = ?', [lineUserId]);
+    const userData = users.length > 0 ? users[0] : null;
+    let userId = userData ? userData.id : null;
+    let tenantId = userData ? userData.tenant_id : 1;
 
     if (!userId) {
         return lineClient.replyMessage(event.replyToken, {
@@ -53,11 +55,18 @@ async function handleLineEvent(event, io) {
     try {
         const stream = await lineClient.getMessageContent(message.id);
         const fileName = `line_${message.id}.jpg`;
-        const absolutePath = path.join(__dirname, '../../uploads', fileName);
-        const relativePath = `uploads/${fileName}`;
+        const tenantDir = path.join(__dirname, '../../uploads', tenantId.toString());
+
+        if (!fs.existsSync(tenantDir)) {
+            fs.mkdirSync(tenantDir, { recursive: true });
+        }
+
+        const absolutePath = path.join(tenantDir, fileName);
+        const relativePath = `uploads/${tenantId}/${fileName}`;
         const writer = fs.createWriteStream(absolutePath);
 
         stream.pipe(writer);
+
 
         return new Promise((resolve, reject) => {
             writer.on('finish', async () => {

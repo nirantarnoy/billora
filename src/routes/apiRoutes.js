@@ -1,7 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const fs = require('fs');
+const path = require('path');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const tenantId = req.session?.user?.tenant_id || 'default';
+        const dir = path.join('uploads', tenantId.toString());
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+});
+const upload = multer({ storage: storage });
+
 const { isAuthenticated } = require('../middleware/auth');
 const AuthController = require('../controllers/AuthController');
 const DashboardController = require('../controllers/DashboardController');
