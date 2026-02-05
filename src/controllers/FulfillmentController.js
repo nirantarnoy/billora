@@ -8,12 +8,8 @@ class FulfillmentController {
             const tenantId = req.session.user.tenant_id;
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            let limitVal = 20;
-            if (req.query.limit === 'all') {
-                limitVal = 1000000;
-            } else {
-                limitVal = parseInt(req.query.limit) || 20;
-            }
+            const limit = req.query.limit === 'all' ? 'all' : (parseInt(req.query.limit) || 20);
+            const limitVal = limit === 'all' ? 1000000 : limit;
             const offsetVal = (page - 1) * limitVal;
             const search = req.query.q || '';
 
@@ -58,7 +54,8 @@ class FulfillmentController {
                 warehouses: warehouses || [],
                 pagination: {
                     page,
-                    limit: req.query.limit === 'all' ? 'all' : limit,
+                    page,
+                    limit: limit,
                     totalItems,
                     totalPages,
                     search
@@ -79,12 +76,8 @@ class FulfillmentController {
 
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            let limitVal = 20;
-            if (req.query.limit === 'all') {
-                limitVal = 1000000;
-            } else {
-                limitVal = parseInt(req.query.limit) || 20;
-            }
+            const limit = req.query.limit === 'all' ? 'all' : (parseInt(req.query.limit) || 20);
+            const limitVal = limit === 'all' ? 1000000 : limit;
             const offsetVal = (page - 1) * limitVal;
             const search = req.query.q || '';
 
@@ -123,7 +116,8 @@ class FulfillmentController {
                 products: products || [],
                 pagination: {
                     page,
-                    limit: req.query.limit === 'all' ? 'all' : limit,
+                    page,
+                    limit: limit,
                     totalItems,
                     totalPages,
                     search
@@ -174,12 +168,8 @@ class FulfillmentController {
 
             // Pagination & Search
             const page = parseInt(req.query.page) || 1;
-            let limitVal = 20;
-            if (req.query.limit === 'all') {
-                limitVal = 1000000;
-            } else {
-                limitVal = parseInt(req.query.limit) || 20;
-            }
+            const limit = req.query.limit === 'all' ? 'all' : (parseInt(req.query.limit) || 20);
+            const limitVal = limit === 'all' ? 1000000 : limit;
             const offsetVal = (page - 1) * limitVal;
             const search = req.query.q || '';
 
@@ -224,7 +214,8 @@ class FulfillmentController {
                 locations: locations || [],
                 pagination: {
                     page,
-                    limit: req.query.limit === 'all' ? 'all' : limit,
+                    page,
+                    limit: limit,
                     totalItems,
                     totalPages,
                     search
