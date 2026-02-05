@@ -47,6 +47,7 @@ router.get('/profile', isAuthenticated, UserController.showProfile);
 router.get('/register', WebTenantController.showRegisterPage); // Public - ลูกค้าลงทะเบียนเอง
 router.get('/tenant/users', isAuthenticated, loadTenant, WebTenantController.showUserManagementPage); // จัดการ users ในแต่ละ tenant
 router.get('/tenant/settings', isAuthenticated, loadTenant, WebTenantController.showTenantSettings); // ตั้งค่า tenant
+router.post('/tenant/settings', isAuthenticated, loadTenant, WebTenantController.updateTenantSettings); // อัพเดทค่าที่ตั้งไว้
 router.post('/tenant/change-plan', isAuthenticated, isAdmin, WebTenantController.changePlan); // เปลี่ยนแพ็กเกจ (Admin Only)
 
 // Management (Admin Only)

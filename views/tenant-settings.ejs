@@ -1,0 +1,283 @@
+<div class="px-6 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-10">
+            <h2 class="text-3xl font-bold text-slate-800">ตั้งค่าองค์กร</h2>
+            <p class="text-slate-500 mt-1">จัดการข้อมูลบริษัทและแผนการใช้งานของคุณ</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Col: Company Info -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Company Data Card -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-8">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div
+                                class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                                <i class="fas fa-building text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">
+                                    <%= tenant.company_name %>
+                                </h3>
+                                <p class="text-slate-400 font-mono text-sm">Tenant ID: <%= tenant.tenant_code %>
+                                </p>
+                            </div>
+                        </div>
+
+                        <form id="tenantForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">ชื่อสถานประกอบการ
+                                        (ไทย)</label>
+                                    <input type="text" name="company_name" value="<%= tenant.company_name %>"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">Company Name (EN)</label>
+                                    <input type="text" name="company_name_en" value="<%= tenant.company_name_en %>"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-slate-700 mb-2">เลขประจำตัวผู้เสียภาษี</label>
+                                    <input type="text" name="tax_id" value="<%= tenant.tax_id %>"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">เบอร์โทรศัพท์</label>
+                                    <input type="text" name="phone" value="<%= tenant.phone %>"
+                                        class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">ที่อยู่</label>
+                                <textarea name="address" rows="3"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"><%= tenant.address %></textarea>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit"
+                                    class="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/30">
+                                    บันทึกการเปลี่ยนแปลง
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Col: Current Plan -->
+            <div class="space-y-8">
+                <div
+                    class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                    <!-- Decor -->
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+
+                    <h4 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Current Plan</h4>
+                    <div class="text-3xl font-bold mb-6 italic">
+                        <%= (tenant.subscription_plan || 'Free' ).toUpperCase() %>
+                    </div>
+
+                    <div class="space-y-4 mb-8">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-400">สถานะ:</span>
+                            <span class="font-bold text-emerald-400">
+                                <%= tenant.subscription_status %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-400">วันหมดอายุ:</span>
+                            <span class="font-bold">
+                                <%= tenant.subscription_end_date ? new
+                                    Date(tenant.subscription_end_date).toLocaleDateString() : 'ไม่มีกำหนด' %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <button onclick="openPlanModal()"
+                        class="w-full py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-slate-100 transition-all">
+                        Upgrade / Change Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Plan Selection Modal -->
+<div id="planModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+    <div
+        class="bg-white w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+                <h3 class="text-2xl font-bold text-slate-800">เลือกแพ็กเกจที่เหมาะสม</h3>
+                <p class="text-slate-400">อัปเกรดเพื่อรับฟีเจอร์ที่มากขึ้นและขยายขีดจำกัดขององค์กร</p>
+            </div>
+            <button onclick="closePlanModal()"
+                class="w-10 h-10 rounded-full hover:bg-slate-100 text-slate-400 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <% plans.forEach(plan=> { %>
+                <div
+                    class="border <%= tenant.subscription_plan === plan.plan_code ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-100' %> rounded-3xl p-6 flex flex-col hover:border-emerald-200 transition-all group">
+                    <div class="mb-4">
+                        <h4 class="font-bold text-slate-800 text-lg">
+                            <%= plan.plan_name %>
+                        </h4>
+                        <div class="text-3xl font-black text-slate-900 my-2">
+                            <%= plan.price_monthly %> <span class="text-sm font-normal text-slate-400">/mo</span>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-3 mb-8 flex-1">
+                        <li class="flex items-center gap-2 text-sm text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <%= plan.max_users %> Users
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <%= (plan.max_storage_mb / 1024).toFixed(1) %> GB Storage
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-slate-600">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <%= plan.max_transactions_per_month %> Bills/mo
+                        </li>
+                        <% let features=typeof plan.features==='string' ? JSON.parse(plan.features) : plan.features %>
+                            <% if (features.ocr) { %>
+                                <li class="flex items-center gap-2 text-sm text-slate-600">
+                                    <i class="fas fa-check-circle text-emerald-500"></i> Smart AI OCR
+                                </li>
+                                <% } %>
+                    </ul>
+
+                    <% if (tenant.subscription_plan===plan.plan_code) { %>
+                        <button disabled
+                            class="w-full py-3 bg-slate-100 text-slate-400 font-bold rounded-xl cursor-not-allowed">
+                            Current Plan
+                        </button>
+                        <% } else { %>
+                            <button
+                                onclick="checkoutOmise(<%= plan.id %>, <%= plan.price_monthly %>, '<%= plan.plan_name %>')"
+                                class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20">
+                                เลือกแพ็กเกจนี้
+                            </button>
+                            <% } %>
+                </div>
+                <% }); %>
+        </div>
+    </div>
+</div>
+
+<!-- Omise Script -->
+<script src="https://cdn.omise.co/omise.js"></script>
+<script>
+    const planModal = document.getElementById('planModal');
+
+    function openPlanModal() { planModal.classList.remove('hidden'); }
+    function closePlanModal() { planModal.classList.add('hidden'); }
+
+    // Init Omise
+    Omise.setPublicKey('<%= process.env.OMISE_PUBLIC_KEY %>');
+
+    async function checkoutOmise(planId, amount, planName) {
+        if (amount === 0) {
+            // โลจิกสำหรับเปลี่ยนเป็น Free plan (อาจจะต้องยืนยัน)
+            Swal.fire('Coming Soon', 'กรุณาติดต่อผู้ดูแลระบบเพื่อเปลี่ยนกลับเป็นแผนฟรี', 'info');
+            return;
+        }
+
+        OmiseCard.configure({
+            publicKey: '<%= process.env.OMISE_PUBLIC_KEY %>',
+            amount: amount * 100,
+            currency: 'THB',
+            frameLabel: 'GoodOper Pro',
+            submitLabel: 'Pay Now',
+            buttonLabel: 'Pay with Omise'
+        });
+
+        OmiseCard.open({
+            amount: amount * 100,
+            currency: 'THB',
+            defaultPaymentMethod: 'credit_card',
+            otherPaymentMethods: ['promptpay'],
+            onCreateTokenSuccess: (nonce) => {
+                const data = {
+                    planId: planId,
+                    amount: amount,
+                    paymentMethod: nonce.startsWith('tok') ? 'credit_card' : 'promptpay'
+                };
+
+                if (nonce.startsWith('tok')) data.token = nonce;
+                else data.source = nonce;
+
+                processPayment(data);
+            }
+        });
+    }
+
+    async function processPayment(data) {
+        try {
+            Swal.fire({
+                title: 'กำลังประมวลผล...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const response = await fetch('/api/payments/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                if (result.authorize_uri) {
+                    // Redirect สำหรับ 3D Secure หรือ PromptPay
+                    window.location.href = result.authorize_uri;
+                } else {
+                    Swal.fire('สำเร็จ', 'ชำระเงินเรียบร้อยแล้ว แผนของคุณมีผลทันที', 'success')
+                        .then(() => window.location.reload());
+                }
+            } else {
+                Swal.fire('ผิดพลาด', result.message || 'การชำระเงินไม่สำเร็จ', 'error');
+            }
+        } catch (err) {
+            Swal.fire('ผิดพลาด', 'เกิดปัญหาในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
+        }
+    }
+
+    // Form Update Logic
+    document.getElementById('tenantForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+
+        try {
+            const response = await fetch('/tenant/settings', { // สมมติว่ามี route POST
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+            } else {
+                const err = await response.json();
+                Swal.fire('ผิดพลาด', err.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+            }
+        } catch (err) {
+            Swal.fire('ผิดพลาด', 'เกิดปัญหาในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
+        }
+    };
+</script>

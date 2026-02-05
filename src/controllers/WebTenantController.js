@@ -130,6 +130,28 @@ class WebTenantController {
             res.status(500).json({ success: false, message: error.message });
         }
     }
+
+    /**
+     * อัพเดทข้อมูลการตั้งค่า Tenant
+     */
+    static async updateTenantSettings(req, res) {
+        try {
+            const tenantId = req.tenantId || req.session.user.tenant_id;
+            const TenantModel = require('../models/TenantModel');
+            const data = req.body;
+
+            const success = await TenantModel.update(tenantId, data);
+
+            if (success) {
+                res.json({ success: true, message: 'บันทึกข้อมูลสำเร็จ' });
+            } else {
+                res.status(400).json({ success: false, message: 'ไม่มีการเปลี่ยนแปลงข้อมูล' });
+            }
+        } catch (error) {
+            console.error('Update Tenant Settings Error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 }
 
 module.exports = WebTenantController;

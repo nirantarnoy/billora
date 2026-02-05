@@ -27,6 +27,8 @@ const DashboardController = require('../controllers/DashboardController');
 const BillController = require('../controllers/BillController');
 const SlipController = require('../controllers/SlipController');
 const ChannelController = require('../controllers/ChannelController');
+const PaymentController = require('../controllers/PaymentController');
+
 
 // Multi-tenant Routes
 const tenantRoutes = require('./tenantRoutes');
@@ -52,5 +54,10 @@ router.put('/channels/:id', isAuthenticated, ChannelController.updateBookCode);
 // Multi-tenant API
 router.use('/tenants', tenantRoutes);
 router.use('/users', userManagementRoutes);
+
+// Omise Payment API
+router.post('/payments/checkout', isAuthenticated, PaymentController.checkout);
+router.post('/payments/webhook', PaymentController.handleWebhook); // Public Webhook
+
 
 module.exports = router;
