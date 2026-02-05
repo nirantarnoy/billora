@@ -22,6 +22,7 @@ router.get('/stats', isAuthenticated, DashboardController.getStats);
 router.get('/dashboard/data', isAuthenticated, DashboardController.getApiDashboardData);
 router.post('/upload', isAuthenticated, upload.fields([{ name: 'files' }, { name: 'file' }]), BillController.upload);
 router.delete('/bills/:id', isAuthenticated, BillController.deleteBill);
+router.post('/debug/clear-data', isAuthenticated, DashboardController.clearTestData);
 router.get('/history', isAuthenticated, SlipController.getApiHistory);
 
 // Channels Sync (Can be used by mobile)

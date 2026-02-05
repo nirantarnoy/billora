@@ -125,9 +125,54 @@
                                     <% } %>
     </nav>
 
+    <!-- Hidden Debug Button -->
+    <% if (typeof user !=='undefined' && user && (user.role==='admin' || user.role==='owner' )) { %>
+        <div class="mt-auto pt-4 border-t border-slate-50 opacity-0 hover:opacity-100 transition-opacity">
+            <button onclick="handleClearData()"
+                class="w-full text-[10px] text-slate-300 hover:text-red-400 text-left px-3 py-1">
+                <i class="fas fa-trash-alt mr-2"></i> Clear Test Data
+            </button>
+        </div>
+        <% } %>
 </aside>
 
+<!-- Secret Debug Button Script -->
 <script>
+    async function handleClearData() {
+        const { value: confirm } = await Swal.fire({
+            title: 'ยืนยันการเคลียร์ข้อมูล?',
+            text: "ข้อมูล Bills, Bill Items และ Slips ทั้งหมดจะถูกลบถาวร!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ลบข้อมูลทั้งหมด',
+            cancelButtonText: 'ยกเลิก',
+            footer: '<small class="text-slate-400">เฉพาะ Admin เท่านั้น</small>'
+        });
+
+        if (confirm) {
+            try {
+                const response = await fetch('/api/debug/clear-data', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-Token': '<%= (typeof _csrf !== "undefined") ? _csrf : "" %>'
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire('สำเร็จ!', result.message, 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('ผิดพลาด', result.message || 'ไม่สามารถลบข้อมูลได้', 'error');
+                }
+            } catch (err) {
+                Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+            }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const activeItem = document.querySelector('.sidebar-active');
         if (activeItem) {

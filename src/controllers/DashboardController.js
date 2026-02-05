@@ -111,6 +111,28 @@ class DashboardController {
             res.status(500).json({ success: false, error: err.message });
         }
     }
+
+    async clearTestData(req, res) {
+        try {
+            const companyId = req.session.user.company_id || 1;
+            const role = req.session.user.role;
+
+            if (role !== 'admin' && role !== 'owner') {
+                return res.status(403).json({ success: false, message: 'สิทธิ์ไม่เพียงพอ' });
+            }
+
+            // ลบข้อมูลโดยอิงตาม company_id (หรือ tenant_id ถ้ามีใช้ในโปรเจกต์นี้)
+            await db.execute(`DELETE FROM bill_items WHERE bill_id IN (SELECT id FROM bills WHERE company_id = ?)`, [companyId]);
+            await db.execute(`DELETE FROM bills WHERE company_id = ?`, [companyId]);
+            await db.execute(`DELETE FROM payment_slips WHERE company_id = ?`, [companyId]);
+            await db.execute(`DELETE FROM ocr_logs WHERE user_id = ?`, [req.session.user.id]);
+
+            res.json({ success: true, message: 'เคลียร์ข้อมูลทดสอบเรียบร้อยแล้ว' });
+        } catch (err) {
+            console.error('ClearTestData Error:', err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    }
 }
 
 module.exports = new DashboardController();
