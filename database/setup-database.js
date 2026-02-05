@@ -107,6 +107,10 @@ async function setupDatabase() {
             {
                 file: '016_add_tenant_id_to_ocr_logs.sql',
                 name: 'เพิ่ม tenant_id ให้กับตาราง ocr_logs'
+            },
+            {
+                file: '017_create_payments_table.sql',
+                name: 'สร้างตาราง Payments (บันทึกการชำระเงิน Omise)'
             }
         ];
 
