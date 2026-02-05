@@ -68,7 +68,7 @@ class InventoryController {
 
             // Fetch Data
             sql += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
-            params.push(limit, parseInt(offset)); // Ensure offset is integer
+            params.push(Number(limit), Number(offset));
 
             const [transactions] = await db.execute(sql, params);
 

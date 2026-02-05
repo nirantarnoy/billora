@@ -34,7 +34,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-            params.push(limitVal, offsetVal);
+            params.push(Number(limitVal), Number(offsetVal));
 
             // Execute
             const [warehouses] = await db.execute(sql, params);
@@ -109,7 +109,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-            params.push(limitVal, offsetVal);
+            params.push(Number(limitVal), Number(offsetVal));
 
             const [products] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
@@ -209,7 +209,7 @@ class FulfillmentController {
             }
 
             sql += ' ORDER BY name ASC LIMIT ? OFFSET ?';
-            params.push(limitVal, offsetVal);
+            params.push(Number(limitVal), Number(offsetVal));
 
             const [locations] = await db.execute(sql, params);
             const [countRows] = await db.execute(countSql, countParams);
