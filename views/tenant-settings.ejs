@@ -211,6 +211,9 @@
                     paymentMethod: nonce.startsWith('tok') ? 'credit_card' : 'promptpay'
                 };
 
+                if (nonce.startsWith('tok')) data.paymentMethod = 'credit_card';
+                else data.paymentMethod = 'promptpay';
+
                 if (nonce.startsWith('tok')) data.token = nonce;
                 else data.source = nonce;
 
@@ -240,8 +243,20 @@
 
             if (result.success) {
                 if (result.authorize_uri) {
-                    // Redirect สำหรับ 3D Secure หรือ PromptPay
+                    // Redirect สำหรับ 3D Secure
                     window.location.href = result.authorize_uri;
+                } else if (result.qr_code_url) {
+                    // แสดง QR Code สำหรับ PromptPay
+                    Swal.fire({
+                        title: 'Scan to Pay',
+                        text: 'กรุณาใช้แอปธนาคารสแกนเพื่อชำระเงิน',
+                        imageUrl: result.qr_code_url,
+                        imageWidth: 300,
+                        imageHeight: 300,
+                        imageAlt: 'PromptPay QR Code',
+                        confirmButtonText: 'ชำระเงินเรียบร้อยแล้ว',
+                        footer: '<p class="text-sm text-slate-400 italic">หลังจากชำระเงิน ระบบจะอัปเดตสถานะอัตโนมัติภายใน 1-2 นาที</p>'
+                    }).then(() => window.location.reload());
                 } else {
                     Swal.fire('สำเร็จ', 'ชำระเงินเรียบร้อยแล้ว แผนของคุณมีผลทันที', 'success')
                         .then(() => window.location.reload());

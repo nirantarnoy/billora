@@ -61,7 +61,8 @@ class PaymentController {
             res.json({
                 success: true,
                 status: charge.status,
-                authorize_uri: charge.authorize_uri, // สำหรับ 3D Secure หรือ PromptPay
+                authorize_uri: charge.authorize_uri, // สำหรับ 3D Secure
+                qr_code_url: charge.source ? (charge.source.scannable_code ? charge.source.scannable_code.image.download_uri : null) : null, // สำหรับ PromptPay
                 message: charge.status === 'succeeded' ? 'ชำระเงินสำเร็จ' : 'กำลังรอการชำระเงิน'
             });
 
