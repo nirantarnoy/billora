@@ -249,12 +249,14 @@
         img.src = path;
         downloadLink.href = path;
         modal.classList.remove('hidden');
+        modal.classList.add('flex');
         document.body.style.overflow = 'hidden';
     }
 
     function closeImageModal() {
         const modal = document.getElementById('imageModal');
         modal.classList.add('hidden');
+        modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
     }
 
