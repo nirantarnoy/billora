@@ -94,15 +94,16 @@ class DashboardController {
             const companyId = req.session.user.company_id || 1;
             const [rows] = await db.execute(`
         SELECT 
-          DATE_FORMAT(datetime, '%Y-%m') as month, 
+          DATE_FORMAT(datetime, '%d/%m') as date_label, 
+          DATE(datetime) as date_val,
           source,
           SUM(amount) as value
         FROM payment_slips
         WHERE company_id = ? 
           AND status = 'success'
-          AND datetime >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 MONTH)
-        GROUP BY month, source
-        ORDER BY month ASC
+          AND datetime >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 DAY)
+        GROUP BY date_val, source
+        ORDER BY date_val ASC
       `, [companyId]);
             res.json(rows);
         } catch (err) {

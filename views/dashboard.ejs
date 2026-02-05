@@ -144,11 +144,7 @@
         <!-- Chart -->
         <div class="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800">ยอดโอนเงิน 6 เดือนล่าสุด</h3>
-                <select
-                    class="bg-slate-50 border border-slate-200 rounded-lg text-sm px-3 py-1 outline-none text-slate-600">
-                    <option>6 เดือนล่าสุด</option>
-                </select>
+                <h3 class="text-xl font-bold text-slate-800">ยอดโอนเงิน 7 วันล่าสุด</h3>
             </div>
             <!-- Box with fixed height to prevent infinite growth -->
             <div class="chart-container">
@@ -572,44 +568,90 @@
     fetch('/api/stats')
         .then(res => res.json())
         .then(data => {
-            const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "สิง.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            // Process Data for Grouped Bar Chart
+            const dates = [...new Set(data.map(d => d.date_label))]; // Unique Dates
+
+            const sources = ['LINE', 'MOBILE', 'BROWSER'];
+            const sourceColors = {
+                'LINE': '#10b981', // Green
+                'MOBILE': '#3b82f6', // Blue
+                'BROWSER': '#94a3b8' // Slate
+            };
+            const sourceLabels = {
+                'LINE': 'LINE OA',
+                'MOBILE': 'Mobile App',
+                'BROWSER': 'Web Site'
+            };
+
+            const datasets = sources.map(source => {
+                return {
+                    label: sourceLabels[source],
+                    data: dates.map(date => {
+                        const record = data.find(d => d.date_label === date && d.source === source);
+                        return record ? Number(record.value) : 0;
+                    }),
+                    backgroundColor: sourceColors[source],
+                    borderRadius: 4,
+                    barPercentage: 0.7,
+                    categoryPercentage: 0.8
+                };
+            });
 
             new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: data.map(d => monthNames[d.month - 1]),
-                    datasets: [{
-                        label: 'ยอดโอนเงิน (บาท)',
-                        data: data.map(d => d.total_amount),
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#10b981',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
+                    labels: dates,
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '฿' + context.parsed.y.toLocaleString();
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: { color: 'rgba(0,0,0,0.03)' },
                             ticks: {
-                                callback: value => '฿' + value.toLocaleString()
-                            }
+                                callback: value => '฿' + value.toLocaleString(),
+                                font: { size: 10 }
+                            },
+                            border: { display: false }
                         },
                         x: {
-                            grid: { display: false }
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } },
+                            border: { display: false }
                         }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
                     }
                 }
             });
