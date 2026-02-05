@@ -278,27 +278,80 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-2">เก็บสูงสุดกี่ไฟล์ *</label>
                 <input type="number" id="max_backups" required min="1" value="10"
                     class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
-            </div>
+                <!-- Remote Backup Settings -->
+                <div class="border-t border-slate-200 pt-4 mt-4">
+                    <h4 class="font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fas fa-network-wired text-emerald-600 mr-2"></i>
+                        Remote Backup (SFTP)
+                    </h4>
 
-            <div class="bg-blue-50 rounded-xl p-4">
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" id="notify_on_failure" checked
-                        class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                    <span class="text-sm text-slate-700">แจ้งเตือนเมื่อ Backup ล้มเหลว</span>
-                </label>
-            </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Storage Type</label>
+                            <select id="remote_storage_type" onchange="toggleRemoteFields()"
+                                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                                <option value="none">None (Local Only)</option>
+                                <option value="sftp">SFTP Server</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="flex gap-3 pt-4">
-                <button type="button" onclick="closeModal()"
-                    class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-semibold transition-all">
-                    ยกเลิก
-                </button>
-                <button type="submit"
-                    class="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-3 rounded-xl font-semibold transition-all">
-                    <i class="fas fa-save mr-2"></i>
-                    บันทึก
-                </button>
-            </div>
+                    <div id="remote_fields" class="hidden space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Host / IP</label>
+                                <input type="text" id="remote_host"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                    placeholder="192.168.1.10">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Port</label>
+                                <input type="number" id="remote_port" value="22"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
+                                <input type="text" id="remote_username"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                                <input type="password" id="remote_password"
+                                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Remote Path</label>
+                            <input type="text" id="remote_path" value="/"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                                placeholder="/volume1/backups/billora">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" id="notify_on_failure" checked
+                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm text-slate-700">แจ้งเตือนเมื่อ Backup ล้มเหลว</span>
+                    </label>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal()"
+                        class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-semibold transition-all">
+                        ยกเลิก
+                    </button>
+                    <button type="submit"
+                        class="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white py-3 rounded-xl font-semibold transition-all">
+                        <i class="fas fa-save mr-2"></i>
+                        บันทึก
+                    </button>
+                </div>
         </form>
     </div>
 </div>
@@ -360,6 +413,16 @@
         if (modal) modal.classList.add('hidden');
     }
 
+    function toggleRemoteFields() {
+        const type = document.getElementById('remote_storage_type').value;
+        const fields = document.getElementById('remote_fields');
+        if (type === 'sftp') {
+            fields.classList.remove('hidden');
+        } else {
+            fields.classList.add('hidden');
+        }
+    }
+
     // Submit form
     const scheduleForm = document.getElementById('scheduleForm');
     if (scheduleForm) {
@@ -382,7 +445,13 @@
                 backup_type: typeEl.value,
                 retention_days: parseInt(retentionEl.value),
                 max_backups: parseInt(maxEl.value),
-                notify_on_failure: notifyEl.checked
+                notify_on_failure: notifyEl.checked,
+                remote_storage_type: document.getElementById('remote_storage_type').value,
+                remote_host: document.getElementById('remote_host').value,
+                remote_port: parseInt(document.getElementById('remote_port').value) || 22,
+                remote_username: document.getElementById('remote_username').value,
+                remote_password: document.getElementById('remote_password').value,
+                remote_path: document.getElementById('remote_path').value
             };
 
             try {
@@ -582,6 +651,15 @@
         setVal('backup_type', schedule.backup_type);
         setVal('retention_days', schedule.retention_days);
         setVal('max_backups', schedule.max_backups);
+
+        // Remote Settings
+        setVal('remote_storage_type', schedule.remote_storage_type || 'none');
+        setVal('remote_host', schedule.remote_host || '');
+        setVal('remote_port', schedule.remote_port || 22);
+        setVal('remote_username', schedule.remote_username || '');
+        setVal('remote_password', schedule.remote_password || '');
+        setVal('remote_path', schedule.remote_path || '/');
+        toggleRemoteFields();
 
         const notifyEl = document.getElementById('notify_on_failure');
         if (notifyEl) notifyEl.checked = !!schedule.notify_on_failure;

@@ -52,7 +52,13 @@ class BackupScheduleController {
                 max_backups,
                 notify_on_success,
                 notify_on_failure,
-                notification_email
+                notification_email,
+                remote_storage_type,
+                remote_host,
+                remote_port,
+                remote_username,
+                remote_password,
+                remote_path
             } = req.body;
 
             const userId = req.session.user.id;
@@ -71,12 +77,14 @@ class BackupScheduleController {
                 INSERT INTO backup_schedules 
                 (name, description, cron_expression, backup_type, tenant_id, 
                  retention_days, max_backups, notify_on_success, notify_on_failure, 
-                 notification_email, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 notification_email, created_by,
+                 remote_storage_type, remote_host, remote_port, remote_username, remote_password, remote_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 name, description, cron_expression, backup_type, tenant_id || null,
                 retention_days, max_backups, notify_on_success, notify_on_failure,
-                notification_email, userId
+                notification_email, userId,
+                remote_storage_type || 'none', remote_host, remote_port || 22, remote_username, remote_password, remote_path
             ]);
 
             // Load schedule into scheduler
@@ -118,7 +126,13 @@ class BackupScheduleController {
                 is_active,
                 notify_on_success,
                 notify_on_failure,
-                notification_email
+                notification_email,
+                remote_storage_type,
+                remote_host,
+                remote_port,
+                remote_username,
+                remote_password,
+                remote_path
             } = req.body;
 
             // Validate cron expression
@@ -143,12 +157,20 @@ class BackupScheduleController {
                     is_active = ?,
                     notify_on_success = ?,
                     notify_on_failure = ?,
-                    notification_email = ?
+                    notification_email = ?,
+                    remote_storage_type = ?,
+                    remote_host = ?,
+                    remote_port = ?,
+                    remote_username = ?,
+                    remote_password = ?,
+                    remote_path = ?
                 WHERE id = ?
             `, [
                 name, description, cron_expression, backup_type, tenant_id || null,
                 retention_days, max_backups, is_active, notify_on_success,
-                notify_on_failure, notification_email, id
+                notify_on_failure, notification_email,
+                remote_storage_type || 'none', remote_host, remote_port || 22, remote_username, remote_password, remote_path,
+                id
             ]);
 
             // Reload schedule

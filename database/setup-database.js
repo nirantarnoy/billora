@@ -87,6 +87,10 @@ async function setupDatabase() {
             {
                 file: '009_create_inventory_system.sql',
                 name: 'สร้างตาราง Inventory (Lots, Balances, Transactions)'
+            },
+            {
+                file: '012_add_remote_backup_config.sql',
+                name: 'เพิ่มการตั้งค่า Remote Backup (SFTP)'
             }
         ];
 
@@ -192,7 +196,7 @@ async function setupDatabase() {
     } catch (error) {
         console.log('');
         log.error('เกิดข้อผิดพลาด:');
-        console.error(error.message);
+        console.error(error);
 
         if (error.code === 'ER_ACCESS_DENIED_ERROR') {
             log.error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้ - ตรวจสอบ username/password ใน .env');

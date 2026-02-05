@@ -115,6 +115,7 @@ class BackupScheduler {
     async executeBackup(schedule) {
         const { id, backup_type, retention_days, tenant_id } = schedule;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        let historyId = null;
 
         try {
             let filename, command;
@@ -139,16 +140,68 @@ class BackupScheduler {
             // Execute backup
             await this.runCommand(command);
 
-            // บันทึกประวัติ
-            await this.logBackup(id, filename, filepath);
+            // บันทึกประวัติ (Local Success)
+            historyId = await this.logBackup(id, filename, filepath);
 
             // ลบไฟล์เก่าตาม retention policy
             await this.cleanOldBackups(retention_days);
 
             console.log(`✓ Backup completed: ${filename}`);
+
+            // Remove/Remote Backup Logic
+            if (schedule.remote_storage_type === 'sftp') {
+                try {
+                    await this.uploadToRemote(schedule, filepath, filename);
+                    await this.updateRemoteStatus(historyId, 'success');
+                } catch (remoteErr) {
+                    await this.updateRemoteStatus(historyId, 'failed', remoteErr.message);
+                }
+            }
+
         } catch (error) {
             console.error(`✗ Backup failed for schedule ${id}:`, error);
-            await this.logBackupError(id, error.message);
+            if (historyId) {
+                await this.logBackupError(id, error.message);
+            } else {
+                await this.logBackupError(id, error.message);
+            }
+        }
+    }
+
+    /**
+     * อัปโหลดไฟล์ไปยัง Remote Server (SFTP)
+     */
+    async uploadToRemote(schedule, localFilePath, filename) {
+        console.log(`[Backup ${schedule.id}] Uploading to remote server (${schedule.remote_host})...`);
+
+        let Client;
+        try {
+            Client = require('ssh2-sftp-client');
+        } catch (e) {
+            console.warn("Module 'ssh2-sftp-client' not found. Please install it with 'npm install ssh2-sftp-client'");
+            throw new Error("Module 'ssh2-sftp-client' not found.");
+        }
+
+        const sftp = new Client();
+
+        const config = {
+            host: schedule.remote_host,
+            port: schedule.remote_port || 22,
+            username: schedule.remote_username,
+            password: schedule.remote_password
+        };
+
+        try {
+            await sftp.connect(config);
+            // Use posix path for remote server
+            const remotePath = (schedule.remote_path || '/').replace(/\\/g, '/') + '/' + filename;
+            await sftp.put(localFilePath, remotePath);
+            await sftp.end();
+            console.log(`✓ Uploaded to remote: ${remotePath}`);
+            return true;
+        } catch (err) {
+            console.error(`✗ Remote upload failed: ${err.message}`);
+            throw err;
         }
     }
 
@@ -301,13 +354,32 @@ class BackupScheduler {
         try {
             const stats = fs.statSync(filepath);
 
-            await pool.query(`
+            const [result] = await pool.query(`
                 INSERT INTO backup_history 
                 (schedule_id, filename, filepath, file_size, status, created_at)
                 VALUES (?, ?, ?, ?, 'success', NOW())
             `, [scheduleId, filename, filepath, stats.size]);
+
+            return result.insertId;
         } catch (error) {
             console.error('Error logging backup:', error);
+            return null;
+        }
+    }
+
+    /**
+     * อัปเดตสถานะ Remote Backup
+     */
+    async updateRemoteStatus(historyId, status, errorMessage = null) {
+        if (!historyId) return;
+        try {
+            await pool.query(`
+                UPDATE backup_history 
+                SET remote_status = ?, remote_error_message = ? 
+                WHERE id = ?
+            `, [status, errorMessage, historyId]);
+        } catch (error) {
+            console.error('Error updating remote status:', error);
         }
     }
 
