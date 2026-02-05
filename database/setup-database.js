@@ -71,6 +71,33 @@ async function setupDatabase() {
             log.warning('การตรวจสอบเบื้องต้น subscription_plans: ' + err.message);
         }
 
+        // Fix for tenant_subscriptions
+        try {
+            const [tables] = await connection.query('SHOW TABLES');
+            const tableNames = tables.map(t => Object.values(t)[0]);
+
+            if (tableNames.includes('tenant_subscriptions')) {
+                const [cols] = await connection.query('SHOW COLUMNS FROM tenant_subscriptions');
+                const existing = cols.map(c => c.Field);
+
+                const missingCols = [
+                    { name: 'amount', type: 'DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER end_date' },
+                    { name: 'currency', type: "VARCHAR(3) DEFAULT 'THB' AFTER amount" },
+                    { name: 'updated_at', type: 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP' }
+                ];
+
+                for (const col of missingCols) {
+                    if (!existing.includes(col.name)) {
+                        log.info(`กำลังเพิ่มคอลัมน์ tenant_subscriptions.${col.name}...`);
+                        await connection.query(`ALTER TABLE tenant_subscriptions ADD COLUMN ${col.name} ${col.type}`);
+                        log.success(`เพิ่มคอลัมน์ ${col.name} สำเร็จ`);
+                    }
+                }
+            }
+        } catch (err) {
+            log.warning('การตรวจสอบเบื้องต้น tenant_subscriptions: ' + err.message);
+        }
+
         // 2. รัน migrations
         const migrations = [
             {
