@@ -28,6 +28,7 @@ const BillController = require('../controllers/BillController');
 const SlipController = require('../controllers/SlipController');
 const ChannelController = require('../controllers/ChannelController');
 const PaymentController = require('../controllers/PaymentController');
+const PdpaController = require('../controllers/PdpaController');
 
 
 // Multi-tenant Routes
@@ -59,6 +60,8 @@ router.use('/users', userManagementRoutes);
 router.post('/payments/checkout', isAuthenticated, PaymentController.checkout);
 router.get('/payments/sync/:chargeId', isAuthenticated, PaymentController.syncPaymentStatus);
 router.post('/payments/webhook', PaymentController.handleWebhook); // Public Webhook
+router.post('/pdpa/consent', PdpaController.recordConsent);
+router.get('/pdpa/stats', isAuthenticated, PdpaController.getConsentStats);
 
 
 module.exports = router;

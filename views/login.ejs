@@ -273,7 +273,18 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        localStorage.setItem('pdpa_consent_v1', new Date().toISOString());
+                        const consentDate = new Date().toISOString();
+                        localStorage.setItem('pdpa_consent_v1', consentDate);
+
+                        // บันทึกไปยัง Server (JSON File)
+                        fetch('/api/pdpa/consent', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                consent_value: 'accepted',
+                                user_agent: navigator.userAgent
+                            })
+                        }).catch(err => console.error('Failed to sync consent:', err));
                     }
                 });
             }
