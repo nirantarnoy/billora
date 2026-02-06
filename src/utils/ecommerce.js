@@ -21,6 +21,11 @@ class EcommerceAPI {
         const baseString = `${partnerId}${path}${timestamp}`;
         const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
+        console.log('--- Shopee Auth Debug ---');
+        console.log('BaseString:', baseString);
+        console.log('Sign:', sign);
+        console.log('Timestamp:', timestamp);
+
         // IMPORTANT: Must encode redirect URL
         return `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
     }
