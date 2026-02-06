@@ -13,6 +13,7 @@ const GeneralController = require('../controllers/GeneralController');
 const WebTenantController = require('../controllers/WebTenantController');
 const FulfillmentController = require('../controllers/FulfillmentController');
 const AdminTenantController = require('../controllers/AdminTenantController');
+const AdminPlanController = require('../controllers/AdminPlanController');
 
 
 // Dashboard
@@ -62,6 +63,13 @@ router.get('/admin/tenants', isAuthenticated, isSuperAdmin, AdminTenantControlle
 router.post('/admin/tenants/:id/status', isAuthenticated, isSuperAdmin, AdminTenantController.apiUpdateStatus);
 router.post('/admin/tenants/:id/plan', isAuthenticated, isSuperAdmin, AdminTenantController.apiChangePlan);
 router.delete('/admin/tenants/:id', isAuthenticated, isSuperAdmin, AdminTenantController.apiDeleteTenant);
+
+// Plan & Module Management (Super Admin Only)
+router.get('/admin/plans', isAuthenticated, isSuperAdmin, AdminPlanController.index);
+router.post('/admin/plans/save', isAuthenticated, isSuperAdmin, AdminPlanController.apiSavePlan);
+router.delete('/admin/plans/:id', isAuthenticated, isSuperAdmin, AdminPlanController.apiDeletePlan);
+router.post('/admin/modules/save', isAuthenticated, isSuperAdmin, AdminPlanController.apiSaveModule);
+router.delete('/admin/modules/:id', isAuthenticated, isSuperAdmin, AdminPlanController.apiDeleteModule);
 
 
 // Backup Schedules (Admin Only)

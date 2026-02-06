@@ -121,10 +121,16 @@
                                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-tenants') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                             <i class="fas fa-building"></i> จัดการ Tenant
                                         </a>
-                                        <a href="/admin/logs"
-                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
-                                            <i class="fas fa-clipboard-list"></i> บันทึกกิจกรรม
-                                        </a>
+                                        <% if (typeof user !=='undefined' && user && user.tenant_id===1) { %>
+                                            <a href="/admin/plans"
+                                                class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-plans') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                                <i class="fas fa-boxes"></i> จัดการแพ็กเกจ & Module
+                                            </a>
+                                            <% } %>
+                                                <a href="/admin/logs"
+                                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                                    <i class="fas fa-clipboard-list"></i> บันทึกกิจกรรม
+                                                </a>
                                     </div>
                                     <% } %>
     </nav>

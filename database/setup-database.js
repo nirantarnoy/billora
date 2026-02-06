@@ -159,6 +159,10 @@ async function setupDatabase() {
             {
                 file: '017_create_payments_table.sql',
                 name: 'สร้างตาราง Payments (บันทึกการชำระเงิน Omise)'
+            },
+            {
+                file: '018_create_modules_table.sql',
+                name: 'สร้างตาราง Modules (จัดการ Module ในระบบ)'
             }
         ];
 
