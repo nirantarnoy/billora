@@ -14,7 +14,7 @@ class EcommerceAPI {
         const cleanEnv = (key) => (process.env[key] || '').trim().replace(/['"]/g, '');
 
         const partnerId = parseInt(cleanEnv('SHOPEE_PARTNER_ID'));
-        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY');
+        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY').replace(/^shpk/, '');
         const redirectUrl = cleanEnv('SHOPEE_REDIRECT_URL');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
