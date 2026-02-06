@@ -10,10 +10,17 @@ async function checkColumns() {
     });
 
     try {
-        const [rows] = await connection.execute('DESCRIBE subscription_plans');
-        console.log('--- Columns in subscription_plans ---');
-        rows.forEach(r => console.log(r.Field));
-        console.log('------------------------------------');
+        const tables = ['subscription_plans', 'marketplace_connections'];
+        for (const table of tables) {
+            try {
+                const [rows] = await connection.execute(`DESCRIBE ${table}`);
+                console.log(`--- Columns in ${table} ---`);
+                rows.forEach(r => console.log(r.Field));
+                console.log('------------------------------------');
+            } catch (e) {
+                console.log(`Table ${table} does not exist.`);
+            }
+        }
     } catch (error) {
         console.error('Error:', error);
     } finally {

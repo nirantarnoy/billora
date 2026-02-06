@@ -171,6 +171,10 @@ async function setupDatabase() {
             {
                 file: '020_add_more_columns_to_plans.sql',
                 name: 'เพิ่มคอลัมน์ description, price_yearly ในตาราง Subscription Plans'
+            },
+            {
+                file: '021_create_marketplace_connections_table.sql',
+                name: 'สร้างตาราง Marketplace Connections (เก็บ API Key ปลอดภัย)'
             }
         ];
 
