@@ -10,7 +10,6 @@ class EcommerceAPI {
     }
 
     static getShopeeAuthUrl() {
-        // Aggressively clean the keys (remove spaces and quotes)
         const cleanEnv = (key) => (process.env[key] || '').trim().replace(/['"]/g, '');
 
         const partnerId = cleanEnv('SHOPEE_PARTNER_ID');
@@ -18,17 +17,20 @@ class EcommerceAPI {
         const redirectUrl = cleanEnv('SHOPEE_REDIRECT_URL');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
-
         const path = "/api/v2/shop/auth_partner";
-        // V2 Signature: partner_id + path + timestamp
-        const baseString = `${partnerId}${path}${timestamp}`;
-        // Back to lowercase hex (Shopee standard)
+
+        // V2 Base String: partner_id + path + timestamp
+        const baseString = partnerId + path + timestamp;
         const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
-        const finalUrl = `${baseUrl}${path}?partner_id=${parseInt(partnerId)}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
+        // Construct final URL with manual concatenation for absolute control
+        const finalUrl = baseUrl + path +
+            "?partner_id=" + partnerId +
+            "&timestamp=" + timestamp +
+            "&sign=" + sign +
+            "&redirect=" + encodeURIComponent(redirectUrl);
 
-        console.log('--- Shopee Auth Debug (Standard) ---');
-        console.log('Partner ID:', partnerId);
+        console.log('--- Shopee Final Dev Debug ---');
         console.log('BaseString:', baseString);
         console.log('Sign:', sign);
         console.log('Final URL:', finalUrl);
