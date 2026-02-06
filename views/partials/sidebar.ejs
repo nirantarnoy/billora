@@ -142,6 +142,10 @@
                 class="w-full text-[10px] text-slate-300 hover:text-red-400 text-left px-3 py-1">
                 <i class="fas fa-trash-alt mr-2"></i> Clear Test Data
             </button>
+            <button onclick="viewPdpaConsent()"
+                class="w-full text-[10px] text-slate-300 hover:text-emerald-400 text-left px-3 py-1">
+                <i class="fas fa-fingerprint mr-2"></i> View PDPA Consent
+            </button>
         </div>
         <% } %>
 </aside>
@@ -181,6 +185,22 @@
                 Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
             }
         }
+    }
+
+    function viewPdpaConsent() {
+        const consent = localStorage.getItem('pdpa_consent_v1');
+        Swal.fire({
+            title: 'PDPA Consent Info',
+            html: `
+                <div class="text-left font-mono text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    ${consent ? `Value: <span class="text-emerald-600">${consent}</span>` : '<span class="text-red-500">No consent found in this browser</span>'}
+                </div>
+                <p class="mt-4 text-xs text-slate-400 italic text-left">* ข้อมูลนี้ถูกเก็บอยู่ใน LocalStorage ของ Browser ท่าน</p>
+            `,
+            icon: consent ? 'success' : 'info',
+            confirmButtonColor: '#10b981',
+            customClass: { popup: 'rounded-3xl' }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
