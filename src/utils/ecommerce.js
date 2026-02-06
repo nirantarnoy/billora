@@ -10,9 +10,12 @@ class EcommerceAPI {
     }
 
     static getShopeeAuthUrl() {
-        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID.trim());
-        const partnerKey = process.env.SHOPEE_PARTNER_KEY.trim();
-        const redirectUrl = process.env.SHOPEE_REDIRECT_URL.trim();
+        // Aggressively clean the keys (remove spaces and quotes)
+        const cleanEnv = (key) => (process.env[key] || '').trim().replace(/['"]/g, '');
+
+        const partnerId = parseInt(cleanEnv('SHOPEE_PARTNER_ID'));
+        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY');
+        const redirectUrl = cleanEnv('SHOPEE_REDIRECT_URL');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
 
