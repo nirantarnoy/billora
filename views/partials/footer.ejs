@@ -95,54 +95,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const newCount = urlParams.get('newCount');
 
-        // PDPA Consent Check
-        function checkPDPA() {
-            const hasConsented = localStorage.getItem('pdpa_consent_v1');
-            if (!hasConsented) {
-                Swal.fire({
-                    title: 'นโยบายความเป็นส่วนตัว (PDPA)',
-                    html: `
-                        <div class="text-left py-2">
-                            <p class="mb-4 text-slate-600">ระบบมีการจัดเก็บและประมวลผลไฟล์ที่มีข้อมูลสำคัญ (เช่น สลิปธนาคาร หรือ บิลค่าใช้จ่าย) เพื่อใช้ในการคำนวณข้อมูลและสรุปผลตามวัตถุประสงค์ของระบบ</p>
-                            <p class="mb-4 text-slate-600">โดยการใช้งานระบบนี้ ท่านยินยอมให้ระบบ:</p>
-                            <ul class="list-disc ml-5 mb-4 text-slate-600 space-y-1">
-                                <li>จัดเก็บไฟล์ที่อัปโหลดเข้าสู่ระบบ</li>
-                                <li>ประมวลผลข้อมูลในไฟล์เพื่อการคำนวณทางบัญชี</li>
-                                <li>รักษาข้อมูลไว้เป็นความลับตามนโยบายความปลอดภัย</li>
-                            </ul>
-                            <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <input type="checkbox" id="pdpaCheckbox" class="w-5 h-5 accent-emerald-500 cursor-pointer">
-                                <label for="pdpaCheckbox" class="text-sm font-medium text-slate-700 cursor-pointer">ฉันรับทราบและยินยอมตามเงื่อนไขดังกล่าว</label>
-                            </div>
-                        </div>
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'ยอมรับและดำเนินการต่อ',
-                    confirmButtonColor: '#10b981',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    customClass: {
-                        popup: 'rounded-3xl',
-                        confirmButton: 'px-8 py-3 rounded-xl font-bold'
-                    },
-                    preConfirm: () => {
-                        const checkbox = document.getElementById('pdpaCheckbox');
-                        if (!checkbox.checked) {
-                            Swal.showValidationMessage('กรุณาติ๊กยอมรับเงื่อนไขก่อนดำเนินการต่อ');
-                            return false;
-                        }
-                        return true;
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        localStorage.setItem('pdpa_consent_v1', new Date().toISOString());
-                    }
-                });
-            }
-        }
-
-        // Call PDPA check
-        checkPDPA();
 
         if (newCount) {
             const mainContent = document.querySelector('.p-10');

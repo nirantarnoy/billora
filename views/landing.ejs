@@ -12,7 +12,6 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary: #10b981;
@@ -919,55 +918,6 @@
                 });
             });
         });
-
-        // PDPA Consent Check
-        function checkPDPA() {
-            const hasConsented = localStorage.getItem('pdpa_consent_v1');
-            if (!hasConsented) {
-                Swal.fire({
-                    title: 'นโยบายความเป็นส่วนตัว (PDPA)',
-                    html: `
-                        <div class="text-left py-2" style="font-family: 'Inter', 'Prompt', sans-serif;">
-                            <p class="mb-4" style="color: #6b7280; font-size: 0.95rem;">ระบบมีการจัดเก็บและประมวลผลไฟล์ที่มีข้อมูลสำคัญ (เช่น สลิปธนาคาร หรือ บิลค่าใช้จ่าย) เพื่อใช้ในการคำนวณข้อมูลและสรุปผลตามวัตถุประสงค์ของระบบ</p>
-                            <p class="mb-4" style="color: #6b7280; font-size: 0.95rem;">โดยการใช้งานระบบนี้ ท่านยินยอมให้ระบบ:</p>
-                            <ul style="list-style: disc; margin-left: 1.25rem; margin-bottom: 1rem; color: #6b7280; font-size: 0.9rem; line-height: 1.6;">
-                                <li>จัดเก็บไฟล์ที่อัปโหลดเข้าสู่ระบบ</li>
-                                <li>ประมวลผลข้อมูลในไฟล์เพื่อการคำนวณทางบัญชี</li>
-                                <li>รักษาข้อมูลไว้เป็นความลับตามนโยบายความปลอดภัย</li>
-                            </ul>
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 1rem; background-color: #f9fafb; border-radius: 1rem; border: 1px solid #f3f4f6;">
-                                <input type="checkbox" id="pdpaCheckbox" style="width: 1.25rem; height: 1.25rem; accent-color: #10b981; cursor: pointer;">
-                                <label for="pdpaCheckbox" style="text-sm; font-weight: 500; color: #374151; cursor: pointer; font-size: 0.875rem;">ฉันรับทราบและยินยอมตามเงื่อนไขดังกล่าว</label>
-                            </div>
-                        </div>
-                    `,
-                    icon: 'info',
-                    confirmButtonText: 'ยอมรับและดำเนินการต่อ',
-                    confirmButtonColor: '#10b981',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    customClass: {
-                        popup: 'rounded-3xl',
-                        confirmButton: 'px-8 py-3 rounded-xl font-bold'
-                    },
-                    preConfirm: () => {
-                        const checkbox = document.getElementById('pdpaCheckbox');
-                        if (!checkbox.checked) {
-                            Swal.showValidationMessage('กรุณาติ๊กยอมรับเงื่อนไขก่อนดำเนินการต่อ');
-                            return false;
-                        }
-                        return true;
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        localStorage.setItem('pdpa_consent_v1', new Date().toISOString());
-                    }
-                });
-            }
-        }
-
-        // Call PDPA check on load
-        window.addEventListener('DOMContentLoaded', checkPDPA);
     </script>
 </body>
 

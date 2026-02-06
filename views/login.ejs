@@ -233,16 +233,24 @@
                     title: 'นโยบายความเป็นส่วนตัว (PDPA)',
                     html: `
                         <div class="text-left py-2">
-                            <p class="mb-4 text-slate-600">ระบบมีการจัดเก็บและประมวลผลไฟล์ที่มีข้อมูลสำคัญ (เช่น สลิปธนาคาร หรือ บิลค่าใช้จ่าย) เพื่อใช้ในการคำนวณข้อมูลและสรุปผลตามวัตถุประสงค์ของระบบ</p>
-                            <p class="mb-4 text-slate-600">โดยการใช้งานระบบนี้ ท่านยินยอมให้ระบบ:</p>
-                            <ul class="list-disc ml-5 mb-4 text-slate-600 space-y-1">
-                                <li>จัดเก็บไฟล์ที่อัปโหลดเข้าสู่ระบบ</li>
-                                <li>ประมวลผลข้อมูลในไฟล์เพื่อการคำนวณทางบัญชี</li>
-                                <li>รักษาข้อมูลไว้เป็นความลับตามนโยบายความปลอดภัย</li>
-                            </ul>
-                            <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="mb-4 text-slate-600 leading-relaxed">เพื่อให้สอดคล้องกับพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA) ระบบขอแจ้งรายละเอียดการจัดเก็บและประมวลผลข้อมูลสำคัญดังนี้:</p>
+                            <div class="space-y-3 mb-6">
+                                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                                    <p class="text-sm font-bold text-emerald-800 mb-1"><i class="fas fa-file-shield mr-2"></i>การจัดเก็บข้อมูล</p>
+                                    <p class="text-xs text-emerald-700">ระบบจะจัดเก็บไฟล์ภาพ (สลิป/บิล) และข้อมูลตัวเลขที่อ่านได้เข้าสู่ Cloud Storage ที่มีความปลอดภัยสูง เพื่อใช้ในการประมวลผลตามคำสั่งของท่าน</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                    <p class="text-sm font-bold text-blue-800 mb-1"><i class="fas fa-microchip mr-2"></i>วัตถุประสงค์การใช้ข้อมูล</p>
+                                    <p class="text-xs text-blue-700">ใช้เทคโนโลยี AI เพื่อสกัดข้อมูล (OCR) สำหรับการคำนวณรายรับ-รายจ่าย, สรุปผลทางบัญชี, และวิเคราะห์ข้อมูลในแบบภาพรวม (Dashboard) เท่านั้น</p>
+                                </div>
+                                <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                                    <p class="text-sm font-bold text-amber-800 mb-1"><i class="fas fa-user-lock mr-2"></i>การรักษาความลับ</p>
+                                    <p class="text-xs text-amber-700">ข้อมูลของท่านจะถูกเก็บเป็นความลับสูงสุด ไม่มีการเปิดเผยต่อบุคคลภายนอก และจะถูกนำมาใช้เพื่อวัตถุประสงค์ในการทดสอบและใช้งานระบบตามมาตรฐานความปลอดภัย</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-4 bg-slate-100 rounded-2xl border border-slate-200">
                                 <input type="checkbox" id="pdpaCheckbox" class="w-5 h-5 accent-emerald-500 cursor-pointer">
-                                <label for="pdpaCheckbox" class="text-sm font-medium text-slate-700 cursor-pointer">ฉันรับทราบและยินยอมตามเงื่อนไขดังกล่าว</label>
+                                <label for="pdpaCheckbox" class="text-sm font-bold text-slate-700 cursor-pointer">ฉันได้อ่านและยอมรับเงื่อนไขการประมวลผลข้อมูลส่วนบุคคล</label>
                             </div>
                         </div>
                     `,
