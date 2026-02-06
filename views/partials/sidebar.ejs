@@ -258,7 +258,12 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    Swal.fire('สำเร็จ!', result.message, 'success');
+                    // ลบความจำใน Browser ของเราด้วยเพื่อให้ Modal แสดงใหม่ (สำหรับ Test)
+                    localStorage.removeItem('pdpa_consent_v1');
+
+                    Swal.fire('สำเร็จ!', 'ล้างประวัติที่ Server และความจำในเครื่องนี้เรียบร้อยแล้ว', 'success').then(() => {
+                        window.location.reload();
+                    });
                 }
             } catch (err) {
                 Swal.fire('ผิดพลาด', 'ไม่สามารถล้างข้อมูลได้', 'error');
