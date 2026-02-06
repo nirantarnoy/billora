@@ -11,7 +11,9 @@ async function checkColumns() {
 
     try {
         const [rows] = await connection.execute('DESCRIBE subscription_plans');
-        console.log('Columns:', rows.map(r => r.Field).join(', '));
+        console.log('--- Columns in subscription_plans ---');
+        rows.forEach(r => console.log(r.Field));
+        console.log('------------------------------------');
     } catch (error) {
         console.error('Error:', error);
     } finally {

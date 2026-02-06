@@ -167,6 +167,10 @@ async function setupDatabase() {
             {
                 file: '019_fix_subscription_plans_schema.sql',
                 name: 'ปรับปรุงโครงสร้างตาราง Subscription Plans (เพิ่ม sort_order, max_storage_mb)'
+            },
+            {
+                file: '020_add_more_columns_to_plans.sql',
+                name: 'เพิ่มคอลัมน์ description, price_yearly ในตาราง Subscription Plans'
             }
         ];
 

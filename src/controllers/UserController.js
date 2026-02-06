@@ -98,7 +98,8 @@ class UserController {
                 subscription,
                 plans,
                 active: 'profile',
-                title: 'โปรไฟล์ของฉัน'
+                title: 'โปรไฟล์ของฉัน',
+                _csrf: req.csrfToken ? req.csrfToken() : ''
             });
         } catch (err) {
             console.error('showProfile Error:', err);
