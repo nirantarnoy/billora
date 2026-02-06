@@ -204,6 +204,8 @@ async function setupDatabase() {
                         // Column exists, ignore
                     } else if (error.code === 'ER_DUP_KEYNAME') {
                         // Index exists, ignore
+                    } else if (error.code === 'ER_FK_DUP_NAME' || (error.code === 'ER_CANT_CREATE_TABLE' && error.errno === 121)) {
+                        // Foreign key already exists, ignore
                     } else if (error.code === 'ER_BAD_FIELD_ERROR' && migration.file === '004_create_tenant_subscriptions_table.sql') {
                         // Specific fix for existing table structure
                     } else {
