@@ -3,28 +3,37 @@ const axios = require('axios');
 
 class EcommerceAPI {
     // --- Shopee ---
+    static getShopeeBaseUrl() {
+        return process.env.SHOPEE_ENV === 'test'
+            ? 'https://partner.test-stable.shopeemobile.com'
+            : 'https://partner.shopeemobile.com';
+    }
+
     static getShopeeAuthUrl() {
         const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
         const partnerKey = process.env.SHOPEE_PARTNER_KEY;
         const redirectUrl = process.env.SHOPEE_REDIRECT_URL;
         const timestamp = Math.floor(Date.now() / 1000);
+        const baseUrl = this.getShopeeBaseUrl();
 
-        const baseString = `${partnerId}/api/v2/shop/auth_partner${timestamp}`;
+        const path = "/api/v2/shop/auth_partner";
+        const baseString = `${partnerId}${path}${timestamp}`;
         const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
-        return `https://partner.shopeemobile.com/api/v2/shop/auth_partner?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${redirectUrl}`;
+        return `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${redirectUrl}`;
     }
 
     static async getShopeeTokens(code, shopId) {
         const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
         const partnerKey = process.env.SHOPEE_PARTNER_KEY;
         const timestamp = Math.floor(Date.now() / 1000);
+        const baseUrl = this.getShopeeBaseUrl();
 
         const path = "/api/v2/auth/token/get";
         const baseString = `${partnerId}${path}${timestamp}`;
         const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
-        const url = `https://partner.shopeemobile.com${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`;
+        const url = `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`;
 
         const response = await axios.post(url, {
             code: code,
