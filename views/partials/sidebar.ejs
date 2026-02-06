@@ -221,10 +221,48 @@
                 icon: 'info',
                 confirmButtonText: 'รับทราบ',
                 confirmButtonColor: '#10b981',
+                showDenyButton: true,
+                denyButtonText: 'ล้าง Log ทั้งหมด',
+                denyButtonColor: '#f43f5e',
                 customClass: { popup: 'rounded-3xl' }
+            }).then((result) => {
+                if (result.isDenied) {
+                    handleClearPdpaLogs();
+                }
             });
         } catch (err) {
             Swal.fire('Error', 'ไม่สามารถดึงข้อมูลได้', 'error');
+        }
+    }
+
+    async function handleClearPdpaLogs() {
+        const { value: confirm } = await Swal.fire({
+            title: 'ยืนยันการล้างประวัติ?',
+            text: "ข้อมูลการยอมรับ PDPA ทั้งหมดใน Server จะถูกล้างเป็นศูนย์!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f43f5e',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'ยืนยัน ล้างข้อมูล',
+            cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-3xl' }
+        });
+
+        if (confirm) {
+            try {
+                const response = await fetch('/api/pdpa/stats', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-Token': '<%= (typeof _csrf !== "undefined") ? _csrf : "" %>'
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire('สำเร็จ!', result.message, 'success');
+                }
+            } catch (err) {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถล้างข้อมูลได้', 'error');
+            }
         }
     }
 

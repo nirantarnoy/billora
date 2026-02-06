@@ -58,6 +58,19 @@ class PdpaController {
             res.status(500).json({ success: false, error: err.message });
         }
     }
+
+    async clearConsents(req, res) {
+        try {
+            const logFile = path.join(process.cwd(), 'logs', 'pdpa_consents.json');
+            if (fs.existsSync(logFile)) {
+                fs.writeFileSync(logFile, JSON.stringify([], null, 2));
+            }
+            res.json({ success: true, message: 'Consent logs cleared' });
+        } catch (err) {
+            console.error('PDPA Clear Error:', err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    }
 }
 
 module.exports = new PdpaController();

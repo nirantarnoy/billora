@@ -62,6 +62,7 @@ router.get('/payments/sync/:chargeId', isAuthenticated, PaymentController.syncPa
 router.post('/payments/webhook', PaymentController.handleWebhook); // Public Webhook
 router.post('/pdpa/consent', PdpaController.recordConsent);
 router.get('/pdpa/stats', isAuthenticated, PdpaController.getConsentStats);
+router.delete('/pdpa/stats', isAuthenticated, PdpaController.clearConsents);
 
 
 module.exports = router;
