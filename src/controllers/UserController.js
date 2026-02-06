@@ -89,12 +89,8 @@ class UserController {
 
             const subscription = subscriptions[0] || null;
 
-            // NEW: Fetch all plans if admin
-            let plans = [];
-            if (user.role === 'admin' || user.role === 'owner') {
-                const [allPlans] = await db.execute('SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY price_monthly ASC');
-                plans = allPlans;
-            }
+            // Fetch all active plans so users can view/upgrade
+            const [plans] = await db.execute('SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY price_monthly ASC');
 
             res.render('profile', {
                 user,

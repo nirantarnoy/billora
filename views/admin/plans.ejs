@@ -400,7 +400,10 @@
             try {
                 const response = await fetch('/admin/plans/save', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
                     body: JSON.stringify(formValues)
                 });
                 const result = await response.json();
@@ -428,7 +431,10 @@
 
         if (confirm) {
             try {
-                const response = await fetch(`/admin/plans/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/admin/plans/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+                });
                 const result = await response.json();
                 if (result.success) {
                     Swal.fire('สำเร็จ', result.message, 'success').then(() => window.location.reload());
@@ -479,7 +485,10 @@
             try {
                 const response = await fetch('/admin/modules/save', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    },
                     body: JSON.stringify(formValues)
                 });
                 const result = await response.json();
@@ -507,7 +516,10 @@
 
         if (confirm) {
             try {
-                const response = await fetch(`/admin/modules/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/admin/modules/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+                });
                 const result = await response.json();
                 if (result.success) {
                     Swal.fire('สำเร็จ', result.message, 'success').then(() => window.location.reload());
