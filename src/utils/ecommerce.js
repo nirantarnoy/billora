@@ -14,7 +14,7 @@ class EcommerceAPI {
         const cleanEnv = (key) => (process.env[key] || '').trim().replace(/['"]/g, '');
 
         const partnerId = parseInt(cleanEnv('SHOPEE_PARTNER_ID'));
-        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY').replace(/^shpk/, '');
+        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY');
         const redirectUrl = cleanEnv('SHOPEE_REDIRECT_URL');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
@@ -34,8 +34,10 @@ class EcommerceAPI {
     }
 
     static async getShopeeTokens(code, shopId) {
-        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID.trim());
-        const partnerKey = process.env.SHOPEE_PARTNER_KEY.trim();
+        const cleanEnv = (key) => (process.env[key] || '').trim().replace(/['"]/g, '');
+
+        const partnerId = parseInt(cleanEnv('SHOPEE_PARTNER_ID'));
+        const partnerKey = cleanEnv('SHOPEE_PARTNER_KEY');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
 
