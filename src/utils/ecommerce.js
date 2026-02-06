@@ -10,22 +10,24 @@ class EcommerceAPI {
     }
 
     static getShopeeAuthUrl() {
-        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
-        const partnerKey = process.env.SHOPEE_PARTNER_KEY;
-        const redirectUrl = process.env.SHOPEE_REDIRECT_URL;
+        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID.trim());
+        const partnerKey = process.env.SHOPEE_PARTNER_KEY.trim();
+        const redirectUrl = process.env.SHOPEE_REDIRECT_URL.trim();
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
 
         const path = "/api/v2/shop/auth_partner";
+        // V2 Signature: partner_id + path + timestamp
         const baseString = `${partnerId}${path}${timestamp}`;
         const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
-        return `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${redirectUrl}`;
+        // IMPORTANT: Must encode redirect URL
+        return `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
     }
 
     static async getShopeeTokens(code, shopId) {
-        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID);
-        const partnerKey = process.env.SHOPEE_PARTNER_KEY;
+        const partnerId = parseInt(process.env.SHOPEE_PARTNER_ID.trim());
+        const partnerKey = process.env.SHOPEE_PARTNER_KEY.trim();
         const timestamp = Math.floor(Date.now() / 1000);
         const baseUrl = this.getShopeeBaseUrl();
 
