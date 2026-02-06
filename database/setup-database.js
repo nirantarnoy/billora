@@ -181,23 +181,30 @@ async function setupDatabase() {
             }
 
             const sql = fs.readFileSync(sqlPath, 'utf8');
+            const statements = sql
+                .split(';')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
 
-            try {
-                await connection.query(sql);
-                log.success(`${migration.name} - สำเร็จ`);
-            } catch (error) {
-                if (error.code === 'ER_TABLE_EXISTS_ERROR') {
-                    log.warning(`${migration.name} - ตารางมีอยู่แล้ว (ข้าม)`);
-                } else if (error.code === 'ER_DUP_FIELDNAME') {
-                    log.warning(`${migration.name} - คอลัมน์มีอยู่แล้ว (ข้าม)`);
-                } else if (error.code === 'ER_DUP_KEYNAME') {
-                    log.warning(`${migration.name} - Index มีอยู่แล้ว (ข้าม)`);
-                } else if (error.code === 'ER_BAD_FIELD_ERROR' && migration.file === '004_create_tenant_subscriptions_table.sql') {
-                    log.warning(`${migration.name} - พบการขัดแย้งของ Column (ข้ามเนื่องจากจัดการแล้ว)`);
-                } else {
-                    throw error;
+            for (const statement of statements) {
+                try {
+                    await connection.query(statement);
+                } catch (error) {
+                    if (error.code === 'ER_TABLE_EXISTS_ERROR') {
+                        // Table exists, ignore
+                    } else if (error.code === 'ER_DUP_FIELDNAME') {
+                        // Column exists, ignore
+                    } else if (error.code === 'ER_DUP_KEYNAME') {
+                        // Index exists, ignore
+                    } else if (error.code === 'ER_BAD_FIELD_ERROR' && migration.file === '004_create_tenant_subscriptions_table.sql') {
+                        // Specific fix for existing table structure
+                    } else {
+                        log.error(`Error in ${migration.file}: ${error.message}`);
+                        throw error;
+                    }
                 }
             }
+            log.success(`${migration.name} - สำเร็จ`);
         }
 
         // Custom Fix: Update Products Schema (because of multiple versions issue)
