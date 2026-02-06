@@ -22,12 +22,13 @@ class EcommerceAPI {
         const path = "/api/v2/shop/auth_partner";
         // V2 Signature: partner_id + path + timestamp
         const baseString = `${partnerId}${path}${timestamp}`;
-        // Try Uppercase Sign (Commonly required in Shopee V2)
-        const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex').toUpperCase();
+        // Back to lowercase hex (Shopee standard)
+        const sign = crypto.createHmac('sha256', partnerKey).update(baseString).digest('hex');
 
-        const finalUrl = `${baseUrl}${path}?partner_id=${parseInt(partnerId)}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
+        const finalUrl = `${baseUrl}${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&redirect=${encodeURIComponent(redirectUrl)}`;
 
-        console.log('--- Shopee Auth Debug (Uppercase) ---');
+        console.log('--- Shopee Auth Debug (Standard) ---');
+        console.log('Partner ID:', partnerId);
         console.log('BaseString:', baseString);
         console.log('Sign:', sign);
         console.log('Final URL:', finalUrl);
