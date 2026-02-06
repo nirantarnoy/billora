@@ -163,6 +163,10 @@ async function setupDatabase() {
             {
                 file: '018_create_modules_table.sql',
                 name: 'สร้างตาราง Modules (จัดการ Module ในระบบ)'
+            },
+            {
+                file: '019_fix_subscription_plans_schema.sql',
+                name: 'ปรับปรุงโครงสร้างตาราง Subscription Plans (เพิ่ม sort_order, max_storage_mb)'
             }
         ];
 
