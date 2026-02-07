@@ -57,7 +57,17 @@ class NewTestOrderSyncService {
                 const response = await axios.get('https://partner.shopeemobile.com' + path, { params, timeout: 30000 });
                 const data = response.data;
 
-                if (data.error || !data.response || !data.response.order_list) break;
+                console.log(`Shopee API Response for Shop ${shopId}:`, JSON.stringify({
+                    error: data.error,
+                    message: data.message,
+                    order_count: data.response ? (data.response.order_list ? data.response.order_list.length : 0) : 0,
+                    more_data: data.response ? data.response.more : false
+                }));
+
+                if (data.error || !data.response || !data.response.order_list) {
+                    if (data.error) console.error(`Shopee API Error: ${data.error} - ${data.message}`);
+                    break;
+                }
 
                 const orderSns = data.response.order_list.map(o => o.order_sn);
                 if (orderSns.length > 0) {

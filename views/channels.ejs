@@ -194,55 +194,62 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    <!-- Placeholder for sync history -->
-                    <% if (channels.length===0) { %>
+                    <!-- Real sync history from database -->
+                    <% if (!syncLogs || syncLogs.length===0) { %>
                         <tr>
                             <td colspan="4" class="py-20 text-center text-slate-400">
-                                ยังไม่มีข้อมูลการซิงค์ กรุณาเชื่อมต่อร้านค้าออนไลน์ของคุณ
+                                ยังไม่มีข้อมูลการซิงค์ล่าสุด
                             </td>
                         </tr>
                         <% } else { %>
-                            <% channels.forEach(channel=> { %>
+                            <% syncLogs.forEach(log=> { %>
                                 <tr class="hover:bg-slate-50/50 transition-all group">
                                     <td class="py-6">
                                         <div class="flex items-center gap-4">
                                             <div
                                                 class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                <% if(channel.platform==='shopee' ) { %> <img
-                                                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Shopee.svg/1200px-Shopee.svg.png"
+                                                <% if(log.platform.toLowerCase()==='shopee' ) { %>
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Shopee.svg/1200px-Shopee.svg.png"
                                                         class="w-6 h-6 object-contain">
-                                                    <% } %>
-                                                        <% if(channel.platform==='tiktok' ) { %> <i
-                                                                class="fab fa-tiktok text-black"></i>
-                                                            <% } %>
-                                                                <% if(channel.platform==='lazada' ) { %> <img
-                                                                        src="https://logos-world.net/wp-content/uploads/2023/04/Lazada-Logo.png"
-                                                                        class="w-6 h-6 object-contain">
-                                                                    <% } %>
+                                                    <% } else if(log.platform.toLowerCase()==='tiktok' ) { %>
+                                                        <i class="fab fa-tiktok text-black"></i>
+                                                        <% } else if(log.platform.toLowerCase()==='lazada' ) { %>
+                                                            <img src="https://logos-world.net/wp-content/uploads/2023/04/Lazada-Logo.png"
+                                                                class="w-6 h-6 object-contain">
+                                                            <% } else { %>
+                                                                <i class="fas fa-sync-alt text-slate-400"></i>
+                                                                <% } %>
                                             </div>
                                             <div>
                                                 <p class="font-bold text-slate-700 capitalize">
-                                                    <%= channel.platform %>
+                                                    <%= log.platform %>
                                                 </p>
-                                                <p class="text-xs text-slate-400">
-                                                    <%= channel.shop_name %>
+                                                <p class="text-[10px] text-slate-400">
+                                                    <%= log.type==='order_income' ? 'Orders & Income' : log.type %>
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="py-6">
-                                        <span class="text-sm font-bold text-slate-800">12 รายการ</span>
+                                        <span class="text-sm font-bold text-slate-800">
+                                            <%= log.total_records %> รายการ
+                                        </span>
                                     </td>
                                     <td class="py-6">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse">
-                                            </div>
-                                            <span class="text-xs font-bold text-emerald-600">สำเร็จ</span>
+                                            <% if(log.status==='success' ) { %>
+                                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                                <span class="text-xs font-bold text-emerald-600">สำเร็จ</span>
+                                                <% } else { %>
+                                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                                    <span class="text-xs font-bold text-red-600"
+                                                        title="<%= log.message %>">ล้มเหลว</span>
+                                                    <% } %>
                                         </div>
                                     </td>
                                     <td class="py-6">
-                                        <p class="text-sm text-slate-500">
-                                            <%= new Date(channel.updated_at).toLocaleString('th-TH') %>
+                                        <p class="text-xs text-slate-500">
+                                            <%= new Date(log.created_at).toLocaleString('th-TH') %>
                                         </p>
                                     </td>
                                 </tr>

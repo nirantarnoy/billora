@@ -6,9 +6,13 @@ class ChannelController {
     async listChannels(req, res) {
         try {
             const tenantId = req.session.user.tenant_id || 1;
+            const userId = req.session.user.id;
             const [channels] = await db.execute('SELECT * FROM online_channels WHERE tenant_id = ?', [tenantId]);
+            const [syncLogs] = await db.execute('SELECT * FROM sync_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 10', [userId]);
+
             res.render('channels', {
                 channels,
+                syncLogs,
                 user: req.session.user,
                 active: 'channels',
                 title: 'จัดการช่องทางขายออนไลน์',
