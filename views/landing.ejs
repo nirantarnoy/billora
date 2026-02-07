@@ -239,15 +239,66 @@
             display: flex;
             gap: 1rem;
             justify-content: center;
-            margin-bottom: 4rem;
+            margin-bottom: 2rem;
         }
 
         .hero-mockup {
             position: relative;
-            max-width: 1000px;
-            margin: 0 auto;
+            max-width: 1100px;
+            margin: 2rem auto 0;
             border-radius: 20px;
             overflow: hidden;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.2), 0 30px 60px -30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            background: var(--white);
+            transition: var(--transition);
+        }
+
+        .hero-mockup:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mockup-header {
+            background: #f1f5f9;
+            height: 36px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot.red {
+            background: #ff5f56;
+        }
+
+        .dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .dot.green {
+            background: #27c93f;
+        }
+
+        .mockup-address {
+            flex: 1;
+            background: #fff;
+            height: 22px;
+            border-radius: 4px;
+            margin: 0 60px;
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .hero-mockup img {
@@ -646,11 +697,20 @@
                             class="fas fa-arrow-right"></i></a>
                     <!-- <a href="#demo" class="btn btn-outline">ดูตัวอย่างการใช้งาน</a> -->
                 </div>
-
-                <div class="hero-mockup">
-                    <img src="/img/dashboard_new.png" alt="GoodOperra Dashboard">
-                </div>
             </div>
+
+            <div class="hero-mockup">
+                <div class="mockup-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                    <div class="mockup-address">
+                        <i class="fas fa-lock"></i> app.goodoper.com
+                    </div>
+                </div>
+                <img src="/img/dashboard_new.png" alt="GoodOper Dashboard">
+            </div>
+        </div>
     </section>
 
     <section class="split-section">
