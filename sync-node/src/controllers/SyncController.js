@@ -7,6 +7,29 @@ const ShopeeIncomeService = require('../services/ShopeeIncomeService');
 
 class SyncController {
     async actionIndex() {
+        const fs = require('fs');
+        const path = require('path');
+        const lockFile = path.join(__dirname, '../../../sync.lock');
+
+        // 0. Check if sync is already running
+        if (fs.existsSync(lockFile)) {
+            const stats = fs.statSync(lockFile);
+            const now = new Date().getTime();
+            const age = (now - stats.mtime.getTime()) / 1000;
+
+            // If lock is older than 30 minutes, assume it's stale
+            if (age < 1800) {
+                console.log("Synchronization is already in progress. Skipping...");
+                process.exit(0);
+            } else {
+                console.log("Removing stale lock file...");
+                fs.unlinkSync(lockFile);
+            }
+        }
+
+        // Create lock file
+        fs.writeFileSync(lockFile, process.pid.toString());
+
         console.log("Starting SaaS Multi-tenant Sync Process...");
 
         try {
@@ -60,10 +83,12 @@ class SyncController {
             }
 
             console.log("Multi-tenant Sync Process Completed.");
+            if (fs.existsSync(lockFile)) fs.unlinkSync(lockFile);
             process.exit(0);
 
         } catch (error) {
             console.error("SaaS Sync FATAL ERROR:", error.message);
+            if (fs.existsSync(lockFile)) fs.unlinkSync(lockFile);
             process.exit(1);
         }
     }
