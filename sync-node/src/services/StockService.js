@@ -1,4 +1,5 @@
 const db = require('../models/db');
+const StockUpdateService = require('./StockUpdateService');
 
 class StockService {
     /**
@@ -50,6 +51,12 @@ class StockService {
 
             await connection.commit();
             console.log(`[Stock] Reserved ${quantity} of ${sku} for Order ${orderSn}`);
+
+            // Update Marketplace
+            const [newProd] = await db.execute('SELECT qty_on_hand FROM product WHERE user_id = ? AND sku = ?', [userId, sku]);
+            if (newProd.length > 0) {
+                await StockUpdateService.updateStockEverywhere(userId, sku, newProd[0].qty_on_hand);
+            }
         } catch (error) {
             await connection.rollback();
             console.error(`[Stock] Reserve Error: ${error.message}`);
@@ -122,6 +129,12 @@ class StockService {
 
             await connection.commit();
             console.log(`[Stock] Finalized deduction for Order ${orderSn}, SKU ${sku}`);
+
+            // Update Marketplace
+            const [newProd] = await db.execute('SELECT qty_on_hand FROM product WHERE user_id = ? AND sku = ?', [userId, sku]);
+            if (newProd.length > 0) {
+                await StockUpdateService.updateStockEverywhere(userId, sku, newProd[0].qty_on_hand);
+            }
         } catch (error) {
             await connection.rollback();
             console.error(`[Stock] Deduct Error: ${error.message}`);
@@ -166,6 +179,12 @@ class StockService {
             }
 
             await connection.commit();
+
+            // Update Marketplace
+            const [newProd] = await db.execute('SELECT qty_on_hand FROM product WHERE user_id = ? AND sku = ?', [userId, sku]);
+            if (newProd.length > 0) {
+                await StockUpdateService.updateStockEverywhere(userId, sku, newProd[0].qty_on_hand);
+            }
         } catch (error) {
             await connection.rollback();
             console.error(`[Stock] Cancel Error: ${error.message}`);
