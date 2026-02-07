@@ -110,6 +110,8 @@ router.get('/fulfillment/products', isAuthenticated, FulfillmentController.viewP
 router.get('/fulfillment/products/create', isAuthenticated, FulfillmentController.viewProductForm);
 router.get('/fulfillment/products/:id/edit', isAuthenticated, FulfillmentController.viewProductForm);
 router.post('/fulfillment/products', isAuthenticated, FulfillmentController.saveProduct);
+router.get('/api/fulfillment/products/online-candidates', isAuthenticated, FulfillmentController.getOnlineCandidates);
+router.post('/api/fulfillment/products/import-online', isAuthenticated, FulfillmentController.importOnlineProducts);
 
 // Other pages can be added here (History, Slips, etc.)
 // router.get('/slips', isAuthenticated, hasPermission('slips'), SlipController.listSlips);

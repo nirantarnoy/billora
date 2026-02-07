@@ -353,6 +353,66 @@ class FulfillmentController {
             res.redirect('/fulfillment/products?error=save_failed');
         }
     }
+
+    async getOnlineCandidates(req, res) {
+        try {
+            const tenantId = req.session.user.tenant_id;
+
+            // Get all user IDs in this tenant
+            const [users] = await db.execute('SELECT id FROM users WHERE tenant_id = ?', [tenantId]);
+            const userIds = users.map(u => u.id);
+            if (userIds.length === 0) return res.json({ success: true, candidates: [] });
+
+            const placeholders = userIds.map(() => '?').join(',');
+
+            // Get unique SKU/Name from order table that don't exist in products table
+            const sql = `
+                SELECT DISTINCT sku, product_name 
+                FROM \`order\` o
+                WHERE user_id IN (${placeholders})
+                AND sku IS NOT NULL AND sku != ''
+                AND NOT EXISTS (
+                    SELECT 1 FROM products p 
+                    WHERE (p.sku = o.sku OR p.code = o.sku) AND p.tenant_id = ?
+                )
+            `;
+            const [candidates] = await db.execute(sql, [...userIds, tenantId]);
+
+            res.json({ success: true, candidates });
+        } catch (err) {
+            console.error('getOnlineCandidates Error:', err);
+            res.json({ success: false, error: err.message });
+        }
+    }
+
+    async importOnlineProducts(req, res) {
+        try {
+            const tenantId = req.session.user.tenant_id;
+            const { products } = req.body; // Array of {sku, name}
+
+            if (!products || !Array.isArray(products) || products.length === 0) {
+                return res.json({ success: false, message: 'ไม่ได้เลือกสินค้า' });
+            }
+
+            let importedCount = 0;
+            for (const p of products) {
+                // Check double if exists (security)
+                const [exists] = await db.execute('SELECT id FROM products WHERE tenant_id = ? AND (sku = ? OR code = ?)', [tenantId, p.sku, p.sku]);
+                if (exists.length > 0) continue;
+
+                await db.execute(
+                    `INSERT INTO products (tenant_id, name, sku, code, status) VALUES (?, ?, ?, ?, 'active')`,
+                    [tenantId, p.name || p.sku, p.sku, p.sku]
+                );
+                importedCount++;
+            }
+
+            res.json({ success: true, importedCount });
+        } catch (err) {
+            console.error('importOnlineProducts Error:', err);
+            res.json({ success: false, error: err.message });
+        }
+    }
 }
 
 module.exports = new FulfillmentController();

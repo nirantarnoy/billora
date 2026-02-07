@@ -19,6 +19,11 @@
                     <% } %>
             </form>
 
+            <button onclick="openOnlineImportModal()"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
+                <i class="fas fa-cloud-download-alt"></i> เพิ่มจากรายการขาย Online
+            </button>
+
             <a href="/fulfillment/products/create"
                 class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95">
                 <i class="fas fa-plus"></i> เพิ่มสินค้าใหม่
@@ -177,4 +182,173 @@
             </nav>
         </div>
         <% } %>
+
+            <!-- Online Import Modal -->
+            <div id="onlineImportModal"
+                class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fas fa-cloud-download-alt text-indigo-600"></i>
+                            นำเข้าสินค้าจากรายการขาย Online
+                        </h3>
+                        <button onclick="closeOnlineImportModal()"
+                            class="text-slate-400 hover:text-slate-600 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1">
+                        <p class="text-sm text-slate-500 mb-4">
+                            ระบบพบรายการ SKU จาก Shopee/TikTok/Lazada ที่ยังไม่มีในระบบของคุณ
+                            เลือกรายการที่ต้องการเพิ่มเป็นรหัสสินค้า
+                        </p>
+
+                        <div id="onlineCandidatesList" class="space-y-2">
+                            <!-- Loaded via JS -->
+                            <div class="py-12 text-center text-slate-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>กำลังโหลดข้อมูล...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+                        <button onclick="closeOnlineImportModal()"
+                            class="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-all">
+                            ยกเลิก
+                        </button>
+                        <button id="btnConfirmImport" onclick="confirmImport()" disabled
+                            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <i class="fas fa-check"></i> นำเข้าที่เลือก (<span id="selectedCount">0</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                let candidates = [];
+                let selectedSkus = new Set();
+
+                function openOnlineImportModal() {
+                    document.getElementById('onlineImportModal').classList.remove('hidden');
+                    loadOnlineCandidates();
+                }
+
+                function closeOnlineImportModal() {
+                    document.getElementById('onlineImportModal').classList.add('hidden');
+                }
+
+                async function loadOnlineCandidates() {
+                    const listContainer = document.getElementById('onlineCandidatesList');
+                    try {
+                        const res = await fetch('/api/fulfillment/products/online-candidates');
+                        const data = await res.json();
+
+                        if (data.success) {
+                            candidates = data.candidates;
+                            if (candidates.length === 0) {
+                                listContainer.innerHTML = `
+                            <div class="py-12 text-center text-slate-500">
+                                <i class="fas fa-check-circle text-emerald-500 text-4xl mb-3"></i>
+                                <p class="font-bold">ว้าว! สินค้าของคุณครบถ้วนแล้ว</p>
+                                <p class="text-sm">ไม่พบ SKU ใหม่จากรายการขายที่ยังไม่ได้เพิ่มในระบบ</p>
+                            </div>
+                        `;
+                                return;
+                            }
+
+                            let html = `
+                        <div class="flex items-center justify-between mb-2 px-2">
+                            <label class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest cursor-pointer">
+                                <input type="checkbox" onchange="toggleSelectAll(this)" class="rounded text-indigo-600 focus:ring-indigo-500">
+                                เลือกทั้งหมด
+                            </label>
+                        </div>
+                    `;
+
+                            candidates.forEach((c, index) => {
+                                html += `
+                            <label class="flex items-center gap-4 p-3 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer group">
+                                <input type="checkbox" value="${c.sku}" onchange="toggleSku('${c.sku}', this.checked)" class="sku-checkbox rounded text-indigo-600 focus:ring-indigo-500 w-5 h-5">
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-slate-800 text-sm truncate">${c.product_name || 'ไม่ระบุชื่อสินค้า'}</div>
+                                    <div class="text-xs font-mono text-slate-500 flex items-center gap-2">
+                                        <span class="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px]">SKU: ${c.sku}</span>
+                                    </div>
+                                </div>
+                            </label>
+                        `;
+                            });
+
+                            listContainer.innerHTML = html;
+                        }
+                    } catch (err) {
+                        listContainer.innerHTML = `<p class="text-red-500">เกิดข้อผิดพลาด: ${err.message}</p>`;
+                    }
+                }
+
+                function toggleSku(sku, checked) {
+                    if (checked) selectedSkus.add(sku);
+                    else selectedSkus.delete(sku);
+                    updateUI();
+                }
+
+                function toggleSelectAll(master) {
+                    const checkboxes = document.querySelectorAll('.sku-checkbox');
+                    checkboxes.forEach(cb => {
+                        cb.checked = master.checked;
+                        toggleSku(cb.value, master.checked);
+                    });
+                }
+
+                function updateUI() {
+                    const btn = document.getElementById('btnConfirmImport');
+                    const counter = document.getElementById('selectedCount');
+                    counter.innerText = selectedSkus.size;
+                    btn.disabled = selectedSkus.size === 0;
+                }
+
+                async function confirmImport() {
+                    if (selectedSkus.size === 0) return;
+
+                    const toImport = candidates.filter(c => selectedSkus.has(c.sku));
+
+                    Swal.fire({
+                        title: 'ยืนยันการนำเข้า?',
+                        text: `คุณกำลังจะเพิ่มสินค้าใหม่จำนวน ${toImport.length} รายการเข้าสู่ระบบ`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4f46e5',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'ยืนยันนำเข้า',
+                        cancelButtonText: 'ยกเลิก'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            Swal.showLoading();
+                            try {
+                                const res = await fetch('/api/fulfillment/products/import-online', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ products: toImport })
+                                });
+                                const data = await res.json();
+
+                                if (data.success) {
+                                    Swal.fire({
+                                        title: 'นำเข้าสำเร็จ!',
+                                        text: `เพิ่มสินค้าใหม่จำนวน ${data.importedCount} รายการเรียบร้อยแล้ว`,
+                                        icon: 'success'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('ข้อผิดพลาด', data.message || 'ไม่สามารถนำเข้าข้อมูลได้', 'error');
+                                }
+                            } catch (err) {
+                                Swal.fire('ข้อผิดพลาด', err.message, 'error');
+                            }
+                        }
+                    });
+                }
+            </script>
 </div>
