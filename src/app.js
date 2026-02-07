@@ -88,31 +88,84 @@ app.use((req, res, next) => {
 
 // Global Template Variables & Tenant Loading
 app.use(async (req, res, next) => {
-    res.locals.user = req.session.user || null;
+    res.locals.user = null;
+    res.locals.tenant = null;
     res.locals._csrf = res.locals._csrf || '';
 
-    if (req.session.user && req.session.user.tenant_id) {
+    // Bypass for login/logout/public routes to avoid infinite loops
+    const publicPaths = ['/login', '/logout', '/register', '/api/login'];
+    if (publicPaths.some(path => req.path.startsWith(path))) {
+        return next();
+    }
+
+    if (req.session.user) {
         try {
             const pool = require('./config/db');
-            const [tenants] = await pool.query(
-                `SELECT * FROM tenants WHERE id = ? AND is_active = TRUE AND deleted_at IS NULL`,
-                [req.session.user.tenant_id]
+
+            // 1. Load Latest User Data (to sync permissions)
+            const [users] = await pool.query(
+                `SELECT * FROM users WHERE id = ? AND deleted_at IS NULL`,
+                [req.session.user.id]
             );
-            if (tenants.length > 0) {
-                const tenant = tenants[0];
-                // Parse features if it's a string
-                if (tenant.features && typeof tenant.features === 'string') {
-                    try {
-                        tenant.features = JSON.parse(tenant.features);
-                    } catch (e) {
-                        tenant.features = {};
+
+            if (users.length === 0 || !users[0].is_active) {
+                req.session.destroy();
+                if (req.xhr || req.path.startsWith('/api/')) {
+                    return res.status(401).json({ success: false, message: 'บัญชีถูกระงับ' });
+                }
+                return res.redirect('/login?error=account_inactive');
+            }
+
+            const dbUser = users[0];
+            // Format permissions
+            if (dbUser.permissions && typeof dbUser.permissions === 'string') {
+                try {
+                    dbUser.permissions = JSON.parse(dbUser.permissions);
+                } catch (e) {
+                    dbUser.permissions = {};
+                }
+            }
+
+            // Update session data to stay in sync
+            req.session.user.permissions = dbUser.permissions;
+            req.session.user.role = dbUser.role;
+
+            res.locals.user = dbUser;
+            req.user = dbUser;
+
+            // 2. Load Tenant Data & Enforce Active Status
+            if (dbUser.tenant_id) {
+                const [tenants] = await pool.query(
+                    `SELECT * FROM tenants WHERE id = ? AND deleted_at IS NULL`,
+                    [dbUser.tenant_id]
+                );
+
+                if (tenants.length === 0 || !tenants[0].is_active) {
+                    // Do not block Super Admin from system tenant (ID 1)
+                    if (dbUser.tenant_id !== 1) {
+                        req.session.destroy();
+                        if (req.xhr || req.path.startsWith('/api/')) {
+                            return res.status(403).json({ success: false, message: 'องค์กรถูกระงับการใช้งาน' });
+                        }
+                        return res.redirect('/login?error=tenant_inactive');
                     }
                 }
-                res.locals.tenant = tenant;
-                req.tenant = tenant; // Also attach to req for controllers
+
+                if (tenants.length > 0) {
+                    const tenant = tenants[0];
+                    if (tenant.features && typeof tenant.features === 'string') {
+                        try {
+                            tenant.features = JSON.parse(tenant.features);
+                        } catch (e) {
+                            tenant.features = {};
+                        }
+                    }
+                    res.locals.tenant = tenant;
+                    req.tenant = tenant;
+                }
             }
         } catch (err) {
-            console.error('Global Tenant Load Error:', err);
+            console.error('Global Loader Error:', err);
         }
     }
     next();

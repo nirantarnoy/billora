@@ -141,8 +141,11 @@
                                     </td>
                                     <td class="px-8 py-5 text-right">
                                         <div class="flex items-center justify-end gap-3">
-                                            <button
-                                                onclick="viewDetails(<%= JSON.stringify(bill.items || []) %>, <%= JSON.stringify(bill.store_name || 'ไม่ระบุ') %>, <%= bill.total_amount || 0 %>, <%= bill.vat || 0 %>)"
+                                            <button onclick="viewDetails(this)"
+                                                data-items='<%= JSON.stringify(bill.items || []) %>'
+                                                data-store='<%= bill.store_name || "ไม่ระบุ" %>'
+                                                data-total='<%= bill.total_amount || 0 %>'
+                                                data-vat='<%= bill.vat || 0 %>'
                                                 class="text-slate-400 hover:text-indigo-600 transition-colors"><i
                                                     class="fas fa-list-ul"></i></button>
                                             <button onclick="deleteBill(<%= bill.id %>)"
@@ -199,7 +202,12 @@
             }
         });
     }
-    function viewDetails(items, storeName, totalAmount = 0, vat = 0) {
+    function viewDetails(btn) {
+        const items = JSON.parse(btn.getAttribute('data-items') || '[]');
+        const storeName = btn.getAttribute('data-store') || 'ไม่ระบุ';
+        const totalAmount = parseFloat(btn.getAttribute('data-total')) || 0;
+        const vat = parseFloat(btn.getAttribute('data-vat')) || 0;
+
         const itemsList = Array.isArray(items) ? items : [];
         const itemsHtml = itemsList.map(item => {
             const name = item.name || item.product_name || 'ไม่ระบุรายการ';
