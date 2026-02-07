@@ -17,7 +17,7 @@ class DashboardController {
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
              WHERE p.tenant_id = ? AND p.min_stock > 0
-             GROUP BY p.id
+             GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
       `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
@@ -66,7 +66,7 @@ class DashboardController {
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
              WHERE p.tenant_id = ? AND p.min_stock > 0
-             GROUP BY p.id
+             GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
       `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
