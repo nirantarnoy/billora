@@ -32,6 +32,7 @@ router.get('/auth/:platform', isAuthenticated, ChannelController.initiateAuth);
 router.get('/auth/shopee/callback', isAuthenticated, ChannelController.shopeeCallback);
 router.get('/auth/tiktok/callback', isAuthenticated, ChannelController.tiktokCallback);
 router.get('/auth/lazada/callback', isAuthenticated, ChannelController.lazadaCallback);
+router.post('/sync/:platform', isAuthenticated, ChannelController.triggerSync);
 
 // E-commerce & Logistics
 router.get('/orders', isAuthenticated, GeneralController.viewOrders);

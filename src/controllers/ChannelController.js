@@ -108,6 +108,31 @@ class ChannelController {
                     ON DUPLICATE KEY UPDATE status = 'active'`,
                     [tenantId, `Shopee Shop ${shop_id}`, shop_id]
                 );
+
+                // --- LEGACY SYNC-NODE COMPATIBILITY ---
+                // Save to shopee_tokens (Plain text for legacy sync-node)
+                const userId = req.session.user.id;
+                const expiresAt = new Date(Date.now() + tokenData.expire_in * 1000);
+                await db.execute(
+                    `INSERT INTO shopee_tokens 
+                    (user_id, shop_id, access_token, refresh_token, expires_at, status, updated_at) 
+                    VALUES (?, ?, ?, ?, ?, 'active', NOW())
+                    ON DUPLICATE KEY UPDATE 
+                    access_token = VALUES(access_token), 
+                    refresh_token = VALUES(refresh_token),
+                    expires_at = VALUES(expires_at),
+                    status = 'active',
+                    updated_at = NOW()`,
+                    [userId, shop_id, tokenData.access_token, tokenData.refresh_token, expiresAt]
+                );
+
+                // Ensure online_channel (singular) exists for sync-node
+                await db.execute(
+                    `INSERT INTO online_channel (user_id, name, status) 
+                    VALUES (?, 'Shopee', 1) 
+                    ON DUPLICATE KEY UPDATE status = 1`,
+                    [userId]
+                );
             }
 
             res.redirect('/channels?success=shopee');
@@ -191,6 +216,80 @@ class ChannelController {
         } catch (err) {
             console.error('Lazada Callback Error:', err);
             res.status(500).send(`Auth Error: ${err.message}`);
+        }
+    }
+
+    async triggerSync(req, res) {
+        const { platform } = req.params;
+        const { exec } = require('child_process');
+        const path = require('path');
+        const { decrypt } = require('../utils/crypto');
+        const userId = req.session.user.id;
+        const tenantId = req.session.user.tenant_id;
+
+        console.log(`Manual sync triggered for tenant ${tenantId}, platform: ${platform}`);
+
+        try {
+            // 1. Migrate data from marketplace_connections to legacy tables for sync-node compatibility
+            const [connections] = await db.execute(
+                'SELECT * FROM marketplace_connections WHERE tenant_id = ? AND is_active = 1',
+                [tenantId]
+            );
+
+            for (const conn of connections) {
+                const accessToken = decrypt(conn.access_token);
+                const refreshToken = decrypt(conn.refresh_token);
+
+                if (conn.platform === 'shopee') {
+                    // Update shopee_tokens
+                    await db.execute(
+                        `INSERT INTO shopee_tokens 
+                        (user_id, shop_id, access_token, refresh_token, expires_at, status, updated_at) 
+                        VALUES (?, ?, ?, ?, ?, 'active', NOW())
+                        ON DUPLICATE KEY UPDATE 
+                        access_token = VALUES(access_token), 
+                        refresh_token = VALUES(refresh_token),
+                        expires_at = VALUES(expires_at),
+                        status = 'active',
+                        updated_at = NOW()`,
+                        [userId, conn.shop_id, accessToken, refreshToken, conn.access_token_expires_at]
+                    );
+
+                    // Fetch the express_book_code from online_channels if any
+                    const [platformChannels] = await db.execute(
+                        'SELECT express_book_code FROM online_channels WHERE tenant_id = ? AND platform = "shopee" LIMIT 1',
+                        [tenantId]
+                    );
+                    const bookCode = platformChannels[0] ? platformChannels[0].express_book_code : null;
+
+                    // Update online_channel
+                    await db.execute(
+                        `INSERT INTO online_channel (user_id, name, status, express_book_code) 
+                        VALUES (?, 'Shopee', 1, ?) 
+                        ON DUPLICATE KEY UPDATE status = 1, express_book_code = VALUES(express_book_code)`,
+                        [userId, bookCode]
+                    );
+                }
+                // (Add migration for TikTok/Lazada if needed)
+            }
+
+            // 2. Run the sync node script
+            const syncScriptPath = path.join(__dirname, '../../sync-node/src/index.js');
+            const command = `node "${syncScriptPath}"`;
+
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Sync Error: ${error.message}`);
+                    return; // Background process, don't block response
+                }
+                console.log(`Sync Output: ${stdout}`);
+            });
+
+            res.json({ success: true, message: 'Sync process started' });
+
+        } catch (err) {
+            console.error('Migration/Sync Error:', err);
+            res.status(500).json({ success: false, error: err.message });
         }
     }
 }
