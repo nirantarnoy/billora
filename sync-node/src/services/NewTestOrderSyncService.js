@@ -137,12 +137,13 @@ class NewTestOrderSyncService {
                     // --- AUTO STOCK LOGIC ---
                     try {
                         const status = orderDetail.order_status;
+                        const platform = 'shopee';
                         if (['READY_TO_SHIP', 'PROCESSED', 'SHIPPED'].includes(status)) {
-                            await StockService.reserveStock(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                            await StockService.reserveStock(userId, orderDetail.order_sn, sku, item.quantity_purchased, platform);
                         } else if (status === 'COMPLETED') {
-                            await StockService.deductStock(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                            await StockService.deductStock(userId, orderDetail.order_sn, sku, item.quantity_purchased, platform);
                         } else if (status === 'CANCELLED') {
-                            await StockService.cancelReservation(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                            await StockService.cancelReservation(userId, orderDetail.order_sn, sku, item.quantity_purchased, platform);
                         }
                     } catch (stockErr) {
                         console.error(`[Stock Sync Error] Order ${orderDetail.order_sn}:`, stockErr.message);

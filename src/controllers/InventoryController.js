@@ -6,7 +6,7 @@ class InventoryController {
     async viewTransactions(req, res) {
         try {
             const tenantId = req.session.user.tenant_id;
-            const { page = 1, product, type, startDate, endDate } = req.query;
+            const { page = 1, product, type, channel, startDate, endDate } = req.query;
             const limit = 20;
             const offset = (page - 1) * limit;
 
@@ -17,6 +17,7 @@ class InventoryController {
                     w.name as warehouse_name,
                     l.name as location_name,
                     lot.lot_no,
+                    t.source_platform,
                     u.username as created_by_name
                 FROM inventory_transactions t
                 JOIN products p ON t.product_id = p.id
@@ -35,6 +36,10 @@ class InventoryController {
             if (type) {
                 sql += ' AND t.type = ?';
                 params.push(type);
+            }
+            if (channel) {
+                sql += ' AND t.source_platform = ?';
+                params.push(channel);
             }
             if (startDate) {
                 sql += ' AND DATE(t.transaction_date) >= ?';
@@ -59,6 +64,7 @@ class InventoryController {
             `;
             if (product) countQuery += ' AND (p.name LIKE ? OR p.sku LIKE ?)';
             if (type) countQuery += ' AND t.type = ?';
+            if (channel) countQuery += ' AND t.source_platform = ?';
             if (startDate) countQuery += ' AND DATE(t.transaction_date) >= ?';
             if (endDate) countQuery += ' AND DATE(t.transaction_date) <= ?';
 
@@ -284,9 +290,9 @@ class InventoryController {
 
             await conn.execute(
                 `INSERT INTO inventory_transactions 
-                (tenant_id, type, product_id, warehouse_id, location_id, lot_id, quantity, stock_in, stock_out, value_amount, reason, note, created_by) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [tenantId, type, product_id, warehouse_id, location_id || null, lotId, transactionQty, stockIn, stockOut, valueAmount, reason, note, userId]
+                (tenant_id, type, product_id, warehouse_id, location_id, lot_id, quantity, stock_in, stock_out, value_amount, reference_no, reason, note, created_by, source_platform) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'web')`,
+                [tenantId, type, product_id, warehouse_id, location_id || null, lotId, transactionQty, stockIn, stockOut, valueAmount, null, reason, note, userId]
             );
 
             await conn.commit();
@@ -440,8 +446,8 @@ class InventoryController {
 
                 await conn.execute(
                     `INSERT INTO inventory_transactions 
-                    (tenant_id, transaction_date, type, product_id, warehouse_id, location_id, lot_id, quantity, stock_in, stock_out, value_amount, reference_no, reason, note, created_by) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    (tenant_id, transaction_date, type, product_id, warehouse_id, location_id, lot_id, quantity, stock_in, stock_out, value_amount, reference_no, reason, note, created_by, source_platform) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'web')`,
                     [
                         tenantId,
                         transaction_date || new Date(),

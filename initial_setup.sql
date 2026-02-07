@@ -230,6 +230,31 @@ CREATE TABLE `action_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------
+-- Table structure for marketplace_product_mappings
+-- ----------------------------
+DROP TABLE IF EXISTS `marketplace_product_mappings`;
+CREATE TABLE `marketplace_product_mappings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tenant_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `online_channel_id` int(11) NOT NULL,
+  `marketplace_sku` varchar(255) NOT NULL COMMENT 'SKU บน Marketplace',
+  `marketplace_product_id` varchar(255) DEFAULT NULL COMMENT 'ID สินค้าบน Marketplace',
+  `marketplace_model_id` varchar(255) DEFAULT NULL,
+  `marketplace_sku_id` varchar(255) DEFAULT NULL,
+  `marketplace_warehouse_id` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_marketplace_mapping` (`tenant_id`,`online_channel_id`,`marketplace_sku`),
+  KEY `fk_mapping_product` (`product_id`),
+  KEY `fk_mapping_channel` (`online_channel_id`),
+  CONSTRAINT `fk_mapping_channel` FOREIGN KEY (`online_channel_id`) REFERENCES `online_channels` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mapping_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mapping_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
 -- Table structure for backup_schedules
 -- ----------------------------
 DROP TABLE IF EXISTS `backup_schedules`;
@@ -305,6 +330,8 @@ CREATE TABLE `products` (
   `multiple_qty` decimal(15,2) DEFAULT 1.00,
   `image_urls` json DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
+  `qty_on_hand` decimal(15,4) DEFAULT 0.0000,
+  `qty_reserved` decimal(15,4) DEFAULT 0.0000,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -396,6 +423,7 @@ CREATE TABLE `inventory_transactions` (
   `reference_no` varchar(100) DEFAULT NULL,
   `reason` varchar(255) DEFAULT NULL,
   `note` text DEFAULT NULL,
+  `source_platform` varchar(50) DEFAULT 'web',
   `created_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

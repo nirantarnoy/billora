@@ -137,6 +137,14 @@ async function setupDatabase() {
                 name: 'สร้างตาราง Inventory (Lots, Balances, Transactions)'
             },
             {
+                file: '010_update_inventory_transactions.sql',
+                name: 'อัปเดตตารางประวัติสินค้า (เพิ่มคอลัมน์สต็อกรับ/จ่าย)'
+            },
+            {
+                file: '011_add_product_reorder_points.sql',
+                name: 'เพิ่มจุดสั่งซื้อ (min/max stock) ในตารางสินค้า'
+            },
+            {
                 file: '012_add_remote_backup_config.sql',
                 name: 'เพิ่มการตั้งค่า Remote Backup (SFTP)'
             },
@@ -183,6 +191,10 @@ async function setupDatabase() {
             {
                 file: '023_update_marketplace_mappings_schema.sql',
                 name: 'ปรับปรุงโครงสร้างตาราง Mapping สินค้า (เพิ่ม Model ID, SKU ID)'
+            },
+            {
+                file: '024_add_source_platform_to_inventory.sql',
+                name: 'เพิ่มคอลัมน์ช่องทาง (source_platform) ในประวัติสินค้า'
             }
         ];
 
@@ -240,7 +252,9 @@ async function setupDatabase() {
                 { name: 'avg_cost', type: "DECIMAL(15, 2) DEFAULT 0.00 COMMENT 'ต้นทุนเฉลี่ย' AFTER sale_price" },
                 { name: 'image_urls', type: "JSON COMMENT 'เก็บรายการรูปภาพมากสุด 4 รูป' AFTER avg_cost" },
                 { name: 'status', type: "ENUM('active', 'inactive') DEFAULT 'active' AFTER image_urls" },
-                { name: 'created_at', type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER status" },
+                { name: 'qty_on_hand', type: "DECIMAL(15,4) DEFAULT 0.0000 AFTER status" },
+                { name: 'qty_reserved', type: "DECIMAL(15,4) DEFAULT 0.0000 AFTER qty_on_hand" },
+                { name: 'created_at', type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER qty_reserved" },
                 { name: 'updated_at', type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at" }
             ];
 

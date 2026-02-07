@@ -91,12 +91,13 @@ class OrderSyncService {
             // --- AUTO STOCK LOGIC ---
             try {
                 const status = orderData.status;
+                const platform = channel.name ? channel.name.toLowerCase() : 'tiktok';
                 if (['AWAITING_SHIPMENT', 'AWAITING_COLLECTION', 'PICKED_UP', 'IN_TRANSIT'].includes(status)) {
-                    await StockService.reserveStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                    await StockService.reserveStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity, platform);
                 } else if (['DELIVERED', 'COMPLETED'].includes(status)) {
-                    await StockService.deductStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                    await StockService.deductStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity, platform);
                 } else if (status === 'CANCELLED') {
-                    await StockService.cancelReservation(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                    await StockService.cancelReservation(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity, platform);
                 }
             } catch (stockErr) {
                 console.error(`[Stock Sync Error] TikTok Order ${orderData.id}:`, stockErr.message);

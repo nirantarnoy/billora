@@ -36,6 +36,19 @@
                 </select>
             </div>
 
+            <!-- Channel Filter -->
+            <div class="w-full md:w-48">
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">ช่องทาง</label>
+                <select name="channel"
+                    class="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 text-slate-700 focus:ring-2 focus:ring-emerald-500">
+                    <option value="">ทั้งหมด</option>
+                    <option value="web" <%=filters.channel==='web' ? 'selected' : '' %>>Web / Manual</option>
+                    <option value="shopee" <%=filters.channel==='shopee' ? 'selected' : '' %>>Shopee</option>
+                    <option value="tiktok" <%=filters.channel==='tiktok' ? 'selected' : '' %>>TikTok</option>
+                    <option value="lazada" <%=filters.channel==='lazada' ? 'selected' : '' %>>Lazada</option>
+                </select>
+            </div>
+
             <!-- Date Range -->
             <div class="w-full md:w-40">
                 <label
@@ -185,7 +198,7 @@
         <% if (totalPages> 1) { %>
             <div class="p-4 border-t border-slate-100 flex justify-center gap-2">
                 <% for(let i=1; i<=totalPages; i++) { %>
-                    <a href="/inventory/transactions?page=<%= i %>&product=<%= filters.product %>&type=<%= filters.type %>&startDate=<%= filters.startDate %>&endDate=<%= filters.endDate %>"
+                    <a href="/inventory/transactions?page=<%= i %>&product=<%= filters.product %>&type=<%= filters.type %>&channel=<%= filters.channel %>&startDate=<%= filters.startDate %>&endDate=<%= filters.endDate %>"
                         class="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors <%= currentPage === i ? 'bg-emerald-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100' %>">
                         <%= i %>
                     </a>
