@@ -5,8 +5,8 @@ const db = require('../models/db');
 
 class ShopeeIncomeService {
     constructor() {
-        this.partnerId = 2012399;
-        this.partnerKey = 'shpk72476151525864414e4b6e475449626679624f695a696162696570417043';
+        this.partnerId = process.env.SHOPEE_PARTNER_ID;
+        this.partnerKey = process.env.SHOPEE_PARTNER_KEY;
     }
 
     async syncAllOrders(userId) {
