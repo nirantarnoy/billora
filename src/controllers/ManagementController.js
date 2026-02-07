@@ -170,34 +170,54 @@ class ManagementController {
     // Action Logs
     async listLogs(req, res) {
         try {
-            const { user, startDate, endDate } = req.query;
+            const { user_id, startDate, endDate, page = 1, limit = 20 } = req.query;
+            const offset = (parseInt(page) - 1) * parseInt(limit);
+
             let where = 'WHERE 1=1';
             let params = [];
 
-            if (user) { where += ' AND u.username LIKE ?'; params.push(`%${user}%`); }
+            if (user_id) { where += ' AND al.user_id = ?'; params.push(user_id); }
             if (startDate) { where += ' AND DATE(al.created_at) >= ?'; params.push(startDate); }
             if (endDate) { where += ' AND DATE(al.created_at) <= ?'; params.push(endDate); }
 
+            // Count total
+            const [countRows] = await db.execute(`
+                SELECT COUNT(*) as total 
+                FROM action_logs al 
+                ${where}
+            `, params);
+            const totalItems = countRows[0].total;
+            const totalPages = Math.ceil(totalItems / parseInt(limit));
+
+            // Fetch Data
             const [logs] = await db.execute(`
                 SELECT al.*, u.username 
                 FROM action_logs al 
                 LEFT JOIN users u ON al.user_id = u.id 
                 ${where} 
-                ORDER BY al.created_at DESC LIMIT 100
+                ORDER BY al.created_at DESC 
+                LIMIT ${parseInt(limit)} OFFSET ${offset}
             `, params);
 
             const [users] = await db.execute('SELECT id, username FROM users ORDER BY username ASC');
 
             const filter = {
-                user_id: req.query.user_id || '',
+                user_id: user_id || '',
                 startDate: startDate || '',
-                endDate: endDate || ''
+                endDate: endDate || '',
+                limit: parseInt(limit)
             };
 
             res.render('action_logs', {
                 logs,
                 users,
                 filter,
+                pagination: {
+                    currentPage: parseInt(page),
+                    totalPages,
+                    totalItems,
+                    limit: parseInt(limit)
+                },
                 active: 'logs',
                 title: 'บันทึกกิจกรรม',
                 _csrf: req.csrfToken ? req.csrfToken() : ''
