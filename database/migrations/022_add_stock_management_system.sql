@@ -2,8 +2,8 @@
 -- Added manually to sync development with production server
 
 -- 1. Add stock-related columns to the product table
-ALTER TABLE product ADD COLUMN IF NOT EXISTS qty_on_hand DECIMAL(15,4) DEFAULT 0;
-ALTER TABLE product ADD COLUMN IF NOT EXISTS qty_reserved DECIMAL(15,4) DEFAULT 0;
+ALTER TABLE product ADD COLUMN qty_on_hand DECIMAL(15,4) DEFAULT 0;
+ALTER TABLE product ADD COLUMN qty_reserved DECIMAL(15,4) DEFAULT 0;
 
 -- 2. Create tracking table for inventory movements per order
 CREATE TABLE IF NOT EXISTS inventory_movement_status (
