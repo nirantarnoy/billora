@@ -86,10 +86,35 @@ app.use((req, res, next) => {
     security(req, res, next);
 });
 
-// Global Template Variables
-app.use((req, res, next) => {
+// Global Template Variables & Tenant Loading
+app.use(async (req, res, next) => {
     res.locals.user = req.session.user || null;
-    res.locals._csrf = res.locals._csrf || ''; // Lusca usually sets this
+    res.locals._csrf = res.locals._csrf || '';
+
+    if (req.session.user && req.session.user.tenant_id) {
+        try {
+            const pool = require('./config/db');
+            const [tenants] = await pool.query(
+                `SELECT * FROM tenants WHERE id = ? AND is_active = TRUE AND deleted_at IS NULL`,
+                [req.session.user.tenant_id]
+            );
+            if (tenants.length > 0) {
+                const tenant = tenants[0];
+                // Parse features if it's a string
+                if (tenant.features && typeof tenant.features === 'string') {
+                    try {
+                        tenant.features = JSON.parse(tenant.features);
+                    } catch (e) {
+                        tenant.features = {};
+                    }
+                }
+                res.locals.tenant = tenant;
+                req.tenant = tenant; // Also attach to req for controllers
+            }
+        } catch (err) {
+            console.error('Global Tenant Load Error:', err);
+        }
+    }
     next();
 });
 

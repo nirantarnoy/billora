@@ -205,32 +205,82 @@
 
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-4">กำหนดสิทธิ์การเข้าถึงโมดูล</label>
-                <div class="space-y-3 p-4 bg-slate-50 rounded-2xl">
+                <div class="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl">
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" id="perm_dashboard" checked
                             class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">Dashboard</span>
+                        <span class="text-sm font-medium text-slate-700">แผงควบคุม (Dashboard)</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer">
                         <input type="checkbox" id="perm_bills" checked
                             class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">Bills & Receipts</span>
+                        <span class="text-sm font-medium text-slate-700">ใบเสร็จ/รายจ่าย (Bills)</span>
                     </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" id="perm_reports"
-                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">Reports</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" id="perm_users"
-                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">User Management</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" id="perm_settings"
-                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-sm font-medium text-slate-700">Settings</span>
-                    </label>
+
+                    <% let features={}; try { features=typeof tenant.features==='string' ? JSON.parse(tenant.features) :
+                        (tenant.features || {}); } catch(e) {} %>
+
+                        <% if (features.slips) { %>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="perm_slips"
+                                    class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-sm font-medium text-slate-700">สลิปโอนเงิน (Slips)</span>
+                            </label>
+                            <% } %>
+
+                                <% if (features.multichannel) { %>
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" id="perm_multichannel"
+                                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                        <span class="text-sm font-medium text-slate-700">Marketplace</span>
+                                    </label>
+                                    <% } %>
+
+                                        <% if (features.inventory) { %>
+                                            <label class="flex items-center gap-3 cursor-pointer">
+                                                <input type="checkbox" id="perm_inventory"
+                                                    class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                <span class="text-sm font-medium text-slate-700">คลังสินค้า
+                                                    (Inventory)</span>
+                                            </label>
+                                            <% } %>
+
+                                                <% if (features.fulfillment) { %>
+                                                    <label class="flex items-center gap-3 cursor-pointer">
+                                                        <input type="checkbox" id="perm_fulfillment"
+                                                            class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                        <span class="text-sm font-medium text-slate-700">จัดการสินค้า
+                                                            (Fulfillment)</span>
+                                                    </label>
+                                                    <% } %>
+
+                                                        <label class="flex items-center gap-3 cursor-pointer">
+                                                            <input type="checkbox" id="perm_reports"
+                                                                class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                            <span class="text-sm font-medium text-slate-700">รายงาน
+                                                                (Reports)</span>
+                                                        </label>
+                                                        <label class="flex items-center gap-3 cursor-pointer">
+                                                            <input type="checkbox" id="perm_users"
+                                                                class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                            <span
+                                                                class="text-sm font-medium text-slate-700">จัดการผู้ใช้</span>
+                                                        </label>
+                                                        <label class="flex items-center gap-3 cursor-pointer">
+                                                            <input type="checkbox" id="perm_settings"
+                                                                class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                            <span
+                                                                class="text-sm font-medium text-slate-700">ตั้งค่าระบบ</span>
+                                                        </label>
+
+                                                        <% if (features.ai_audit) { %>
+                                                            <label class="flex items-center gap-3 cursor-pointer">
+                                                                <input type="checkbox" id="perm_ai_audit"
+                                                                    class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                                                <span class="text-sm font-medium text-slate-700">AI
+                                                                    Audit</span>
+                                                            </label>
+                                                            <% } %>
                 </div>
             </div>
 
@@ -283,12 +333,17 @@
         document.getElementById('password').required = false;
         document.getElementById('role').value = user.role;
 
-        const perms = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+        const perms = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : (user.permissions || {});
         document.getElementById('perm_dashboard').checked = perms.dashboard || false;
         document.getElementById('perm_bills').checked = perms.bills || false;
+        if (document.getElementById('perm_slips')) document.getElementById('perm_slips').checked = perms.slips || false;
+        if (document.getElementById('perm_multichannel')) document.getElementById('perm_multichannel').checked = perms.multichannel || false;
+        if (document.getElementById('perm_inventory')) document.getElementById('perm_inventory').checked = perms.inventory || false;
+        if (document.getElementById('perm_fulfillment')) document.getElementById('perm_fulfillment').checked = perms.fulfillment || false;
         document.getElementById('perm_reports').checked = perms.reports || false;
         document.getElementById('perm_users').checked = perms.users || false;
         document.getElementById('perm_settings').checked = perms.settings || false;
+        if (document.getElementById('perm_ai_audit')) document.getElementById('perm_ai_audit').checked = perms.ai_audit || false;
 
         modal.classList.remove('modal-hidden');
     }
@@ -310,9 +365,14 @@
             permissions: {
                 dashboard: document.getElementById('perm_dashboard').checked,
                 bills: document.getElementById('perm_bills').checked,
+                slips: document.getElementById('perm_slips')?.checked || false,
+                multichannel: document.getElementById('perm_multichannel')?.checked || false,
+                inventory: document.getElementById('perm_inventory')?.checked || false,
+                fulfillment: document.getElementById('perm_fulfillment')?.checked || false,
                 reports: document.getElementById('perm_reports').checked,
                 users: document.getElementById('perm_users').checked,
-                settings: document.getElementById('perm_settings').checked
+                settings: document.getElementById('perm_settings').checked,
+                ai_audit: document.getElementById('perm_ai_audit')?.checked || false
             }
         };
 

@@ -16,8 +16,11 @@
 
     <nav class="space-y-6 flex-1 overflow-y-auto no-scrollbar">
         <!-- OCR & Accounting Module -->
-        <% if (typeof user !=='undefined' && user && (user.permissions?.ocr_basic || user.permissions?.dashboard ||
-            user.role==='admin' || user.role==='owner' )) { %>
+        <% const features=typeof tenant !=='undefined' ? (tenant.features || {}) : {}; if (typeof user !=='undefined' &&
+            user && ( ((user.permissions?.dashboard || user.role==='admin' || user.role==='owner' ) &&
+            (features.dashboard !==false)) || ((user.permissions?.bills || user.role==='admin' || user.role==='owner' )
+            && features.bills) || ((user.permissions?.slips || user.role==='admin' || user.role==='owner' ) &&
+            features.slips) )) { %>
             <div class="space-y-1">
                 <p class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">OCR &
                     Accounting</p>
@@ -42,7 +45,7 @@
 
                 <!-- Marketplace Module -->
                 <% if (typeof user !=='undefined' && user && (user.permissions?.multichannel || user.role==='admin' ||
-                    user.role==='owner' )) { %>
+                    user.role==='owner' ) && features.multichannel) { %>
                     <div class="space-y-1">
                         <p class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
                             Marketplace</p>
@@ -66,8 +69,10 @@
                     <% } %>
 
                         <!-- Fulfillment Module -->
-                        <% if (typeof user !=='undefined' && user && (user.permissions?.fulfillment ||
-                            user.role==='admin' || user.role==='owner' )) { %>
+                        <% if (typeof user !=='undefined' && user && ( ((user.permissions?.fulfillment ||
+                            user.role==='admin' || user.role==='owner' ) && features.fulfillment) ||
+                            ((user.permissions?.inventory || user.role==='admin' || user.role==='owner' ) &&
+                            features.inventory) )) { %>
                             <div class="space-y-1">
                                 <p
                                     class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
