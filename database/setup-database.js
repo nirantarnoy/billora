@@ -175,6 +175,10 @@ async function setupDatabase() {
             {
                 file: '021_create_marketplace_connections_table.sql',
                 name: 'สร้างตาราง Marketplace Connections (เก็บ API Key ปลอดภัย)'
+            },
+            {
+                file: '022_add_stock_management_system.sql',
+                name: 'สร้างระบบจัดการสต๊อก (เพิ่มคอลัมน์และตารางติดตาม)'
             }
         ];
 
