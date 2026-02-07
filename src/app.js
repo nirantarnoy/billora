@@ -48,14 +48,14 @@ app.use(helmet({
 }));
 
 app.use(session({
-    secret: 'billora-secret-key',
+    secret: process.env.SESSION_SECRET || 'billora-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000,
         httpOnly: true,
-        // secure: process.env.NODE_ENV === 'production' // Temporarily disable secure cookie to fix proxy issues
-        secure: false
+        secure: false, // Set to true if using HTTPS in production
+        sameSite: 'lax'
     }
 }));
 
