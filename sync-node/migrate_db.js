@@ -77,7 +77,7 @@ async function migrate() {
             UNIQUE KEY uq_user_order (user_id, order_id),
             INDEX idx_user_id (user_id),
             INDEX idx_order_sn (order_sn)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
     // 4. Products (Per User)

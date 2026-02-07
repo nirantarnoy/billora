@@ -373,7 +373,7 @@ class FulfillmentController {
                 AND sku IS NOT NULL AND sku != ''
                 AND NOT EXISTS (
                     SELECT 1 FROM products p 
-                    WHERE (p.sku = o.sku OR p.code = o.sku) AND p.tenant_id = ?
+                    WHERE (p.sku = o.sku COLLATE utf8mb4_unicode_ci OR p.code = o.sku COLLATE utf8mb4_unicode_ci) AND p.tenant_id = ?
                 )
             `;
             const [candidates] = await db.execute(sql, [...userIds, tenantId]);
