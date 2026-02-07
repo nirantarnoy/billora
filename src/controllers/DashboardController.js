@@ -10,8 +10,17 @@ class DashboardController {
           (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
           (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
           (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count
-      `, [tenantId, tenantId, tenantId, tenantId]);
+          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count,
+          (SELECT COUNT(*) FROM products WHERE tenant_id=?) AS product_count,
+          (SELECT COUNT(*) FROM (
+             SELECT p.id 
+             FROM products p
+             LEFT JOIN inventory_balances b ON p.id = b.product_id
+             WHERE p.tenant_id = ? AND p.min_stock > 0
+             GROUP BY p.id
+             HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
+          ) AS low_stock) AS low_stock_count
+      `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
 
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
@@ -50,10 +59,19 @@ class DashboardController {
           (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
           (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
           (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count
-      `, [tenantId, tenantId, tenantId, tenantId]);
+          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count,
+          (SELECT COUNT(*) FROM products WHERE tenant_id=?) AS product_count,
+          (SELECT COUNT(*) FROM (
+             SELECT p.id 
+             FROM products p
+             LEFT JOIN inventory_balances b ON p.id = b.product_id
+             WHERE p.tenant_id = ? AND p.min_stock > 0
+             GROUP BY p.id
+             HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
+          ) AS low_stock) AS low_stock_count
+      `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
 
-            const summary = summaryRows[0] || { bill_count: 0, total_sales: 0, total_vat: 0, slip_count: 0 };
+            const summary = summaryRows[0] || { bill_count: 0, total_sales: 0, total_vat: 0, slip_count: 0, product_count: 0, low_stock_count: 0 };
 
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
@@ -63,6 +81,7 @@ class DashboardController {
       `, [tenantId]);
 
             const slipStats = { BROWSER: 0, MOBILE: 0, LINE: 0, TOTAL: 0 };
+
             slipStatsRaw.forEach(row => {
                 const amount = Number(row.total_amount) || 0;
                 if (slipStats.hasOwnProperty(row.source)) slipStats[row.source] = amount;
@@ -78,7 +97,9 @@ class DashboardController {
                     bill_count: Number(summary.bill_count),
                     total_sales: Number(summary.total_sales),
                     total_vat: Number(summary.total_vat),
-                    slip_count: Number(summary.slip_count)
+                    slip_count: Number(summary.slip_count),
+                    product_count: Number(summary.product_count),
+                    low_stock_count: Number(summary.low_stock_count)
                 },
                 slipStats,
                 latestBills: latestBills.map(b => ({ ...b, total_amount: Number(b.total_amount) })),

@@ -74,6 +74,48 @@
         </div>
     </div>
 
+    <!-- Inventory Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Products Total -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100 flex items-center gap-6">
+            <div class="w-14 h-14 bg-blue-500/10 rounded-2xl flex items-center justify-center">
+                <i class="fas fa-boxes text-blue-600 text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">สินค้าทั้งหมดในระบบ</p>
+                <h3 class="text-3xl font-bold text-slate-800">
+                    <%= summary.product_count || 0 %> <span class="text-sm font-normal text-slate-400">รายการ</span>
+                </h3>
+            </div>
+        </div>
+
+        <!-- Low Stock Items -->
+        <div class="bg-white p-6 rounded-3xl stat-card border border-slate-100 flex items-center gap-6">
+            <div
+                class="w-14 h-14 <%= summary.low_stock_count > 0 ? 'bg-red-500/10' : 'bg-emerald-500/10' %> rounded-2xl flex items-center justify-center">
+                <i
+                    class="fas fa-exclamation-triangle <%= summary.low_stock_count > 0 ? 'text-red-600' : 'text-emerald-600' %> text-2xl"></i>
+            </div>
+            <div>
+                <p class="text-slate-500 text-sm font-medium">สินค้าเหลือน้อย (Low Stock)</p>
+                <div class="flex items-center gap-3">
+                    <h3
+                        class="text-3xl font-bold <%= summary.low_stock_count > 0 ? 'text-red-600' : 'text-slate-800' %>">
+                        <%= summary.low_stock_count || 0 %>
+                    </h3>
+                    <% if (summary.low_stock_count> 0) { %>
+                        <a href="/inventory/purchase-plan"
+                            class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg font-bold hover:bg-red-200 transition-colors">
+                            ดูแผนสั่งซื้อ
+                        </a>
+                        <% } else { %>
+                            <span class="text-xs text-emerald-600 font-bold italic">Stock OK</span>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW: Slip Channel Totals Header -->
     <div class="mb-6">
         <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest">สรุปยอดเงินตามช่องทาง (สลิป)

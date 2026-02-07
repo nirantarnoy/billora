@@ -17,10 +17,10 @@
     <nav class="space-y-6 flex-1 overflow-y-auto no-scrollbar">
         <!-- OCR & Accounting Module -->
         <% const features=typeof tenant !=='undefined' ? (tenant.features || {}) : {}; if (typeof user !=='undefined' &&
-            user && ( ((user.permissions?.dashboard || user.role==='admin' || user.role==='owner' ) &&
-            (features.dashboard !==false)) || ((user.permissions?.bills || user.role==='admin' || user.role==='owner' )
-            && features.bills) || ((user.permissions?.slips || user.role==='admin' || user.role==='owner' ) &&
-            features.slips) )) { %>
+            user && ( ((user.role==='admin' || user.role==='owner' || user.permissions?.dashboard ) &&
+            (features.dashboard !==false)) || ((user.role==='admin' || user.role==='owner' || user.permissions?.bills )
+            && features.bills !==false) || ((user.role==='admin' || user.role==='owner' || user.permissions?.slips ) &&
+            features.slips !==false) )) { %>
             <% if ((user.permissions?.dashboard || user.role==='admin' || user.role==='owner' ) && (features.dashboard
                 !==false)) { %>
                 <a href="/dashboard"
@@ -29,16 +29,16 @@
                 </a>
                 <% } %>
 
-                    <% if ((user.permissions?.bills || user.role==='admin' || user.role==='owner' ) && (features.bills
-                        || features.ocr)) { %>
+                    <% if ((user.role==='admin' || user.role==='owner' || user.permissions?.bills ) && (features.bills
+                        !==false || features.ocr !==false)) { %>
                         <a href="/bills"
                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'bills') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-file-invoice-dollar w-5"></i> ใบเสร็จและรายจ่าย
                         </a>
                         <% } %>
 
-                            <% if ((user.permissions?.slips || user.role==='admin' || user.role==='owner' ) &&
-                                (features.slips || features.ocr)) { %>
+                            <% if ((user.role==='admin' || user.role==='owner' || user.permissions?.slips ) &&
+                                (features.slips !==false || features.ocr !==false)) { %>
                                 <a href="/slips"
                                     class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'slips') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                     <i class="fas fa-exchange-alt w-5"></i> สลิปโอนเงิน
@@ -56,15 +56,15 @@
                                             <% } %>
 
                                                 <!-- Marketplace Module -->
-                                                <% if (typeof user !=='undefined' && user &&
-                                                    (user.permissions?.multichannel || user.role==='admin' ||
-                                                    user.role==='owner' ) && features.multichannel) { %>
+                                                <% if (typeof user !=='undefined' && user && (user.role==='admin' ||
+                                                    user.role==='owner' || user.permissions?.multichannel ) &&
+                                                    features.multichannel !==false) { %>
                                                     <div class="space-y-1">
                                                         <p
                                                             class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
                                                             Marketplace</p>
-                                                        <% if (user.permissions?.multichannel || user.role==='admin' ||
-                                                            user.role==='owner' ) { %>
+                                                        <% if (user.role==='admin' || user.role==='owner' ||
+                                                            user.permissions?.multichannel ) { %>
                                                             <a href="/channels"
                                                                 class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'channels') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                                                 <i class="fas fa-plug w-5"></i> เชื่อมต่อร้านค้า
@@ -88,17 +88,18 @@
 
                                                         <!-- Fulfillment Module -->
                                                         <% if (typeof user !=='undefined' && user && (
-                                                            ((user.permissions?.fulfillment || user.role==='admin' ||
-                                                            user.role==='owner' ) && features.fulfillment) ||
-                                                            ((user.permissions?.inventory || user.role==='admin' ||
-                                                            user.role==='owner' ) && features.inventory) )) { %>
+                                                            ((user.role==='admin' || user.role==='owner' ||
+                                                            user.permissions?.fulfillment ) && features.fulfillment
+                                                            !==false) || ((user.role==='admin' || user.role==='owner' ||
+                                                            user.permissions?.inventory ) && features.inventory
+                                                            !==false) )) { %>
                                                             <div class="space-y-1">
                                                                 <p
                                                                     class="px-3 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
                                                                     Fulfillment & Stock</p>
-                                                                <% if ((user.permissions?.fulfillment ||
-                                                                    user.role==='admin' || user.role==='owner' ) &&
-                                                                    features.fulfillment) { %>
+                                                                <% if ((user.role==='admin' || user.role==='owner' ||
+                                                                    user.permissions?.fulfillment ) &&
+                                                                    features.fulfillment !==false) { %>
                                                                     <a href="/fulfillment/warehouses"
                                                                         class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory' && (typeof title !== 'undefined' && title && title.includes('คลัง'))) ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                                                         <i class="fas fa-warehouse w-5"></i> คลังสินค้า
@@ -109,9 +110,10 @@
                                                                     </a>
                                                                     <% } %>
 
-                                                                        <% if ((user.permissions?.inventory ||
-                                                                            user.role==='admin' || user.role==='owner' )
-                                                                            && features.inventory) { %>
+                                                                        <% if ((user.role==='admin' ||
+                                                                            user.role==='owner' ||
+                                                                            user.permissions?.inventory ) &&
+                                                                            features.inventory !==false) { %>
                                                                             <a href="/inventory/balances"
                                                                                 class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'inventory-balance') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                                                                 <i class="fas fa-boxes w-5"></i>
@@ -163,13 +165,13 @@
                                                                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'backup') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                                                             <i class="fas fa-clock"></i> Auto Backup
                                                                         </a>
-                                                                        <a href="/admin/tenants"
-                                                                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-tenants') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
-                                                                            <i class="fas fa-building"></i> จัดการ
-                                                                            Tenant
-                                                                        </a>
                                                                         <% if (typeof user !=='undefined' && user &&
                                                                             user.tenant_id===1) { %>
+                                                                            <a href="/admin/tenants"
+                                                                                class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-tenants') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                                                                                <i class="fas fa-building"></i> จัดการ
+                                                                                Tenant
+                                                                            </a>
                                                                             <a href="/admin/plans"
                                                                                 class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'admin-plans') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                                                                                 <i class="fas fa-boxes"></i>
