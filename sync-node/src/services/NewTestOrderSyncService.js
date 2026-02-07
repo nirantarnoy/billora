@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const moment = require('moment');
 const db = require('../models/db');
+const StockService = require('./StockService');
 
 class NewTestOrderSyncService {
     constructor() {
@@ -132,6 +133,20 @@ class NewTestOrderSyncService {
                         orderDate, orderDetail.order_status
                     ]);
                     if (res.affectedRows > 0) count++;
+
+                    // --- AUTO STOCK LOGIC ---
+                    try {
+                        const status = orderDetail.order_status;
+                        if (['READY_TO_SHIP', 'PROCESSED', 'SHIPPED'].includes(status)) {
+                            await StockService.reserveStock(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                        } else if (status === 'COMPLETED') {
+                            await StockService.deductStock(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                        } else if (status === 'CANCELLED') {
+                            await StockService.cancelReservation(userId, orderDetail.order_sn, sku, item.quantity_purchased);
+                        }
+                    } catch (stockErr) {
+                        console.error(`[Stock Sync Error] Order ${orderDetail.order_sn}:`, stockErr.message);
+                    }
                 }
             }
         } catch (error) {

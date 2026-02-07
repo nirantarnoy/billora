@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const moment = require('moment');
 const db = require('../models/db');
+const StockService = require('./StockService');
 
 class OrderSyncService {
     constructor() {
@@ -86,6 +87,20 @@ class OrderSyncService {
                 item.product_name, item.quantity, price, item.quantity * price, orderDate, orderData.status
             ]);
             if (res.affectedRows > 0) savedCount++;
+
+            // --- AUTO STOCK LOGIC ---
+            try {
+                const status = orderData.status;
+                if (['AWAITING_SHIPMENT', 'AWAITING_COLLECTION', 'PICKED_UP', 'IN_TRANSIT'].includes(status)) {
+                    await StockService.reserveStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                } else if (['DELIVERED', 'COMPLETED'].includes(status)) {
+                    await StockService.deductStock(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                } else if (status === 'CANCELLED') {
+                    await StockService.cancelReservation(userId, orderData.id, item.sku_id || item.seller_sku, item.quantity);
+                }
+            } catch (stockErr) {
+                console.error(`[Stock Sync Error] TikTok Order ${orderData.id}:`, stockErr.message);
+            }
         }
         return savedCount;
     }
