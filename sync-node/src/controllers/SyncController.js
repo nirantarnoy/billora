@@ -47,7 +47,17 @@ class SyncController {
                 console.log(`>>> Syncing for User ID: ${userId}`);
 
                 // 2. Sync Orders สำหรับ User นี้
-                const [channels] = await db.execute('SELECT * FROM online_channel WHERE user_id = ? AND status = 1', [userId]);
+                const [allChannels] = await db.execute('SELECT * FROM online_channel WHERE user_id = ? AND status = 1', [userId]);
+
+                // กรองช่องทางไม่ให้ซ้ำซ้อนกันในระดับโปรแกรม (ป้องกัน DB ที่มีข้อมูลขยะ)
+                const channels = [];
+                const seenPlatforms = new Set();
+                for (const ch of allChannels) {
+                    if (!seenPlatforms.has(ch.name)) {
+                        seenPlatforms.add(ch.name);
+                        channels.push(ch);
+                    }
+                }
 
                 for (const channel of channels) {
                     const startTime = moment().format('YYYY-MM-DD HH:mm:ss');
