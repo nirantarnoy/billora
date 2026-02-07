@@ -179,6 +179,10 @@ async function setupDatabase() {
             {
                 file: '022_add_stock_management_system.sql',
                 name: 'สร้างระบบจัดการสต๊อก (เพิ่มคอลัมน์และตารางติดตาม)'
+            },
+            {
+                file: '023_update_marketplace_mappings_schema.sql',
+                name: 'ปรับปรุงโครงสร้างตาราง Mapping สินค้า (เพิ่ม Model ID, SKU ID)'
             }
         ];
 
