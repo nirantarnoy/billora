@@ -35,6 +35,10 @@
                             class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'bills') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
                             <i class="fas fa-file-invoice-dollar w-5"></i> ใบเสร็จและรายจ่าย
                         </a>
+                        <a href="/ocr-templates"
+                            class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'ocr_templates') ? 'sidebar-active' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' %> rounded-xl transition-all">
+                            <i class="fas fa-magic w-5"></i> แม่แบบการสแกน (Templates)
+                        </a>
                         <% } %>
 
                             <% if ((user.role==='admin' || user.role==='owner' || user.permissions?.slips ) &&

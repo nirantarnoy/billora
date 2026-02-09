@@ -208,17 +208,21 @@ class UserModel {
      */
     static async update(tenantId, userId, data) {
         const allowedFields = [
-            'first_name', 'last_name', 'phone', 'avatar_url', 'permissions'
+            'username', 'email', 'first_name', 'last_name', 'phone', 'avatar_url', 'permissions', 'password'
         ];
 
         const updates = [];
         const params = [];
 
         for (const field of allowedFields) {
-            if (data[field] !== undefined) {
+            if (data[field] !== undefined && data[field] !== '') {
                 if (field === 'permissions') {
                     updates.push(`${field} = ?`);
                     params.push(JSON.stringify(data[field]));
+                } else if (field === 'password') {
+                    const password_hash = await bcrypt.hash(data[field], 10);
+                    updates.push(`password_hash = ?`);
+                    params.push(password_hash);
                 } else {
                     updates.push(`${field} = ?`);
                     params.push(data[field]);

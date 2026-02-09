@@ -22,6 +22,13 @@ router.get('/dashboard', isAuthenticated, DashboardController.viewDashboard);
 // Bills
 router.get('/bills', isAuthenticated, hasPermission('bills'), BillController.listBills);
 
+// OCR Templates
+const OcrTemplateController = require('../controllers/OcrTemplateController');
+router.get('/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.listTemplates);
+router.post('/api/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.createTemplate);
+router.put('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.updateTemplate);
+router.delete('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.deleteTemplate);
+
 // Slips & History
 router.get('/slips', isAuthenticated, hasPermission('slips'), SlipController.listSlips);
 router.get('/history', isAuthenticated, isAdmin, SlipController.listOcrLogs);

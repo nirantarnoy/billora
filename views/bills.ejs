@@ -141,16 +141,37 @@
                                     </td>
                                     <td class="px-8 py-5 text-right">
                                         <div class="flex items-center justify-end gap-3">
-                                            <button onclick="viewDetails(this)"
-                                                data-items='<%= JSON.stringify(bill.items || []) %>'
-                                                data-store='<%= bill.store_name || "ไม่ระบุ" %>'
-                                                data-total='<%= bill.total_amount || 0 %>'
-                                                data-vat='<%= bill.vat || 0 %>'
-                                                class="text-slate-400 hover:text-indigo-600 transition-colors"><i
-                                                    class="fas fa-list-ul"></i></button>
-                                            <button onclick="deleteBill(<%= bill.id %>)"
-                                                class="text-slate-300 hover:text-rose-500 transition-colors"><i
-                                                    class="fas fa-trash-alt"></i></button>
+                                            <% if (bill.sync_status==='pending' || bill.sync_status==='failed' ) { %>
+                                                <button onclick="syncBill(<%= bill.id %>)"
+                                                    class="text-amber-500 hover:text-amber-600 transition-colors"
+                                                    title="Sync to External System">
+                                                    <i class="fas fa-sync"></i>
+                                                </button>
+                                                <% } else if (bill.sync_status==='synced' ) { %>
+                                                    <i class="fas fa-check-circle text-emerald-500 shadow-sm"
+                                                        title="Synced: <%= bill.external_id %>"></i>
+                                                    <% } %>
+
+                                                        <button onclick="editBill(this)" data-id="<%= bill.id %>"
+                                                            data-store="<%= bill.store_name %>"
+                                                            data-date="<%= bill.date ? new Date(bill.date).toISOString().split('T')[0] : '' %>"
+                                                            data-amount="<%= bill.total_amount %>"
+                                                            data-vat="<%= bill.vat %>"
+                                                            data-items='<%= JSON.stringify(bill.items || []) %>'
+                                                            class="text-slate-400 hover:text-indigo-600 transition-colors">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+
+                                                        <button onclick="viewDetails(this)"
+                                                            data-items='<%= JSON.stringify(bill.items || []) %>'
+                                                            data-store='<%= bill.store_name || "ไม่ระบุ" %>'
+                                                            data-total='<%= bill.total_amount || 0 %>'
+                                                            data-vat='<%= bill.vat || 0 %>'
+                                                            class="text-slate-400 hover:text-indigo-600 transition-colors"><i
+                                                                class="fas fa-list-ul"></i></button>
+                                                        <button onclick="deleteBill(<%= bill.id %>)"
+                                                            class="text-slate-300 hover:text-rose-500 transition-colors"><i
+                                                                class="fas fa-trash-alt"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -161,6 +182,79 @@
     </div>
 </div>
 
+<!-- Edit Bill Modal -->
+<div id="edit-bill-modal"
+    class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-6">
+    <div class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden shadow-emerald-900/10">
+        <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
+            <div>
+                <h3 class="text-2xl font-black text-slate-800">แก้ไขข้อมูลบิล</h3>
+                <p class="text-slate-400 text-sm">ตรวจสอบและแก้ไขสิ่งที่ AI อ่านผิดพลาด</p>
+            </div>
+            <button onclick="closeEditModal()"
+                class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="edit-bill-form" class="p-8 space-y-6 max-h-[70vh] overflow-y-auto no-scrollbar">
+            <input type="hidden" id="edit-bill-id">
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ชื่อร้านค้า</label>
+                    <input type="text" id="edit-store-name" required
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                </div>
+                <div class="space-y-2">
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">วันที่ในบิล</label>
+                    <input type="date" id="edit-date" required
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-indigo-600">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ยอดรวมภาษี
+                        (VAT)</label>
+                    <input type="number" step="0.01" id="edit-vat"
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ยอดรวมสุทธิ
+                        (Grand Total)</label>
+                    <input type="number" step="0.01" id="edit-total" required
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-emerald-600">
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">รายการสินค้า</label>
+                    <button type="button" onclick="addItem()"
+                        class="text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                        <i class="fas fa-plus-circle mr-1"></i> เพิ่มรายการ
+                    </button>
+                </div>
+                <div id="edit-items-container" class="space-y-3">
+                    <!-- Items -->
+                </div>
+            </div>
+
+            <div class="pt-4 flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-2xl font-bold transition-all">บันทึกการแก้ไข</button>
+                <button type="button" onclick="closeEditModal()"
+                    class="px-8 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-50 transition-all">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Image Modal -->
 <div id="image-modal"
     class="hidden fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md items-center justify-center p-6"
     onclick="closeImageModal()">
@@ -177,12 +271,14 @@
         document.getElementById('image-modal').classList.remove('hidden');
         document.getElementById('image-modal').classList.add('flex');
     }
+
     function closeImageModal() {
         document.getElementById('image-modal').classList.add('hidden');
         document.getElementById('image-modal').classList.remove('flex');
     }
-    function deleteBill(id) {
-        Swal.fire({
+
+    async function deleteBill(id) {
+        const result = await Swal.fire({
             title: 'ยืนยันการลบ?',
             text: "ข้อมูลนี้จะถูกลบถาวร",
             icon: 'warning',
@@ -191,73 +287,140 @@
             confirmButtonText: 'ลบทิ้ง',
             cancelButtonText: 'ยกเลิก',
             customClass: { popup: 'rounded-3xl' }
-        }).then(async r => {
-            if (r.isConfirmed) {
-                const res = await fetch(`/api/bills/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': getCsrfToken() }
-                });
-                const data = await res.json();
-                if (data.success) window.location.reload();
-            }
         });
+
+        if (result.isConfirmed) {
+            const res = await fetch(`/api/bills/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+            });
+            const data = await res.json();
+            if (data.success) window.location.reload();
+        }
     }
+
+    async function syncBill(id) {
+        try {
+            const res = await fetch(`/api/bills/${id}/sync`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire('สำเร็จ', `ส่งข้อมูลเข้าระบบเรียบร้อย (External ID: ${data.external_id})`, 'success').then(() => window.location.reload());
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (err) {
+            Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้', 'error');
+        }
+    }
+
+    function editBill(btn) {
+        const id = btn.getAttribute('data-id');
+        const store = btn.getAttribute('data-store');
+        const date = btn.getAttribute('data-date');
+        const amount = btn.getAttribute('data-amount');
+        const vat = btn.getAttribute('data-vat');
+        const items = JSON.parse(btn.getAttribute('data-items') || '[]');
+
+        document.getElementById('edit-bill-id').value = id;
+        document.getElementById('edit-store-name').value = store || '';
+        document.getElementById('edit-date').value = date;
+        document.getElementById('edit-vat').value = vat || 0;
+        document.getElementById('edit-total').value = amount || 0;
+
+        const container = document.getElementById('edit-items-container');
+        container.innerHTML = '';
+        items.forEach(item => container.appendChild(createItemRow(item)));
+
+        document.getElementById('edit-bill-modal').classList.remove('hidden');
+        document.getElementById('edit-bill-modal').classList.add('flex');
+    }
+
+    function createItemRow(item = {}) {
+        const div = document.createElement('div');
+        div.className = 'item-row grid grid-cols-12 gap-3 items-center bg-slate-50 p-4 rounded-2xl border border-slate-100';
+        div.innerHTML = `
+            <div class="col-span-6">
+                <input type="text" placeholder="ชื่อสินค้า" class="item-name w-full bg-transparent text-sm font-bold text-slate-800 outline-none" value="${item.name || item.product_name || ''}">
+            </div>
+            <div class="col-span-2">
+                <input type="number" placeholder="จำนวน" class="item-qty w-full bg-transparent text-sm font-bold text-slate-800 outline-none" value="${item.qty || item.quantity || 1}">
+            </div>
+            <div class="col-span-3">
+                <input type="number" step="0.01" placeholder="ราคา" class="item-price w-full bg-transparent text-sm font-bold text-emerald-600 outline-none" value="${item.price || 0}">
+            </div>
+            <div class="col-span-1 text-right">
+                <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-rose-400 hover:text-rose-600"><i class="fas fa-minus-circle"></i></button>
+            </div>
+        `;
+        return div;
+    }
+
+    function addItem() {
+        document.getElementById('edit-items-container').appendChild(createItemRow());
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-bill-modal').classList.add('hidden');
+        document.getElementById('edit-bill-modal').classList.remove('flex');
+    }
+
+    document.getElementById('edit-bill-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-bill-id').value;
+        const items = Array.from(document.querySelectorAll('.item-row')).map(row => ({
+            product_name: row.querySelector('.item-name').value,
+            quantity: parseFloat(row.querySelector('.item-qty').value) || 0,
+            price: parseFloat(row.querySelector('.item-price').value) || 0
+        }));
+
+        const data = {
+            store_name: document.getElementById('edit-store-name').value,
+            date: document.getElementById('edit-date').value,
+            vat: parseFloat(document.getElementById('edit-vat').value) || 0,
+            total_amount: parseFloat(document.getElementById('edit-total').value) || 0,
+            items: items
+        };
+
+        const res = await fetch(`/api/bills/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) window.location.reload();
+        else alert(result.error);
+    }
+
     function viewDetails(btn) {
         const items = JSON.parse(btn.getAttribute('data-items') || '[]');
         const storeName = btn.getAttribute('data-store') || 'ไม่ระบุ';
         const totalAmount = parseFloat(btn.getAttribute('data-total')) || 0;
         const vat = parseFloat(btn.getAttribute('data-vat')) || 0;
 
-        const itemsList = Array.isArray(items) ? items : [];
-        const itemsHtml = itemsList.map(item => {
-            const name = item.name || item.product_name || 'ไม่ระบุรายการ';
-            const qty = item.qty || item.quantity || 1;
-            const price = item.price || 0;
-            const total = item.total || (qty * price);
-            return `
+        const itemsHtml = items.map(item => `
             <div class="py-3 border-b border-slate-100 last:border-0 text-left">
-                <div class="flex justify-between items-start mb-1">
-                    <span class="text-sm font-bold text-slate-800 flex-1">${name}</span>
-                    <span class="text-sm font-black text-indigo-600 ml-4">฿${Number(total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <div class="flex justify-between items-start">
+                    <span class="text-sm font-bold text-slate-800 flex-1">${item.name || item.product_name || 'ไม่ระบุ'}</span>
+                    <span class="text-sm font-black text-indigo-600 ml-4">฿${Number(item.total || (item.qty || item.quantity || 1) * (item.price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div class="flex justify-between text-[11px] text-slate-500 font-medium">
-                    <span>จำนวน: ${Number(qty).toLocaleString()} x ฿${Number(price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
+                <div class="text-[10px] text-slate-400">จำนวน: ${item.qty || item.quantity || 1} x ฿${Number(item.price || 0).toLocaleString()}</div>
             </div>
-        `}).join('');
-
-        const subtotal = Number(totalAmount) - Number(vat);
-        const summaryHtml = `
-            <div class="mt-6 pt-6 border-t-2 border-dashed border-slate-100">
-                <div class="flex justify-between items-center mb-2 text-slate-500 text-sm">
-                    <span>ยอดรวมก่อนภาษี (Subtotal)</span>
-                    <span>฿${Number(subtotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div class="flex justify-between items-center mb-3 text-slate-500 text-sm">
-                    <span>ภาษีมูลค่าเพิ่ม (VAT 7%)</span>
-                    <span>฿${Number(vat).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-                <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                    <span class="font-bold text-slate-800">ยอดรวมสุทธิ (Grand Total)</span>
-                    <span class="text-xl font-black text-indigo-600">฿${Number(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                </div>
-            </div>
-        `;
+        `).join('');
 
         Swal.fire({
-            title: `<div class="text-left"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">รายละเอียดรายการ</p><h3 class="text-xl font-bold text-slate-800">${storeName || 'ไม่ระบุร้านค้า'}</h3></div>`,
-            html: `
-                <div class="mt-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">${itemsHtml || '<p class="text-slate-400 py-4 text-center">ไม่พบรายละเอียดรายการ</p>'}</div>
-                ${summaryHtml}
-            `,
-            showCloseButton: true,
-            showConfirmButton: false,
-            customClass: { popup: 'rounded-[32px] p-8 w-full max-w-lg' }
+            title: `<div class="text-left"><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">รายละเอียดรายการ</p><h3 class="text-xl font-bold text-slate-800">${storeName}</h3></div>`,
+            html: `<div class="mt-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">${itemsHtml || 'ไม่มีรายการ'}</div>
+                   <div class="mt-6 pt-6 border-t-2 border-dashed border-slate-100 space-y-2">
+                        <div class="flex justify-between text-slate-500 text-sm"><span>VAT 7%</span><span>฿${Number(vat).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div>
+                        <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl"><span class="font-bold">Total</span><span class="text-xl font-black text-indigo-600">฿${Number(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div>
+                   </div>`,
+            showCloseButton: true, showConfirmButton: false, customClass: { popup: 'rounded-[32px] p-8 max-w-lg w-full' }
         });
     }
 </script>
 
 <%- include('partials/scan-modal') %>
-    <script>
-        window.SHOULD_RELOAD_ON_UPLOAD = true;
-    </script>
+    <script>window.SHOULD_RELOAD_ON_UPLOAD = true;</script>

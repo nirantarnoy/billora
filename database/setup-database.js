@@ -195,6 +195,10 @@ async function setupDatabase() {
             {
                 file: '024_add_source_platform_to_inventory.sql',
                 name: 'เพิ่มคอลัมน์ช่องทาง (source_platform) ในประวัติสินค้า'
+            },
+            {
+                file: '025_add_ocr_templates.sql',
+                name: 'สร้างตาราง OCR Templates และเพิ่มสถานะการเชื่อมต่อบิล'
             }
         ];
 
@@ -218,13 +222,17 @@ async function setupDatabase() {
                 try {
                     await connection.query(statement);
                 } catch (error) {
+                    const isDuplicateKey = error.code === 'ER_FK_DUP_NAME' ||
+                        (error.code === 'ER_CANT_CREATE_TABLE' && error.errno === 1005 && error.sqlMessage.includes('errno: 121')) ||
+                        (error.errno === 121);
+
                     if (error.code === 'ER_TABLE_EXISTS_ERROR') {
                         // Table exists, ignore
                     } else if (error.code === 'ER_DUP_FIELDNAME') {
                         // Column exists, ignore
                     } else if (error.code === 'ER_DUP_KEYNAME') {
                         // Index exists, ignore
-                    } else if (error.code === 'ER_FK_DUP_NAME' || (error.code === 'ER_CANT_CREATE_TABLE' && error.errno === 121)) {
+                    } else if (isDuplicateKey || error.code === 'ER_FK_DUP_NAME' || (error.code === 'ER_CANT_CREATE_TABLE' && error.errno === 121)) {
                         // Foreign key already exists, ignore
                     } else if (error.code === 'ER_BAD_FIELD_ERROR' && migration.file === '004_create_tenant_subscriptions_table.sql') {
                         // Specific fix for existing table structure

@@ -42,7 +42,7 @@ class UserController {
 
             if (password) {
                 const hashedPassword = await bcrypt.hash(password, 10);
-                query += ', password = ?';
+                query += ', password_hash = ?';
                 params.push(hashedPassword);
             }
 

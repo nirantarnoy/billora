@@ -122,7 +122,7 @@
                                 class="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all">
                                 บันทึกข้อมูล
                             </button>
-                            <button type="button"
+                            <button type="button" onclick="openPasswordModal()"
                                 class="px-10 py-4 bg-slate-50 text-slate-600 rounded-2xl font-bold hover:bg-slate-100 transition-all border border-slate-100">
                                 เปลี่ยนรหัสผ่าน
                             </button>
@@ -293,6 +293,49 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Password Change Modal -->
+<div id="passwordModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-white">
+        <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+                <h3 class="text-xl font-black text-slate-800 tracking-tight">เปลี่ยนรหัสผ่าน</h3>
+                <p class="text-slate-400 font-medium text-xs">รักษาความปลอดภัยให้กับบัญชีของคุณ</p>
+            </div>
+            <button onclick="closePasswordModal()"
+                class="w-10 h-10 rounded-xl hover:bg-white text-slate-400 transition-all border border-slate-100 flex items-center justify-center hover:text-red-500 shadow-sm">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="passwordForm" class="p-8 space-y-6">
+            <div>
+                <label
+                    class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">รหัสผ่านเดิม</label>
+                <input type="password" name="currentPassword" required
+                    class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-bold transition-all">
+            </div>
+            <div>
+                <label
+                    class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">รหัสผ่านใหม่</label>
+                <input type="password" name="newPassword" required minlength="6"
+                    class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-bold transition-all">
+            </div>
+            <div>
+                <label
+                    class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">ยืนยันรหัสผ่านใหม่</label>
+                <input type="password" name="confirmPassword" required minlength="6"
+                    class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none font-bold transition-all">
+            </div>
+            <div class="pt-4">
+                <button type="submit"
+                    class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 hover:scale-[1.02] active:scale-95 transition-all">
+                    อัปเดตรหัสผ่าน
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -469,6 +512,49 @@
     const planModal = document.getElementById('planModal');
     function openPlanModal() { planModal.classList.remove('hidden'); }
     function closePlanModal() { planModal.classList.add('hidden'); }
+
+    const passwordModal = document.getElementById('passwordModal');
+    function openPasswordModal() { passwordModal.classList.remove('hidden'); }
+    function closePasswordModal() { passwordModal.classList.add('hidden'); }
+
+    // Password Change Logic
+    document.getElementById('passwordForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+
+        if (data.newPassword !== data.confirmPassword) {
+            Swal.fire({ title: 'ผิดพลาด', text: 'รหัสผ่านใหม่ไม่ตรงกัน', icon: 'error', confirmButtonColor: '#059669' });
+            return;
+        }
+
+        try {
+            Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const response = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<%= _csrf %>' },
+                body: JSON.stringify({
+                    currentPassword: data.currentPassword,
+                    newPassword: data.newPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({ title: 'สำเร็จ', text: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว', icon: 'success', confirmButtonColor: '#059669' })
+                    .then(() => {
+                        closePasswordModal();
+                        e.target.reset();
+                    });
+            } else {
+                Swal.fire({ title: 'ผิดพลาด', text: result.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้', icon: 'error', confirmButtonColor: '#059669' });
+            }
+        } catch (err) {
+            Swal.fire({ title: 'Error', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', icon: 'error', confirmButtonColor: '#ef4444' });
+        }
+    };
 
     // Init Omise
     Omise.setPublicKey('<%= process.env.OMISE_PUBLIC_KEY %>');

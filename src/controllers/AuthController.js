@@ -149,10 +149,10 @@ class AuthController {
             // Hash new password
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-            // Update password (รองรับทั้ง password_hash และ password)
+            // Update password
             await db.execute(
-                'UPDATE users SET password_hash = ?, password = ? WHERE id = ?',
-                [hashedPassword, hashedPassword, userId]
+                'UPDATE users SET password_hash = ? WHERE id = ?',
+                [hashedPassword, userId]
             );
 
             // Log action

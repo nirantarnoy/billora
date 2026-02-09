@@ -40,32 +40,53 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
     let aiResult = null;
     const ocrEngine = process.env.OCR_ENGINE || 'VISION';
 
-    // If AI is enabled, try Gemini first
-    if (useAI && process.env.GEMINI_API_KEY) {
+    // Get Raw Text first to check for templates
+    try {
+        if (ocrEngine === 'PYTHON') {
+            rawText = await readBillTextPython(filePath);
+        } else {
+            rawText = await readBillText(filePath);
+        }
+    } catch (err) {
+        console.error(`${ocrEngine} OCR Error:`, err.message);
+    }
+
+    if (!rawText && !useAI) {
+        throw new Error(`ไม่สามารถอ่านข้อความจากรูปภาพได้ (${ocrEngine})`);
+    }
+
+    // Check for templates
+    let customPrompt = null;
+    if (tenantId && rawText) {
         try {
-            console.log(`[AI] Processing with Gemini: ${filePath}`);
-            aiResult = await analyzeWithGemini(absolutePath);
-            if (aiResult) {
-                rawText = aiResult.raw_text || '';
+            const [templates] = await db.execute(
+                `SELECT system_prompt FROM ocr_templates WHERE tenant_id = ? AND is_active = 1 AND ? LIKE CONCAT('%', match_keyword, '%') LIMIT 1`,
+                [tenantId, rawText]
+            );
+            if (templates.length > 0) {
+                customPrompt = templates[0].system_prompt;
+                console.log(`[OCR] Matching template found for tenant ${tenantId}`);
             }
         } catch (err) {
-            console.error("Gemini AI Processing Failed, falling back to standard OCR:", err.message);
+            console.warn("Error checking OCR templates:", err.message);
         }
     }
 
-    // Standard OCR if rawText is still empty (Gemini failed or AI disabled)
-    if (!rawText) {
+    // If AI is enabled, try Gemini
+    if (useAI && process.env.GEMINI_API_KEY) {
         try {
-            if (ocrEngine === 'PYTHON') {
-                rawText = await readBillTextPython(filePath);
-            } else {
-                rawText = await readBillText(filePath);
+            console.log(`[AI] Processing with Gemini: ${filePath} ${customPrompt ? '(With Template)' : ''}`);
+            aiResult = await analyzeWithGemini(absolutePath, customPrompt);
+            if (aiResult && aiResult.raw_text) {
+                rawText = aiResult.raw_text; // Gemini might provide better raw text
             }
-            if (!rawText) throw new Error("Could not extract any text from image");
         } catch (err) {
-            console.error(`${ocrEngine} OCR Error:`, err.message);
-            throw new Error(`ไม่สามารถอ่านข้อความจากรูปภาพได้ (${ocrEngine})`);
+            console.error("Gemini AI Processing Failed, falling back to standard OCR data:", err.message);
         }
+    }
+
+    if (!rawText) {
+        throw new Error("ไม่สามารถสกัดข้อมูลจากรูปภาพได้");
     }
 
     // Determine type (Use Gemini result if available, else regex)

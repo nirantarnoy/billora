@@ -1,0 +1,206 @@
+<div class="p-10">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800">จัดการ OCR Templates</h2>
+            <p class="text-slate-500 text-sm">สร้างแม่แบบเฉพาะเพื่อช่วย AI อ่านข้อมูลจากบิลรูปแบบซ้ำๆ ได้แม่นยำขึ้น</p>
+        </div>
+        <button onclick="openTemplateModal()"
+            class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+            <i class="fas fa-plus"></i> เพิ่มแม่แบบใหม่
+        </button>
+    </header>
+
+    <!-- Template List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% if (templates.length===0) { %>
+            <div class="col-span-full py-20 text-center bg-white rounded-[32px] border border-slate-100 shadow-sm">
+                <i class="fas fa-magic text-4xl text-slate-200 mb-4"></i>
+                <p class="text-slate-400 font-bold">ยังไม่มีแม่แบบในระบบ</p>
+                <p class="text-slate-300 text-sm">เริ่มสร้างแม่แบบแรกเพื่อเพิ่มความแม่นยำให้ AI</p>
+            </div>
+            <% } %>
+
+                <% templates.forEach(template=> { %>
+                    <div
+                        class="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden">
+                        <div class="flex items-start justify-between mb-4">
+                            <div
+                                class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                <i class="fas fa-file-invoice text-xl"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="<%= template.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400' %> text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">
+                                    <%= template.is_active ? 'Active' : 'Inactive' %>
+                                </span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-slate-800 mb-1">
+                            <%= template.name %>
+                        </h3>
+                        <p class="text-xs text-slate-400 font-medium mb-4 line-clamp-2">
+                            <%= template.description || 'ไม่มีคำอธิบาย' %>
+                        </p>
+
+                        <div class="space-y-3 mb-6">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-500">
+                                <i class="fas fa-search text-slate-300"></i>
+                                <span>Keyword: <span class="text-indigo-600">
+                                        <%= template.match_keyword %>
+                                    </span></span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                            <button onclick="editTemplate(this)" data-template='<%= JSON.stringify(template) %>'
+                                class="text-slate-400 hover:text-indigo-600 font-bold text-xs transition-colors">
+                                <i class="fas fa-edit mr-1"></i> แก้ไข
+                            </button>
+                            <button onclick="deleteTemplate(<%= template.id %>)"
+                                class="text-slate-300 hover:text-rose-500 font-bold text-xs transition-colors">
+                                <i class="fas fa-trash-alt mr-1"></i> ลบทิ้ง
+                            </button>
+                        </div>
+                    </div>
+                    <% }) %>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="template-modal"
+    class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-6">
+    <div
+        class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div class="p-8 border-b border-slate-50 flex items-center justify-between">
+            <div>
+                <h3 id="modal-title" class="text-2xl font-black text-slate-800">เพิ่มแม่แบบใหม่</h3>
+                <p class="text-slate-400 text-sm">กำหนดเงื่อนไขเพื่อให้ AI ประมวลผลได้ดียิ่งขึ้น</p>
+            </div>
+            <button onclick="closeTemplateModal()"
+                class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="template-form" class="p-8 space-y-6">
+            <input type="hidden" name="id" id="template-id">
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ชื่อแม่แบบ</label>
+                    <input type="text" name="name" id="template-name" required
+                        placeholder="เช่น บิล 7-Eleven, ใบกำกับปั๊มน้ำมัน"
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Keyword จับคู่
+                        (Match Keyword)</label>
+                    <input type="text" name="match_keyword" id="template-match-keyword" required
+                        placeholder="คำที่พบในบิล เช่น 7-ELEVEN"
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">รายละเอียด</label>
+                <input type="text" name="description" id="template-description"
+                    class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">System Prompt สำหรับ
+                    AI (สำคัญ)</label>
+                <textarea name="system_prompt" id="template-system-prompt" rows="6" required
+                    class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800 text-sm"
+                    placeholder="บอก AI ว่าต้องสกัดข้อมูลอะไรเป็นพิเศษ เช่น 'สกัดราคาน้ำมันต่อลิตร และเลขที่หัวจ่ายมาด้วย'"></textarea>
+                <p class="text-[10px] text-slate-400 mt-1 italic leading-relaxed">* แนะนำให้ระบุว่าต้องการข้อมูลในรูปแบบ
+                    JSON ตามโครงสร้างมาตรฐานของระบบ</p>
+            </div>
+
+            <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl">
+                <input type="checkbox" name="is_active" id="template-is-active" checked
+                    class="w-5 h-5 accent-emerald-500">
+                <label for="template-is-active" class="text-sm font-bold text-slate-700">เปิดใช้งานแม่แบบนี้</label>
+            </div>
+
+            <div class="pt-4 flex gap-4">
+                <button type="submit"
+                    class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all">บันทึกข้อมูล</button>
+                <button type="button" onclick="closeTemplateModal()"
+                    class="px-8 py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-50 transition-all">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openTemplateModal() {
+        document.getElementById('modal-title').innerText = 'เพิ่มแม่แบบใหม่';
+        document.getElementById('template-form').reset();
+        document.getElementById('template-id').value = '';
+        document.getElementById('template-modal').classList.remove('hidden');
+        document.getElementById('template-modal').classList.add('flex');
+    }
+
+    function closeTemplateModal() {
+        document.getElementById('template-modal').classList.add('hidden');
+        document.getElementById('template-modal').classList.remove('flex');
+    }
+
+    function editTemplate(btn) {
+        const template = JSON.parse(btn.getAttribute('data-template'));
+        document.getElementById('modal-title').innerText = 'แก้ไขแม่แบบ';
+        document.getElementById('template-id').value = template.id;
+        document.getElementById('template-name').value = template.name;
+        document.getElementById('template-match-keyword').value = template.match_keyword;
+        document.getElementById('template-description').value = template.description;
+        document.getElementById('template-system-prompt').value = template.system_prompt;
+        document.getElementById('template-is-active').checked = template.is_active === 1;
+
+        document.getElementById('template-modal').classList.remove('hidden');
+        document.getElementById('template-modal').classList.add('flex');
+    }
+
+    document.getElementById('template-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('template-id').value;
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        data.is_active = document.getElementById('template-is-active').checked ? 1 : 0;
+
+        const url = id ? `/api/ocr-templates/${id}` : '/api/ocr-templates';
+        const method = id ? 'PUT' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            alert('เกิดข้อผิดพลาด');
+        }
+    };
+
+    function deleteTemplate(id) {
+        if (!confirm('ยืนยันการลบแม่แบบนี้?')) return;
+        fetch(`/api/ocr-templates/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+        }).then(res => res.json()).then(data => {
+            if (data.success) window.location.reload();
+        });
+    }
+</script>

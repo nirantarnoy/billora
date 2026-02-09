@@ -155,12 +155,84 @@ class BillController {
         try {
             const { id } = req.params;
             const userId = req.session.user.id;
-            const [result] = await db.execute('DELETE FROM bills WHERE id = ? AND user_id = ?', [id, userId]);
+            const tenantId = req.session.user.tenant_id || 1;
+            const [result] = await db.execute('DELETE FROM bills WHERE id = ? AND tenant_id = ?', [id, tenantId]);
             if (result.affectedRows > 0) {
                 await recordAction(userId, 'Delete Bill', `ลบบิลรหัส ${id}`, req);
                 return res.json({ success: true });
             }
             res.status(404).json({ success: false, error: 'ไม่พบข้อมูลที่ต้องการลบ' });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    }
+
+    // API: Update Bill (Correction)
+    async updateBill(req, res) {
+        try {
+            const { id } = req.params;
+            const { store_name, date, total_amount, vat, items } = req.body;
+            const tenantId = req.session.user.tenant_id || 1;
+
+            const [result] = await db.execute(
+                `UPDATE bills SET store_name = ?, date = ?, total_amount = ?, vat = ?, items = ? WHERE id = ? AND tenant_id = ?`,
+                [store_name, date, total_amount, vat, JSON.stringify(items), id, tenantId]
+            );
+
+            if (result.affectedRows > 0) {
+                // Also update bill_items table if items provided
+                if (Array.isArray(items)) {
+                    await db.execute('DELETE FROM bill_items WHERE bill_id = ? AND tenant_id = ?', [id, tenantId]);
+                    if (items.length > 0) {
+                        const itemValues = items.map(item => [
+                            tenantId,
+                            id,
+                            item.name || item.product_name || 'ไม่ระบุ',
+                            item.qty || item.quantity || 1,
+                            item.price || 0,
+                            item.total || ((item.qty || 1) * (item.price || 0))
+                        ]);
+                        await db.query(`INSERT INTO bill_items (tenant_id, bill_id, product_name, quantity, price, total) VALUES ?`, [itemValues]);
+                    }
+                }
+
+                await recordAction(req.session.user.id, 'Update Bill', `แก้ไขข้อมูลบิลรหัส ${id}`, req);
+                return res.json({ success: true });
+            }
+            res.status(404).json({ success: false, error: 'ไม่พบข้อมูลที่ต้องการแก้ไข' });
+        } catch (err) {
+            console.error('Update Bill Error:', err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    }
+
+    // API: Sync to External API
+    async syncToApi(req, res) {
+        try {
+            const { id } = req.params;
+            const tenantId = req.session.user.tenant_id || 1;
+
+            // 1. Fetch bill data
+            const [[bill]] = await db.execute('SELECT * FROM bills WHERE id = ? AND tenant_id = ?', [id, tenantId]);
+            if (!bill) return res.status(404).json({ success: false, error: 'ไม่พบข้อมูล' });
+
+            // 2. Mock Sync Logic
+            console.log(`[Sync] Syncing bill ${id} to External API...`);
+
+            // Simulate API call
+            const success = Math.random() > 0.1; // 90% success rate for demo
+
+            if (success) {
+                const externalId = 'EXT_' + Math.floor(Math.random() * 1000000);
+                await db.execute(
+                    'UPDATE bills SET sync_status = "synced", external_id = ? WHERE id = ?',
+                    [externalId, id]
+                );
+                return res.json({ success: true, external_id: externalId });
+            } else {
+                await db.execute('UPDATE bills SET sync_status = "failed" WHERE id = ?', [id]);
+                return res.json({ success: false, error: 'External API Error' });
+            }
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
         }

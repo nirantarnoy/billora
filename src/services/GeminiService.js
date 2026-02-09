@@ -4,7 +4,7 @@ const path = require('path');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-async function analyzeWithGemini(filePath) {
+async function analyzeWithGemini(filePath, customPrompt = null) {
     try {
         if (!process.env.GEMINI_API_KEY) {
             console.warn("[Gemini] GEMINI_API_KEY is missing, skipping AI audit.");
@@ -23,7 +23,10 @@ async function analyzeWithGemini(filePath) {
             },
         };
 
-        const prompt = `You are a professional accountant and document auditor. Analyze the provided document image and extract information into a valid JSON object.
+        let prompt = customPrompt;
+
+        if (!prompt) {
+            prompt = `You are a professional accountant and document auditor. Analyze the provided document image and extract information into a valid JSON object.
         
         TASKS:
         1. Identify the document type: BANK_SLIP, RECEIPT, or TAX_INVOICE.
@@ -58,6 +61,7 @@ async function analyzeWithGemini(filePath) {
         }
         
         Note: If any field is unavailable, set it to null. If you are not sure about the accuracy, lower the confidence_score. Respond ONLY with the JSON block.`;
+        }
 
         const result = await model.generateContent([prompt, imagePart]);
         const response = await result.response;
