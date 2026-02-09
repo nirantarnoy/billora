@@ -160,6 +160,13 @@ app.use(async (req, res, next) => {
                             tenant.features = {};
                         }
                     }
+                    if (tenant.settings && typeof tenant.settings === 'string') {
+                        try {
+                            tenant.settings = JSON.parse(tenant.settings);
+                        } catch (e) {
+                            tenant.settings = {};
+                        }
+                    }
                     res.locals.tenant = tenant;
                     req.tenant = tenant;
                 }

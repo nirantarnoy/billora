@@ -74,6 +74,16 @@ class WebTenantController {
                 ORDER BY price_monthly ASC
             `);
 
+            // Parse JSON fields safely before passing to template
+            if (tenant) {
+                if (tenant.settings && typeof tenant.settings === 'string') {
+                    try { tenant.settings = JSON.parse(tenant.settings); } catch (e) { tenant.settings = {}; }
+                }
+                if (tenant.features && typeof tenant.features === 'string') {
+                    try { tenant.features = JSON.parse(tenant.features); } catch (e) { tenant.features = {}; }
+                }
+            }
+
             res.render('tenant-settings', {
                 title: 'ตั้งค่าองค์กร',
                 tenant: tenant,
@@ -138,7 +148,30 @@ class WebTenantController {
         try {
             const tenantId = req.tenantId || req.session.user.tenant_id;
             const TenantModel = require('../models/TenantModel');
-            const data = req.body;
+            let data = req.body;
+
+            // Merge settings/features instead of replacing if they are objects
+            const currentTenant = await TenantModel.findById(tenantId);
+            if (currentTenant) {
+                if (data.settings && typeof data.settings === 'object') {
+                    let currentSettings = {};
+                    try {
+                        currentSettings = (typeof currentTenant.settings === 'string')
+                            ? JSON.parse(currentTenant.settings || '{}')
+                            : (currentTenant.settings || {});
+                    } catch (e) { currentSettings = {}; }
+                    data.settings = { ...currentSettings, ...data.settings };
+                }
+                if (data.features && typeof data.features === 'object') {
+                    let currentFeatures = {};
+                    try {
+                        currentFeatures = (typeof currentTenant.features === 'string')
+                            ? JSON.parse(currentTenant.features || '{}')
+                            : (currentTenant.features || {});
+                    } catch (e) { currentFeatures = {}; }
+                    data.features = { ...currentFeatures, ...data.features };
+                }
+            }
 
             const success = await TenantModel.update(tenantId, data);
 

@@ -111,7 +111,11 @@ class TenantModel {
         for (const field of allowedFields) {
             if (data[field] !== undefined) {
                 updates.push(`${field} = ?`);
-                params.push(data[field]);
+                let value = data[field];
+                if ((field === 'settings' || field === 'features') && typeof value === 'object' && value !== null) {
+                    value = JSON.stringify(value);
+                }
+                params.push(value);
             }
         }
 
