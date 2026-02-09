@@ -6,8 +6,17 @@ class UserController {
         try {
             const tenantId = req.session.user.tenant_id || 1;
             const [users] = await db.execute('SELECT * FROM users WHERE tenant_id = ?', [tenantId]);
+
+            // Parse permissions for each user
+            const parsedUsers = users.map(u => {
+                if (u.permissions && typeof u.permissions === 'string') {
+                    try { u.permissions = JSON.parse(u.permissions); } catch (e) { u.permissions = {}; }
+                }
+                return u;
+            });
+
             res.render('users', {
-                users,
+                users: parsedUsers,
                 active: 'users',
                 title: 'จัดการผู้ใช้งาน'
             });
@@ -88,6 +97,19 @@ class UserController {
             `, [tenantId]);
 
             const subscription = subscriptions[0] || null;
+
+            // Parse JSON fields safely before passing to template
+            if (user && user.permissions && typeof user.permissions === 'string') {
+                try { user.permissions = JSON.parse(user.permissions); } catch (e) { user.permissions = {}; }
+            }
+            if (tenant) {
+                if (tenant.features && typeof tenant.features === 'string') {
+                    try { tenant.features = JSON.parse(tenant.features); } catch (e) { tenant.features = {}; }
+                }
+                if (tenant.settings && typeof tenant.settings === 'string') {
+                    try { tenant.settings = JSON.parse(tenant.settings); } catch (e) { tenant.settings = {}; }
+                }
+            }
 
             // Fetch all active plans so users can view/upgrade
             const [plans] = await db.execute('SELECT * FROM subscription_plans WHERE is_active = 1 ORDER BY price_monthly ASC');
