@@ -118,7 +118,8 @@ class BillController {
                             type: r.type,
                             amount: r.amount,
                             sender: r.sName || r.storeName,
-                            receiver: r.rName
+                            receiver: r.rName,
+                            status: r.status
                         }))
                     });
                 }
