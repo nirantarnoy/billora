@@ -13,9 +13,10 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
     // Get User Plan Features and Tenant ID
     let useAI = false;
     let tenantId = null;
+    let tenantSettings = {};
     try {
         const [userRows] = await db.execute(`
-            SELECT u.tenant_id, p.features 
+            SELECT u.tenant_id, p.features, t.settings
             FROM users u 
             LEFT JOIN tenants t ON u.tenant_id = t.id 
             LEFT JOIN tenant_subscriptions ts ON t.id = ts.tenant_id AND ts.status = 'active'
@@ -29,6 +30,11 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
             tenantId = userRows[0].tenant_id;
             const features = typeof userRows[0].features === 'string' ? JSON.parse(userRows[0].features) : userRows[0].features;
             useAI = features && (features.ai_audit === true || features.ai_audit === 'true');
+
+            try {
+                tenantSettings = typeof userRows[0].settings === 'string' ? JSON.parse(userRows[0].settings || '{}') : (userRows[0].settings || {});
+            } catch (e) { tenantSettings = {}; }
+
             console.log(`[OCR] User ID: ${userId}, Plan AI Audit Feature: ${useAI}`);
         }
     } catch (err) {
@@ -116,14 +122,42 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
             datetime: aiResult.data.datetime
         } : parseThaiSlip(rawText);
 
+        const transId = slipData.trans_id || `TEMP_${Date.now()}`;
+        const amount = slipData.amount || 0;
+
+        // --- SLIP VERIFICATION LOGIC ---
+        const slipVerify = tenantSettings.slip_verify || {};
+        if (slipVerify.enabled) {
+            const receiverName = slipData.receiver || 'ไม่ระบุ';
+            const raw = rawText.replace(/\s/g, '');
+
+            const nameMatch = !slipVerify.target_name ||
+                receiverName.includes(slipVerify.target_name) ||
+                raw.includes(slipVerify.target_name.replace(/\s/g, ''));
+
+            const accountMatch = !slipVerify.target_account ||
+                raw.includes(slipVerify.target_account);
+
+            if (!nameMatch || !accountMatch) {
+                // Log failed verification but don't save to payment_slips
+                await db.execute(
+                    `INSERT INTO ocr_logs (user_id, tenant_id, type, source, status, amount, trans_id, image_path, ai_processed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [userId, tenantId, 'BANK_SLIP', source, 'invalid_receiver', amount, transId, filePath, !!aiResult]
+                );
+
+                let errorMsg = 'ผู้รับโอนไม่ตรงกับที่กำหนดไว้';
+                if (!nameMatch) errorMsg = `ชื่อผู้รับโอนไม่ถูกต้อง (ตรวจพบ: ${receiverName})`;
+                else if (!accountMatch) errorMsg = 'เลขบัญชีผู้รับโอนไม่ถูกต้อง';
+
+                throw new Error(errorMsg);
+            }
+        }
+
         const forgeryResult = aiResult && aiResult.audit_result ? {
             score: aiResult.confidence_score * 100,
             isSuspicious: aiResult.audit_result.forgery_detected,
             reasons: [aiResult.audit_result.forgery_reason || aiResult.audit_result.audit_remark].filter(Boolean)
         } : checkForgeryScore(rawText, slipData);
-
-        const transId = slipData.trans_id || `TEMP_${Date.now()}`;
-        const amount = slipData.amount || 0;
 
         let status = forgeryResult.isSuspicious ? 'warning' : 'success';
 

@@ -199,6 +199,10 @@ async function setupDatabase() {
             {
                 file: '025_add_ocr_templates.sql',
                 name: 'สร้างตาราง OCR Templates และเพิ่มสถานะการเชื่อมต่อบิล'
+            },
+            {
+                file: '026_add_status_index_to_ocr_logs.sql',
+                name: 'เพิ่ม Index ให้กับตาราง OCR Logs (status, type)'
             }
         ];
 

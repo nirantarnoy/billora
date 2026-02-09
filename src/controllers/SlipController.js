@@ -138,7 +138,12 @@ class SlipController {
                 [req.session.user.tenant_id]
             );
 
-            const history = [...bills, ...slips].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const [logs] = await db.execute(
+                'SELECT id, "VERIFY_FAILED" as trans_id, status as sender_name, "FAILED" as receiver_name, amount, created_at as datetime, image_path, created_at, "BANK_SLIP" as type, status FROM ocr_logs WHERE tenant_id = ? AND status = "invalid_receiver" ORDER BY created_at DESC',
+                [req.session.user.tenant_id]
+            );
+
+            const history = [...bills, ...slips, ...logs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             res.json({ success: true, history });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });
