@@ -73,6 +73,34 @@ class OcrTemplateController {
             res.status(500).json({ success: false, error: err.message });
         }
     }
+
+    // API: Test Scan (No DB Save)
+    async testScan(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ success: false, message: 'กรุณาอัปโหลดไฟล์' });
+            }
+
+            const { readBillText, readBillTextPython } = require('../services/vision');
+            const ocrEngine = process.env.OCR_ENGINE || 'VISION';
+            const filePath = req.file.path;
+
+            let rawText = '';
+            if (ocrEngine === 'PYTHON') {
+                rawText = await readBillTextPython(filePath);
+            } else {
+                rawText = await readBillText(filePath);
+            }
+
+            res.json({
+                success: true,
+                rawText: rawText
+            });
+        } catch (err) {
+            console.error('Test Scan Error:', err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    }
 }
 
 module.exports = new OcrTemplateController();

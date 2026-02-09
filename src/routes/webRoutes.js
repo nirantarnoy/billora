@@ -15,6 +15,23 @@ const FulfillmentController = require('../controllers/FulfillmentController');
 const AdminTenantController = require('../controllers/AdminTenantController');
 const AdminPlanController = require('../controllers/AdminPlanController');
 
+// Multer Config for temporary uploads
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/templates';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'test-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
 
 // Dashboard
 router.get('/dashboard', isAuthenticated, DashboardController.viewDashboard);
@@ -26,6 +43,7 @@ router.get('/bills', isAuthenticated, hasPermission('bills'), BillController.lis
 const OcrTemplateController = require('../controllers/OcrTemplateController');
 router.get('/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.listTemplates);
 router.post('/api/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.createTemplate);
+router.post('/api/ocr-templates/test-scan', isAuthenticated, hasPermission('bills'), upload.single('file'), OcrTemplateController.testScan);
 router.put('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.updateTemplate);
 router.delete('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.deleteTemplate);
 
