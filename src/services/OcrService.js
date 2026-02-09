@@ -149,7 +149,16 @@ async function handleFileProcessing(file, userId, source = 'BROWSER', req = null
                 if (!nameMatch) errorMsg = `ชื่อผู้รับโอนไม่ถูกต้อง (ตรวจพบ: ${receiverName})`;
                 else if (!accountMatch) errorMsg = 'เลขบัญชีผู้รับโอนไม่ถูกต้อง';
 
-                throw new Error(errorMsg);
+                return {
+                    type: 'BANK_SLIP',
+                    status: 'invalid_receiver',
+                    transId,
+                    sName: slipData.sender,
+                    rName: slipData.receiver,
+                    amount,
+                    message: errorMsg,
+                    source
+                };
             }
         }
 

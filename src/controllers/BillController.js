@@ -98,7 +98,11 @@ class BillController {
             for (const file of uploadedFiles) {
                 try {
                     const result = await handleFileProcessing(file, userId, source);
-                    results.push({ success: true, fileName: file.originalname, ...result });
+                    if (result.status === 'invalid_receiver') {
+                        errors.push({ fileName: file.originalname, error: result.message });
+                    } else {
+                        results.push({ success: true, fileName: file.originalname, ...result });
+                    }
                 } catch (err) {
                     errors.push({ fileName: file.originalname, error: err.message });
                 }
