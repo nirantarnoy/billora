@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const ErrorHandler = require('./errorHandler');
+const SecurityLogger = require('../utils/securityLogger');
 const JWT_SECRET = process.env.JWT_SECRET || 'billora-jwt-secret-key-2026';
 
 const isAuthenticated = (req, res, next) => {
@@ -17,9 +18,38 @@ const isAuthenticated = (req, res, next) => {
             req.session.user = decoded;
             return next();
         } catch (err) {
-            if (req.xhr || req.path.startsWith('/api/')) {
-                return res.status(401).json({ success: false, error: 'TOKEN_INVALID', message: 'Token ไม่ถูกต้องหรือหมดอายุ' });
+            // Handle specific JWT errors
+            if (err.name === 'TokenExpiredError') {
+                SecurityLogger.logSuspiciousActivity(req, 'Expired JWT token', 'MEDIUM');
+                if (req.xhr || req.originalUrl.startsWith('/api/')) {
+                    return res.status(401).json({ success: false, error: 'TOKEN_EXPIRED', message: 'Token หมดอายุ' });
+                }
+                return res.redirect('/login?error=token_expired');
+            } else if (err.name === 'JsonWebTokenError') {
+                SecurityLogger.logSuspiciousActivity(req, 'Invalid JWT token', 'MEDIUM');
+                if (req.xhr || req.originalUrl.startsWith('/api/')) {
+                    return res.status(401).json({ success: false, error: 'TOKEN_INVALID', message: 'Token ไม่ถูกต้อง' });
+                }
+                return res.redirect('/login?error=token_invalid');
             }
+            // Generic JWT error handling (e.g., if a custom error type indicates account suspension)
+            // This part is an interpretation of the user's malformed edit, assuming they wanted to add account status checks.
+            // If the error object contains information about an inactive account, handle it.
+            // This is a placeholder; actual implementation would depend on how 'account_inactive' is signaled by the JWT verification or custom logic.
+            if (err.message === 'account_inactive') { // Example: if jwt.verify throws an error with this message
+                SecurityLogger.logSuspiciousActivity(req, 'Attempt to login with inactive account via JWT', 'HIGH');
+                if (req.xhr || req.originalUrl.startsWith('/api/')) {
+                    return res.status(401).json({ success: false, message: 'บัญชีถูกระงับ' });
+                }
+                return res.redirect('/login?error=account_inactive');
+            }
+
+            // Fallback for any other unexpected JWT errors
+            SecurityLogger.logSuspiciousActivity(req, 'Unexpected JWT verification error', 'MEDIUM', err.message);
+            if (req.xhr || req.originalUrl.startsWith('/api/')) {
+                return res.status(401).json({ success: false, error: 'TOKEN_ERROR', message: 'เกิดข้อผิดพลาดในการตรวจสอบ Token' });
+            }
+            return res.redirect('/login?error=auth_error');
         }
     }
 

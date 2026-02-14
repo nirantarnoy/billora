@@ -13,9 +13,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
             --white: #ffffff;
         }
 
@@ -122,14 +122,14 @@
 
     <!-- Back to Home Button (Left) -->
     <a href="/"
-        class="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl text-slate-600 hover:text-emerald-600 hover:border-emerald-300 transition-all shadow-lg">
+        class="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl text-slate-600 hover:text-indigo-600 hover:border-indigo-300 transition-all shadow-lg">
         <i class="fas fa-arrow-left"></i>
         <span class="font-semibold">กลับหน้าหลัก</span>
     </a>
 
     <!-- Login Button (Right) -->
     <a href="/login"
-        class="fixed top-6 right-6 z-50 flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-emerald-600/30">
+        class="fixed top-6 right-6 z-50 flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-indigo-600/30">
         <i class="fas fa-sign-in-alt"></i>
         <span>เข้าสู่ระบบ</span>
     </a>
@@ -139,10 +139,10 @@
             <!-- Header -->
             <div class="flex flex-col items-center mb-8">
                 <div
-                    class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/50 mb-4">
+                    class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/50 mb-4">
                     <i class="fas fa-file-invoice text-white text-3xl"></i>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-800">GoodOper Bill Pro<span class="text-emerald-500">Pro</span>
+                <h1 class="text-3xl font-bold text-slate-800">GoodOper Bill Pro<span class="text-indigo-500">Pro</span>
                 </h1>
                 <p class="text-slate-500 mt-2">ลงทะเบียนองค์กรเพื่อเริ่มใช้งาน</p>
             </div>
@@ -154,7 +154,7 @@
                     <span class="text-sm text-slate-500" id="stepNumber">ขั้นตอน 1/2</span>
                 </div>
                 <div class="w-full bg-slate-200 rounded-full h-2">
-                    <div class="progress-bar bg-emerald-600 h-2 rounded-full" id="progressBar" style="width: 50%">
+                    <div class="progress-bar bg-indigo-600 h-2 rounded-full" id="progressBar" style="width: 50%">
                     </div>
                 </div>
             </div>
@@ -170,7 +170,7 @@
                                 ชื่อบริษัท <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="company_name" required
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="บริษัท ABC จำกัด">
                         </div>
 
@@ -179,7 +179,7 @@
                                 ชื่อบริษัท (ภาษาอังกฤษ)
                             </label>
                             <input type="text" id="company_name_en"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="ABC Company Limited">
                         </div>
 
@@ -189,7 +189,7 @@
                                     เลขประจำตัวผู้เสียภาษี
                                 </label>
                                 <input type="text" id="tax_id" maxlength="13"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="0123456789012">
                             </div>
                             <div>
@@ -197,7 +197,7 @@
                                     เบอร์โทรศัพท์
                                 </label>
                                 <input type="tel" id="phone"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="021234567">
                             </div>
                         </div>
@@ -207,7 +207,7 @@
                                 ที่อยู่
                             </label>
                             <textarea id="address" rows="3"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="123 ถนนทดสอบ แขวงทดสอบ เขตทดสอบ กรุงเทพฯ 10100"></textarea>
                         </div>
 
@@ -216,13 +216,13 @@
                                 อีเมลบริษัท
                             </label>
                             <input type="email" id="company_email"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="info@company.com">
                         </div>
                     </div>
 
                     <button type="button" onclick="nextStep()"
-                        class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] transform active:scale-95">
+                        class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] transform active:scale-95">
                         ถัดไป <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                 </div>
@@ -238,7 +238,7 @@
                                     ชื่อจริง
                                 </label>
                                 <input type="text" id="owner_first_name"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="สมชาย">
                             </div>
                             <div>
@@ -246,7 +246,7 @@
                                     นามสกุล
                                 </label>
                                 <input type="text" id="owner_last_name"
-                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                     placeholder="ทดสอบ">
                             </div>
                         </div>
@@ -256,7 +256,7 @@
                                 อีเมล <span class="text-red-500">*</span>
                             </label>
                             <input type="email" id="owner_email" required
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="owner@company.com">
                             <p class="text-xs text-slate-500 mt-1">ใช้สำหรับเข้าสู่ระบบ</p>
                         </div>
@@ -266,7 +266,7 @@
                                 รหัสผ่าน <span class="text-red-500">*</span>
                             </label>
                             <input type="password" id="owner_password" required minlength="6"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="อย่างน้อย 6 ตัวอักษร">
                         </div>
 
@@ -275,7 +275,7 @@
                                 ยืนยันรหัสผ่าน <span class="text-red-500">*</span>
                             </label>
                             <input type="password" id="owner_password_confirm" required minlength="6"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="ยืนยันรหัสผ่าน">
                         </div>
 
@@ -284,19 +284,19 @@
                                 เบอร์โทรศัพท์
                             </label>
                             <input type="tel" id="owner_phone"
-                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                 placeholder="0812345678">
                         </div>
 
                         <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input type="checkbox" id="accept_terms" required
-                                    class="mt-1 w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500">
+                                    class="mt-1 w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500">
                                 <span class="text-sm text-slate-700">
                                     ฉันยอมรับ <a href="#" onclick="openTermsModal(event)"
-                                        class="text-emerald-600 font-semibold hover:underline">ข้อกำหนดการใช้งาน</a>
+                                        class="text-indigo-600 font-semibold hover:underline">ข้อกำหนดการใช้งาน</a>
                                     และ <a href="#" onclick="openPrivacyModal(event)"
-                                        class="text-emerald-600 font-semibold hover:underline">นโยบายความเป็นส่วนตัว</a>
+                                        class="text-indigo-600 font-semibold hover:underline">นโยบายความเป็นส่วนตัว</a>
                                 </span>
                             </label>
                         </div>
@@ -308,7 +308,7 @@
                             <i class="fas fa-arrow-left mr-2"></i> ย้อนกลับ
                         </button>
                         <button type="submit" id="submitBtn"
-                            class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                            class="w-2/3 bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
                             <i class="fas fa-check mr-2"></i> ลงทะเบียน
                         </button>
                     </div>
@@ -320,9 +320,9 @@
     <!-- Terms of Service Modal -->
     <div id="termsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
-            <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 text-white">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6 text-white">
                 <h3 class="text-2xl font-bold">ข้อกำหนดการใช้งาน</h3>
-                <p class="text-emerald-100 text-sm mt-1">Terms of Service</p>
+                <p class="text-indigo-100 text-sm mt-1">Terms of Service</p>
             </div>
             <div class="p-6 overflow-y-auto max-h-[60vh]">
                 <div class="prose prose-sm max-w-none">
@@ -359,7 +359,7 @@
             </div>
             <div class="border-t border-slate-200 p-4 flex justify-end">
                 <button onclick="closeTermsModal()"
-                    class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all">
+                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-all">
                     ปิด
                 </button>
             </div>
@@ -437,7 +437,7 @@
                     icon: 'error',
                     title: 'กรุณากรอกข้อมูล',
                     text: 'กรุณากรอกชื่อบริษัท',
-                    confirmButtonColor: '#10b981'
+                    confirmButtonColor: '#6366f1'
                 });
                 return;
             }
@@ -519,7 +519,7 @@
                     icon: 'warning',
                     title: 'กรุณายอมรับข้อกำหนด',
                     text: 'คุณต้องยอมรับข้อกำหนดการใช้งานและนโยบายความเป็นส่วนตัวก่อนลงทะเบียน',
-                    confirmButtonColor: '#10b981'
+                    confirmButtonColor: '#6366f1'
                 });
                 return;
             }
@@ -534,7 +534,7 @@
                     icon: 'error',
                     title: 'รหัสผ่านไม่ตรงกัน',
                     text: 'กรุณาตรวจสอบรหัสผ่านและยืนยันรหัสผ่านให้ตรงกัน',
-                    confirmButtonColor: '#10b981'
+                    confirmButtonColor: '#6366f1'
                 });
                 return;
             }
@@ -581,10 +581,10 @@
                         title: 'ลงทะเบียนสำเร็จ!',
                         html: `
                             <p class="mb-2">ยินดีต้อนรับสู่ Billora!</p>
-                            <p class="text-sm text-slate-600">รหัสองค์กร: <strong class="text-emerald-600">${result.data.tenant_code}</strong></p>
+                            <p class="text-sm text-slate-600">รหัสองค์กร: <strong class="text-indigo-600">${result.data.tenant_code}</strong></p>
                             <p class="text-sm text-slate-600 mt-2">กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...</p>
                         `,
-                        confirmButtonColor: '#10b981',
+                        confirmButtonColor: '#6366f1',
                         timer: 3000,
                         timerProgressBar: true
                     }).then(() => {
@@ -595,7 +595,7 @@
                         icon: 'error',
                         title: 'เกิดข้อผิดพลาด',
                         text: result.message || 'ไม่สามารถลงทะเบียนได้ กรุณาลองใหม่อีกครั้ง',
-                        confirmButtonColor: '#10b981'
+                        confirmButtonColor: '#6366f1'
                     });
                 }
             } catch (error) {
@@ -603,7 +603,7 @@
                     icon: 'error',
                     title: 'เกิดข้อผิดพลาด',
                     text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
-                    confirmButtonColor: '#10b981'
+                    confirmButtonColor: '#6366f1'
                 });
             }
         });

@@ -24,20 +24,27 @@ class UserModel {
 
         // Hash password
         const password_hash = await bcrypt.hash(password, 10);
+        console.log(`[UserModel] Creating user: ${username} for tenantId: ${tenantId}`);
 
-        const [result] = await pool.query(
-            `INSERT INTO users (
-                tenant_id, username, email, password_hash,
-                first_name, last_name, phone, role, permissions
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                tenantId, username, email, password_hash,
-                first_name, last_name, phone, role,
-                JSON.stringify(permissions)
-            ]
-        );
+        try {
+            const [result] = await pool.query(
+                `INSERT INTO users (
+                    tenant_id, username, email, password_hash,
+                    first_name, last_name, phone, role, permissions
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    tenantId, username, email, password_hash,
+                    first_name, last_name, phone, role,
+                    JSON.stringify(permissions)
+                ]
+            );
 
-        return result.insertId;
+            console.log(`[UserModel] User created successfully with ID: ${result.insertId}`);
+            return result.insertId;
+        } catch (error) {
+            console.error('[UserModel] Error creating user:', error);
+            throw error;
+        }
     }
 
     /**

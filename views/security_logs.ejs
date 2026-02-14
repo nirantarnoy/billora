@@ -1,0 +1,160 @@
+<div class="px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-800">บันทึกความปลอดภัย</h2>
+            <p class="text-slate-500 mt-1">ประวัติการโจมตี การก่อกวน และกิจกรรมที่น่าสงสัยในระบบ</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span
+                class="px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-semibold border border-red-100 uppercase tracking-wider">
+                Total Events: <%= pagination.totalItems %>
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+        <form action="/admin/security-logs" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Event Type</label>
+                <select name="event_type"
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="">ทั้งหมด</option>
+                    <option value="LOGIN_FAILURE" <%=filter.event_type==='LOGIN_FAILURE' ? 'selected' : '' %>>Login
+                        Failure</option>
+                    <option value="CSRF_ATTACK" <%=filter.event_type==='CSRF_ATTACK' ? 'selected' : '' %>>CSRF Attack
+                    </option>
+                    <option value="UNAUTHORIZED_ACCESS" <%=filter.event_type==='UNAUTHORIZED_ACCESS' ? 'selected' : ''
+                        %>>Unauthorized Access</option>
+                    <option value="SUSPICIOUS_REQUEST" <%=filter.event_type==='SUSPICIOUS_REQUEST' ? 'selected' : '' %>
+                        >Suspicious Request</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">Severity</label>
+                <select name="severity"
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="">ทั้งหมด</option>
+                    <option value="LOW" <%=filter.severity==='LOW' ? 'selected' : '' %>>Low</option>
+                    <option value="MEDIUM" <%=filter.severity==='MEDIUM' ? 'selected' : '' %>>Medium</option>
+                    <option value="HIGH" <%=filter.severity==='HIGH' ? 'selected' : '' %>>High</option>
+                    <option value="CRITICAL" <%=filter.severity==='CRITICAL' ? 'selected' : '' %>>Critical</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 flex items-end gap-2">
+                <button type="submit"
+                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-600/20">
+                    <i class="fas fa-filter mr-2"></i> กรองข้อมูล
+                </button>
+                <a href="/admin/security-logs"
+                    class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-all">
+                    ล้าง
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/50 border-b border-slate-100">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">ความรุนแรง /
+                            ประเภท</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">ข้อมูลผู้ใช้ /
+                            IP</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            รายละเอียดกิจกรรม</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">วันที่ / เวลา
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <% if (logs && logs.length> 0) { %>
+                        <% logs.forEach(log=> { %>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-5">
+                                    <div class="flex flex-col gap-1">
+                                        <% let sevClass='bg-slate-100 text-slate-600' ; if (log.severity==='MEDIUM' )
+                                            sevClass='bg-amber-50 text-amber-600 border-amber-100' ; if
+                                            (log.severity==='HIGH' )
+                                            sevClass='bg-orange-50 text-orange-600 border-orange-100' ; if
+                                            (log.severity==='CRITICAL' )
+                                            sevClass='bg-red-50 text-red-600 border-red-100' ; %>
+                                            <span
+                                                class="px-2 py-0.5 rounded text-[10px] font-bold border w-fit <%= sevClass %>">
+                                                <%= log.severity %>
+                                            </span>
+                                            <div class="font-bold text-slate-700 text-sm">
+                                                <%= log.event_type %>
+                                            </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="text-sm">
+                                        <div class="font-bold text-slate-800">
+                                            <%= log.ip_address %>
+                                        </div>
+                                        <div class="text-slate-400 text-xs flex flex-col">
+                                            <span>
+                                                <%= log.username || 'Anonymous' %>
+                                            </span>
+                                            <span>
+                                                <%= log.company_name || 'System' %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="text-sm text-slate-600 max-w-md">
+                                        <div class="font-medium text-slate-800">
+                                            <%= log.method %>
+                                                <%= log.path %>
+                                        </div>
+                                        <div
+                                            class="text-xs mt-1 bg-slate-50 p-2 rounded border border-slate-100 font-mono break-all">
+                                            <%= log.details %>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="text-xs text-slate-500">
+                                        <%= new Date(log.created_at).toLocaleString('th-TH') %>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                                            <i class="fas fa-shield-alt text-4xl mb-3 opacity-20"></i>
+                                            <p>ไม่พบประวัติความผิดปกติในขณะนี้</p>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (pagination.totalPages> 1) { %>
+            <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                <div class="text-xs text-slate-500">
+                    หน้า <%= pagination.currentPage %> จาก <%= pagination.totalPages %> (ทั้งหมด <%=
+                                pagination.totalItems %> รายการ)
+                </div>
+                <div class="flex gap-2">
+                    <% if (pagination.currentPage> 1) { %>
+                        <a href="?page=<%= pagination.currentPage - 1 %>&event_type=<%= filter.event_type %>&severity=<%= filter.severity %>"
+                            class="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-xs font-bold transition-all">ก่อนหน้า</a>
+                        <% } %>
+                            <% if (pagination.currentPage < pagination.totalPages) { %>
+                                <a href="?page=<%= pagination.currentPage + 1 %>&event_type=<%= filter.event_type %>&severity=<%= filter.severity %>"
+                                    class="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-xs font-bold transition-all">ถัดไป</a>
+                                <% } %>
+                </div>
+            </div>
+            <% } %>
+    </div>
+</div>

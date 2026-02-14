@@ -94,6 +94,24 @@ class AdminTenantController {
     }
 
     /**
+     * อนุมัติ Tenant (Approval)
+     */
+    static async apiApproveTenant(req, res) {
+        try {
+            const { id } = req.params;
+            const success = await TenantModel.approve(id);
+            if (success) {
+                res.json({ success: true, message: 'อนุมัติ Tenant เรียบร้อยแล้ว' });
+            } else {
+                res.status(404).json({ success: false, message: 'ไม่พบข้อมูล Tenant' });
+            }
+        } catch (error) {
+            console.error('Approve tenant error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    /**
      * ลบ Tenant (Soft Delete)
      */
     static async apiDeleteTenant(req, res) {

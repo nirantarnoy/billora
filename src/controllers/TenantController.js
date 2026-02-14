@@ -145,6 +145,7 @@ class TenantController {
      * สร้าง Tenant ใหม่ (สำหรับ Registration)
      */
     static async register(req, res) {
+        console.log('[Register] Incoming request body:', JSON.stringify(req.body, null, 2));
         try {
             const {
                 company_name,
@@ -164,51 +165,65 @@ class TenantController {
 
             // Validate
             if (!company_name || !owner_email || !owner_password) {
+                console.warn('[Register] Missing required fields');
                 return res.status(400).json({
                     success: false,
-                    message: 'กรุณากรอกข้อมูลให้ครบถ้วน'
+                    message: 'กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อบริษัท, อีเมลผู้ใช้, และรหัสผ่าน)'
                 });
             }
 
             // สร้าง tenant_code
             const tenant_code = await TenantModel.generateTenantCode(company_name);
-
-            // ตรวจสอบว่า email ซ้ำหรือไม่ (ข้ามไปก่อน เพราะยังไม่มี tenant_id)
+            console.log('[Register] Generated tenant_code:', tenant_code);
 
             // สร้าง Tenant
-            const tenantId = await TenantModel.create({
-                tenant_code,
-                company_name,
-                company_name_en,
-                tax_id,
-                address,
-                phone,
-                email,
-                subscription_plan: 'free'
-            });
+            let tenantId;
+            try {
+                tenantId = await TenantModel.create({
+                    tenant_code,
+                    company_name,
+                    company_name_en,
+                    tax_id,
+                    address,
+                    phone,
+                    email,
+                    subscription_plan: 'free'
+                });
+                console.log('[Register] Tenant created with ID:', tenantId);
+            } catch (tenantErr) {
+                console.error('[Register] TenantModel.create failed:', tenantErr);
+                throw tenantErr;
+            }
 
             // สร้าง Owner User
-            const userId = await UserModel.create(tenantId, {
-                username: owner_username || owner_email,
-                email: owner_email,
-                password: owner_password,
-                first_name: owner_first_name,
-                last_name: owner_last_name,
-                phone: owner_phone,
-                role: 'owner',
-                permissions: {
-                    // Owner มีสิทธิ์ทุกอย่าง
-                    dashboard: true,
-                    users: true,
-                    bills: true,
-                    reports: true,
-                    settings: true
-                }
-            });
+            let userId;
+            try {
+                userId = await UserModel.create(tenantId, {
+                    username: owner_username || owner_email,
+                    email: owner_email,
+                    password: owner_password,
+                    first_name: owner_first_name,
+                    last_name: owner_last_name,
+                    phone: owner_phone,
+                    role: 'owner',
+                    permissions: {
+                        dashboard: true,
+                        users: true,
+                        bills: true,
+                        reports: true,
+                        settings: true
+                    }
+                });
+                console.log('[Register] Owner user created with ID:', userId);
+            } catch (userErr) {
+                console.error('[Register] UserModel.create failed:', userErr);
+                // ถ้าสร้าง user ไม่ได้ อาจต้องลบ tenant ที่สร้างไปแล้ว? (แต่ในระบบนี้อาจจะใช้ MANUAL FIX ภายหลังได้)
+                throw userErr;
+            }
 
             res.status(201).json({
                 success: true,
-                message: 'ลงทะเบียนสำเร็จ',
+                message: 'ลงทะเบียนสำเร็จ! กรุณารอผูดูแลระบบอนุมัติการใช้งาน',
                 data: {
                     tenant_id: tenantId,
                     tenant_code,
@@ -220,15 +235,16 @@ class TenantController {
 
             // ตรวจสอบ duplicate key error
             if (error.code === 'ER_DUP_ENTRY') {
+                const field = error.sqlMessage.includes('idx_tenant_code') ? 'รหัสองค์กร' : 'ข้อมูล';
                 return res.status(400).json({
                     success: false,
-                    message: 'อีเมลหรือชื่อบริษัทนี้ถูกใช้งานแล้ว'
+                    message: `${field} หรืออีเมลนี้ถูกใช้งานแล้วในระบบ`
                 });
             }
 
             res.status(500).json({
                 success: false,
-                message: 'เกิดข้อผิดพลาดในการลงทะเบียน'
+                message: 'เกิดข้อผิดพลาดในการลงทะเบียน: ' + (error.message || 'Unknown error')
             });
         }
     }

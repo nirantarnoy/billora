@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { recordAction } = require('../utils/logger');
+const SecurityLogger = require('../utils/securityLogger');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'billora-jwt-secret-key-2026';
 
@@ -50,6 +51,9 @@ class AuthController {
                     return res.redirect('/dashboard');
                 }
             }
+
+            // Failed login attempt
+            await SecurityLogger.logLoginFailure(req, { username, reason: 'Invalid credentials' });
             res.render('login', { error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', layout: false, _csrf: req.csrfToken ? req.csrfToken() : '' });
         } catch (err) {
             console.error('Login Error:', err);
@@ -105,6 +109,9 @@ class AuthController {
                     });
                 }
             }
+
+            // Failed API login attempt
+            await SecurityLogger.logLoginFailure(req, { username, reason: 'Invalid credentials' });
             res.status(401).json({ success: false, message: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
         } catch (err) {
             res.status(500).json({ success: false, error: err.message });

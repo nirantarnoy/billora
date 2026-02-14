@@ -203,6 +203,10 @@ async function setupDatabase() {
             {
                 file: '026_add_status_index_to_ocr_logs.sql',
                 name: 'เพิ่ม Index ให้กับตาราง OCR Logs (status, type)'
+            },
+            {
+                file: '027_create_security_logs_table.sql',
+                name: 'สร้างตาราง Security Logs (ตรวจสอบความปลอดภัย)'
             }
         ];
 

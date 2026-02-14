@@ -83,10 +83,12 @@ router.post('/admin/backup/create', isAuthenticated, isAdmin, ManagementControll
 router.post('/admin/backup/delete', isAuthenticated, isAdmin, ManagementController.deleteBackup);
 router.post('/admin/backup/restore', isAuthenticated, isAdmin, ManagementController.restoreBackup);
 router.get('/admin/logs', isAuthenticated, isAdmin, ManagementController.listLogs);
+router.get('/admin/security-logs', isAuthenticated, isAdmin, ManagementController.listSecurityLogs);
 
 // Tenant Management (Super Admin Only)
 router.get('/admin/tenants', isAuthenticated, isSuperAdmin, AdminTenantController.listTenants);
 router.post('/admin/tenants/:id/status', isAuthenticated, isSuperAdmin, AdminTenantController.apiUpdateStatus);
+router.post('/admin/tenants/:id/approve', isAuthenticated, isSuperAdmin, AdminTenantController.apiApproveTenant);
 router.post('/admin/tenants/:id/plan', isAuthenticated, isSuperAdmin, AdminTenantController.apiChangePlan);
 router.delete('/admin/tenants/:id', isAuthenticated, isSuperAdmin, AdminTenantController.apiDeleteTenant);
 

@@ -3,6 +3,7 @@ const { recordAction } = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
 const { exec, execSync } = require('child_process');
+const SecurityLogModel = require('../models/SecurityLogModel');
 
 // Helper function to find mysqldump executable
 function findMysqldump() {
@@ -13,30 +14,18 @@ function findMysqldump() {
         if (paths.length > 0 && paths[0]) {
             return `"${paths[0].trim()}"`;
         }
-    } catch (err) {
-        // 'where' command failed, mysqldump not in PATH
-    }
+    } catch (err) { }
 
-    // Common MySQL installation paths on Windows
     const possiblePaths = [
         'E:\\xampp\\mysql\\bin\\mysqldump.exe',
         'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe',
         'C:\\Program Files\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe',
-        'C:\\Program Files (x86)\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe',
-        'C:\\Program Files (x86)\\MySQL\\MySQL Server 5.7\\bin\\mysqldump.exe',
-        'C:\\wamp64\\bin\\mysql\\mysql8.0.27\\bin\\mysqldump.exe',
-        'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe',
-        'C:\\MariaDB\\bin\\mysqldump.exe'
+        'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe'
     ];
 
-    // Find the first existing path
     for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-            return `"${p}"`;
-        }
+        if (fs.existsSync(p)) return `"${p}"`;
     }
-
-    // Fallback to just 'mysqldump' and hope it's in PATH
     return 'mysqldump';
 }
 
@@ -74,97 +63,51 @@ class ManagementController {
         const fileName = `backup-${timestamp}.sql`;
         const filePath = path.join(__dirname, '../../backups', fileName);
 
-        // Get MySQL credentials from environment
         const dbUser = process.env.DB_USER || 'root';
         const dbPassword = process.env.DB_PASSWORD || '';
         const dbName = process.env.DB_NAME || 'bill_ocr';
-
-        // Find mysqldump executable
         const mysqldumpCmd = findMysqldump();
 
-        // Build command with password handling
-        let cmd;
-        if (dbPassword) {
-            cmd = `${mysqldumpCmd} -u ${dbUser} -p${dbPassword} ${dbName} > "${filePath}"`;
-        } else {
-            cmd = `${mysqldumpCmd} -u ${dbUser} ${dbName} > "${filePath}"`;
-        }
+        let cmd = dbPassword
+            ? `${mysqldumpCmd} -u ${dbUser} -p${dbPassword} ${dbName} > "${filePath}"`
+            : `${mysqldumpCmd} -u ${dbUser} ${dbName} > "${filePath}"`;
 
-        console.log('Backup command:', cmd.replace(/-p\S+/, '-p***')); // Log without password
-
-        exec(cmd, async (err, stdout, stderr) => {
-            if (err) {
-                console.error('Backup Error:', err);
-                console.error('stderr:', stderr);
-                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถสำรองข้อมูลได้: ' + err.message));
-            }
+        exec(cmd, async (err) => {
+            if (err) return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถสำรองข้อมูลได้'));
             await recordAction(req.session.user.id, 'Create Backup', `สร้างไฟล์สำรอง ${fileName}`, req);
-            res.redirect('/admin/backup?success=' + encodeURIComponent('สำรองข้อมูลสำเร็จ: ' + fileName));
+            res.redirect('/admin/backup?success=' + encodeURIComponent('สำรองข้อมูลสำเร็จ'));
         });
     }
 
     async deleteBackup(req, res) {
         const { fileName } = req.body;
         const filePath = path.join(__dirname, '../../backups', fileName);
-
-        try {
-            // Check if file exists
-            if (!fs.existsSync(filePath)) {
-                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่พบไฟล์ที่ต้องการลบ'));
-            }
-
-            // Delete file
+        if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
-
             await recordAction(req.session.user.id, 'Delete Backup', `ลบไฟล์สำรอง ${fileName}`, req);
-            res.redirect('/admin/backup?success=' + encodeURIComponent('ลบไฟล์สำรองสำเร็จ'));
-        } catch (err) {
-            console.error('Delete Backup Error:', err);
-            res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถลบไฟล์ได้: ' + err.message));
         }
+        res.redirect('/admin/backup?success=' + encodeURIComponent('ลบไฟล์สำรองสำเร็จ'));
     }
 
     async restoreBackup(req, res) {
         const { fileName } = req.body;
         const filePath = path.join(__dirname, '../../backups', fileName);
+        if (!fs.existsSync(filePath)) return res.redirect('/admin/backup?error=FileNotFound');
 
-        try {
-            // Check if file exists
-            if (!fs.existsSync(filePath)) {
-                return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่พบไฟล์ที่ต้องการคืนค่า'));
-            }
+        const dbUser = process.env.DB_USER || 'root';
+        const dbPassword = process.env.DB_PASSWORD || '';
+        const dbName = process.env.DB_NAME || 'bill_ocr';
+        const mysqlCmd = findMysqldump().replace('mysqldump', 'mysql');
 
-            // Get MySQL credentials from environment
-            const dbUser = process.env.DB_USER || 'root';
-            const dbPassword = process.env.DB_PASSWORD || '';
-            const dbName = process.env.DB_NAME || 'bill_ocr';
+        let cmd = dbPassword
+            ? `${mysqlCmd} -u ${dbUser} -p${dbPassword} ${dbName} < "${filePath}"`
+            : `${mysqlCmd} -u ${dbUser} ${dbName} < "${filePath}"`;
 
-            // Find mysql executable
-            const mysqlCmd = findMysqldump().replace('mysqldump', 'mysql');
-
-            // Build restore command
-            let cmd;
-            if (dbPassword) {
-                cmd = `${mysqlCmd} -u ${dbUser} -p${dbPassword} ${dbName} < "${filePath}"`;
-            } else {
-                cmd = `${mysqlCmd} -u ${dbUser} ${dbName} < "${filePath}"`;
-            }
-
-            console.log('Restore command:', cmd.replace(/-p\S+/, '-p***'));
-
-            exec(cmd, async (err, stdout, stderr) => {
-                if (err) {
-                    console.error('Restore Error:', err);
-                    console.error('stderr:', stderr);
-                    return res.redirect('/admin/backup?error=' + encodeURIComponent('ไม่สามารถคืนค่าข้อมูลได้: ' + err.message));
-                }
-                await recordAction(req.session.user.id, 'Restore Backup', `คืนค่าข้อมูลจากไฟล์ ${fileName}`, req);
-                res.redirect('/admin/backup?success=' + encodeURIComponent('คืนค่าข้อมูลสำเร็จ'));
-            });
-        } catch (err) {
-            console.error('Restore Backup Error:', err);
-            res.redirect('/admin/backup?error=' + encodeURIComponent('เกิดข้อผิดพลาด: ' + err.message));
-        }
+        exec(cmd, async (err) => {
+            if (err) return res.redirect('/admin/backup?error=RestoreFailed');
+            await recordAction(req.session.user.id, 'Restore Backup', `คืนค่าจากไฟล ${fileName}`, req);
+            res.redirect('/admin/backup?success=RestoreSuccess');
+        });
     }
 
     // Action Logs
@@ -175,21 +118,14 @@ class ManagementController {
 
             let where = 'WHERE 1=1';
             let params = [];
-
             if (user_id) { where += ' AND al.user_id = ?'; params.push(user_id); }
             if (startDate) { where += ' AND DATE(al.created_at) >= ?'; params.push(startDate); }
             if (endDate) { where += ' AND DATE(al.created_at) <= ?'; params.push(endDate); }
 
-            // Count total
-            const [countRows] = await db.execute(`
-                SELECT COUNT(*) as total 
-                FROM action_logs al 
-                ${where}
-            `, params);
+            const [countRows] = await db.execute(`SELECT COUNT(*) as total FROM action_logs al ${where}`, params);
             const totalItems = countRows[0].total;
             const totalPages = Math.ceil(totalItems / parseInt(limit));
 
-            // Fetch Data
             const [logs] = await db.execute(`
                 SELECT al.*, u.username 
                 FROM action_logs al 
@@ -201,30 +137,48 @@ class ManagementController {
 
             const [users] = await db.execute('SELECT id, username FROM users ORDER BY username ASC');
 
-            const filter = {
-                user_id: user_id || '',
-                startDate: startDate || '',
-                endDate: endDate || '',
-                limit: parseInt(limit)
-            };
-
             res.render('action_logs', {
-                logs,
-                users,
-                filter,
-                pagination: {
-                    currentPage: parseInt(page),
-                    totalPages,
-                    totalItems,
-                    limit: parseInt(limit)
-                },
-                active: 'logs',
-                title: 'บันทึกกิจกรรม',
+                logs, users, active: 'logs', title: 'บันทึกกิจกรรม',
+                filter: { user_id: user_id || '', startDate: startDate || '', endDate: endDate || '', limit: parseInt(limit) },
+                pagination: { currentPage: parseInt(page), totalPages, totalItems, limit: parseInt(limit) },
                 _csrf: req.csrfToken ? req.csrfToken() : ''
             });
-        } catch (err) {
-            res.status(500).send(err.message);
-        }
+        } catch (err) { res.status(500).send(err.message); }
+    }
+
+    // Security Logs
+    async listSecurityLogs(req, res) {
+        try {
+            const { event_type, severity, page = 1, limit = 20 } = req.query;
+            const offset = (parseInt(page) - 1) * parseInt(limit);
+
+            let where = 'WHERE 1=1';
+            let params = [];
+            if (event_type) { where += ' AND event_type = ?'; params.push(event_type); }
+            if (severity) { where += ' AND severity = ?'; params.push(severity); }
+
+            const [countRows] = await db.query(`SELECT COUNT(*) as total FROM security_logs ${where}`, params);
+            const totalItems = countRows[0].total;
+            const totalPages = Math.ceil(totalItems / parseInt(limit));
+
+            const [logs] = await db.query(`
+                SELECT s.*, t.company_name, u.username 
+                FROM security_logs s
+                LEFT JOIN tenants t ON s.tenant_id = t.id
+                LEFT JOIN users u ON s.user_id = u.id
+                ${where} 
+                ORDER BY s.created_at DESC 
+                LIMIT ${parseInt(limit)} OFFSET ${offset}
+            `, params);
+
+            res.render('security_logs', {
+                logs, active: 'security-logs', title: 'ประวัติความปลอดภัย',
+                filter: { event_type: event_type || '', severity: severity || '', limit: parseInt(limit) },
+                pagination: { currentPage: parseInt(page), totalPages, totalItems, limit: parseInt(limit) },
+                user: req.session.user,
+                _csrf: req.csrfToken ? req.csrfToken() : ''
+            });
+        } catch (err) { res.status(500).send(err.message); }
     }
 }
 

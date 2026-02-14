@@ -1,15 +1,13 @@
-/**
- * Error Handler Middleware
- * จัดการ error ทั้งหมดและแสดงหน้า error ที่สวยงาม
- */
+const SecurityLogger = require('../utils/securityLogger');
 
 class ErrorHandler {
     /**
      * 403 Forbidden - ไม่มีสิทธิ์เข้าถึง
      */
     static forbidden(req, res, message = 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้') {
-        // ถ้าเป็น API request ให้ return JSON
-        if (req.path.startsWith('/api')) {
+        SecurityLogger.logUnauthorizedAccess(req, message);
+        // ถ้าเป็น API request หรือ AJAX ให้ return JSON
+        if (req.originalUrl.startsWith('/api') || req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(403).json({
                 success: false,
                 error: 'FORBIDDEN',
@@ -28,8 +26,8 @@ class ErrorHandler {
      * 404 Not Found - ไม่พบหน้าที่ต้องการ
      */
     static notFound(req, res) {
-        // ถ้าเป็น API request ให้ return JSON
-        if (req.path.startsWith('/api')) {
+        // ถ้าเป็น API request หรือ AJAX ให้ return JSON
+        if (req.originalUrl.startsWith('/api') || req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(404).json({
                 success: false,
                 error: 'NOT_FOUND',
@@ -49,8 +47,8 @@ class ErrorHandler {
     static serverError(err, req, res) {
         console.error('Server Error:', err);
 
-        // ถ้าเป็น API request ให้ return JSON
-        if (req.path.startsWith('/api')) {
+        // ถ้าเป็น API request หรือ AJAX ให้ return JSON
+        if (req.originalUrl.startsWith('/api') || req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(500).json({
                 success: false,
                 error: 'INTERNAL_SERVER_ERROR',
@@ -108,8 +106,8 @@ class ErrorHandler {
      * 401 Unauthorized - ต้องเข้าสู่ระบบ
      */
     static unauthorized(req, res, message = 'กรุณาเข้าสู่ระบบ') {
-        // ถ้าเป็น API request ให้ return JSON
-        if (req.path.startsWith('/api')) {
+        // ถ้าเป็น API request หรือ AJAX ให้ return JSON
+        if (req.originalUrl.startsWith('/api') || req.xhr || req.headers.accept?.includes('application/json')) {
             return res.status(401).json({
                 success: false,
                 error: 'UNAUTHORIZED',

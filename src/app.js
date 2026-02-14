@@ -14,6 +14,7 @@ const { handleLineEvent, lineConfig } = require('./controllers/LineController');
 const webRoutes = require('./routes/webRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 const authRoutes = require('./routes/authRoutes');
+const SecurityLogger = require('./utils/securityLogger');
 
 const app = express();
 
@@ -83,7 +84,13 @@ app.use((req, res, next) => {
         console.log(`[CSRF Check] ${req.method} ${req.originalUrl}`);
     }
 
-    security(req, res, next);
+    security(req, res, (err) => {
+        if (err && err.code === 'EBADCSRFTOKEN') {
+            SecurityLogger.logCsrfAttack(req);
+            return res.status(403).send('Invalid CSRF Token - Suspicious Activity Logged');
+        }
+        next(err);
+    });
 });
 
 // Global Template Variables & Tenant Loading
@@ -110,7 +117,7 @@ app.use(async (req, res, next) => {
 
             if (users.length === 0 || !users[0].is_active) {
                 req.session.destroy();
-                if (req.xhr || req.path.startsWith('/api/')) {
+                if (req.xhr || req.originalUrl.startsWith('/api/')) {
                     return res.status(401).json({ success: false, message: 'บัญชีถูกระงับ' });
                 }
                 return res.redirect('/login?error=account_inactive');
@@ -144,7 +151,7 @@ app.use(async (req, res, next) => {
                     // Do not block Super Admin from system tenant (ID 1)
                     if (dbUser.tenant_id !== 1) {
                         req.session.destroy();
-                        if (req.xhr || req.path.startsWith('/api/')) {
+                        if (req.xhr || req.originalUrl.startsWith('/api/')) {
                             return res.status(403).json({ success: false, message: 'องค์กรถูกระงับการใช้งาน' });
                         }
                         return res.redirect('/login?error=tenant_inactive');

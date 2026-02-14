@@ -21,7 +21,7 @@ class TenantModel {
             subscription_plan = 'free',
             max_users = 5,
             max_storage_mb = 1024,
-            max_transactions_per_month = 1000
+            max_transactions_per_month = 100
         } = data;
 
         const [result] = await pool.query(
@@ -29,8 +29,9 @@ class TenantModel {
                 tenant_code, company_name, company_name_en, tax_id, 
                 address, phone, email, subscription_plan,
                 subscription_status, subscription_start_date,
-                max_users, max_storage_mb, max_transactions_per_month
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), ?, ?, ?)`,
+                max_users, max_storage_mb, max_transactions_per_month,
+                is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, 0)`,
             [
                 tenant_code, company_name, company_name_en, tax_id,
                 address, phone, email, subscription_plan,
@@ -199,6 +200,13 @@ class TenantModel {
         );
 
         return result.affectedRows > 0;
+    }
+
+    /**
+     * อนุมัติ Tenant (Approval)
+     */
+    static async approve(id) {
+        return await this.activate(id);
     }
 
     /**

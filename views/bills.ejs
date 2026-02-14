@@ -7,7 +7,7 @@
         </div>
         <div class="flex flex-wrap items-center gap-4">
             <button onclick="openModal()"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-2">
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
                 <i class="fas fa-cloud-upload-alt"></i> สแกนเอกสารใหม่
             </button>
             <a href="/samples/receipt_sample.png" download
@@ -26,7 +26,7 @@
                 <div class="relative">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" name="search" value="<%= search %>" placeholder="ชื่อร้านค้าหรือรายการ..."
-                        class="w-full bg-slate-50 border border-slate-100 pl-11 pr-4 py-2.5 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-bold">
+                        class="w-full bg-slate-50 border border-slate-100 pl-11 pr-4 py-2.5 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm font-bold">
                 </div>
             </div>
 
@@ -133,7 +133,7 @@
                                             <% if (bill.image_path) { %>
                                                 <button
                                                     onclick="viewImage('/<%= bill.image_path.replace(/\\/g, '/') %>')"
-                                                    class="text-emerald-500 hover:text-emerald-600 transition-all">
+                                                    class="text-indigo-500 hover:text-indigo-600 transition-all">
                                                     <i class="fas fa-image text-xl"></i>
                                                 </button>
                                                 <% } %>
@@ -148,7 +148,7 @@
                                                     <i class="fas fa-sync"></i>
                                                 </button>
                                                 <% } else if (bill.sync_status==='synced' ) { %>
-                                                    <i class="fas fa-check-circle text-emerald-500 shadow-sm"
+                                                    <i class="fas fa-check-circle text-indigo-500 shadow-sm"
                                                         title="Synced: <%= bill.external_id %>"></i>
                                                     <% } %>
 
@@ -185,7 +185,7 @@
 <!-- Edit Bill Modal -->
 <div id="edit-bill-modal"
     class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-6">
-    <div class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden shadow-emerald-900/10">
+    <div class="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden shadow-indigo-900/10">
         <div class="p-8 border-b border-slate-100 flex items-center justify-between bg-white">
             <div>
                 <h3 class="text-2xl font-black text-slate-800">แก้ไขข้อมูลบิล</h3>
@@ -205,13 +205,13 @@
                     <label
                         class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ชื่อร้านค้า</label>
                     <input type="text" id="edit-store-name" required
-                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-slate-800">
                 </div>
                 <div class="space-y-2">
                     <label
                         class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">วันที่ในบิล</label>
                     <input type="date" id="edit-date" required
-                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-indigo-600">
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-indigo-600">
                 </div>
             </div>
 
@@ -220,13 +220,13 @@
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ยอดรวมภาษี
                         (VAT)</label>
                     <input type="number" step="0.01" id="edit-vat"
-                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-800">
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-slate-800">
                 </div>
                 <div class="space-y-2">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">ยอดรวมสุทธิ
                         (Grand Total)</label>
                     <input type="number" step="0.01" id="edit-total" required
-                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-emerald-600">
+                        class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-indigo-600">
                 </div>
             </div>
 
@@ -235,7 +235,7 @@
                     <label
                         class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">รายการสินค้า</label>
                     <button type="button" onclick="addItem()"
-                        class="text-xs font-bold text-emerald-600 hover:text-emerald-700">
+                        class="text-xs font-bold text-indigo-600 hover:text-indigo-700">
                         <i class="fas fa-plus-circle mr-1"></i> เพิ่มรายการ
                     </button>
                 </div>
@@ -349,7 +349,7 @@
                 <input type="number" placeholder="จำนวน" class="item-qty w-full bg-transparent text-sm font-bold text-slate-800 outline-none" value="${item.qty || item.quantity || 1}">
             </div>
             <div class="col-span-3">
-                <input type="number" step="0.01" placeholder="ราคา" class="item-price w-full bg-transparent text-sm font-bold text-emerald-600 outline-none" value="${item.price || 0}">
+                <input type="number" step="0.01" placeholder="ราคา" class="item-price w-full bg-transparent text-sm font-bold text-indigo-600 outline-none" value="${item.price || 0}">
             </div>
             <div class="col-span-1 text-right">
                 <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-rose-400 hover:text-rose-600"><i class="fas fa-minus-circle"></i></button>

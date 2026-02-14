@@ -12,9 +12,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
         :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --primary-light: #d1fae5;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #e0e7ff;
             --white: #ffffff;
         }
 
@@ -109,10 +109,10 @@
         <div class="login-card rounded-3xl p-10">
             <div class="flex flex-col items-center mb-10">
                 <div
-                    class="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/50 mb-4">
+                    class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/50 mb-4">
                     <i class="fas fa-file-invoice text-white text-3xl"></i>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-800">GoodOper<span class="text-emerald-500">Pro</span></h1>
+                <h1 class="text-3xl font-bold text-slate-800">GoodOper<span class="text-indigo-500">Pro</span></h1>
                 <p class="text-slate-500 mt-2">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
             </div>
 
@@ -123,7 +123,7 @@
                     <div class="relative">
                         <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="text" name="username" id="username"
-                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                             placeholder="ใส่ชื่อผู้ใช้ของคุณ">
                     </div>
                     <div id="username-error" class="error-hint hidden">กรุณากรอกชื่อผู้ใช้</div>
@@ -134,7 +134,7 @@
                     <div class="relative">
                         <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                         <input type="password" name="password" id="password"
-                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                            class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                             placeholder="ใส่รหัสผ่านของคุณ">
                     </div>
                     <div id="password-error" class="error-hint hidden">กรุณากรอกรหัสผ่าน</div>
@@ -142,21 +142,21 @@
 
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-                        <input type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <input type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                         จดจำฉัน
                     </label>
-                    <a href="#" class="text-emerald-600 font-semibold hover:underline">ลืมรหัสผ่าน?</a>
+                    <a href="#" class="text-indigo-600 font-semibold hover:underline">ลืมรหัสผ่าน?</a>
                 </div>
 
                 <button type="submit"
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-600/30 transition-all hover:scale-[1.02] transform active:scale-95">
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02] transform active:scale-95">
                     เข้าสู่ระบบ
                 </button>
             </form>
 
             <div class="mt-8 pt-8 border-t border-slate-100 text-center">
                 <p class="text-slate-500 text-sm">ยังไม่มีบัญชี?
-                    <a href="/register" class="text-emerald-600 font-bold hover:underline">ลงทะเบียนองค์กร</a>
+                    <a href="/register" class="text-indigo-600 font-bold hover:underline">ลงทะเบียนองค์กร</a>
                 </p>
             </div>
         </div>
@@ -235,9 +235,9 @@
                         <div class="text-left py-2">
                             <p class="mb-4 text-slate-600 leading-relaxed">เพื่อให้สอดคล้องกับพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA) ระบบขอแจ้งรายละเอียดการจัดเก็บและประมวลผลข้อมูลสำคัญดังนี้:</p>
                             <div class="space-y-3 mb-6">
-                                <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                                    <p class="text-sm font-bold text-emerald-800 mb-1"><i class="fas fa-file-shield mr-2"></i>การจัดเก็บข้อมูล</p>
-                                    <p class="text-xs text-emerald-700">ระบบจะจัดเก็บไฟล์ภาพ (สลิป/บิล) และข้อมูลตัวเลขที่อ่านได้เข้าสู่ Cloud Storage ที่มีความปลอดภัยสูง เพื่อใช้ในการประมวลผลตามคำสั่งของท่าน</p>
+                                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                                    <p class="text-sm font-bold text-indigo-800 mb-1"><i class="fas fa-file-shield mr-2"></i>การจัดเก็บข้อมูล</p>
+                                    <p class="text-xs text-indigo-700">ระบบจะจัดเก็บไฟล์ภาพ (สลิป/บิล) และข้อมูลตัวเลขที่อ่านได้เข้าสู่ Cloud Storage ที่มีความปลอดภัยสูง เพื่อใช้ในการประมวลผลตามคำสั่งของท่าน</p>
                                 </div>
                                 <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
                                     <p class="text-sm font-bold text-blue-800 mb-1"><i class="fas fa-microchip mr-2"></i>วัตถุประสงค์การใช้ข้อมูล</p>
@@ -249,14 +249,14 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 p-4 bg-slate-100 rounded-2xl border border-slate-200">
-                                <input type="checkbox" id="pdpaCheckbox" class="w-5 h-5 accent-emerald-500 cursor-pointer">
+                                <input type="checkbox" id="pdpaCheckbox" class="w-5 h-5 accent-indigo-500 cursor-pointer">
                                 <label for="pdpaCheckbox" class="text-sm font-bold text-slate-700 cursor-pointer">ฉันได้อ่านและยอมรับเงื่อนไขการประมวลผลข้อมูลส่วนบุคคล</label>
                             </div>
                         </div>
                     `,
                     icon: 'info',
                     confirmButtonText: 'ยอมรับและดำเนินการต่อ',
-                    confirmButtonColor: '#10b981',
+                    confirmButtonColor: '#6366f1',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     customClass: {
