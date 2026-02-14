@@ -23,6 +23,12 @@ class DashboardController {
             // Prepare params for summary query (needs 6 repetitions if tenant specific)
             const summaryParams = targetTenantId ? [targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId] : [];
 
+            // Fix SQL Error: Handle p. alias for products query
+            let productScopeWhere = scopeWhere;
+            if (scopeWhere.includes('tenant_id')) {
+                productScopeWhere = scopeWhere.replace('tenant_id', 'p.tenant_id');
+            }
+
             const [[summary]] = await db.execute(`
         SELECT 
           (SELECT COUNT(*) FROM bills ${scopeWhere}) AS bill_count,
@@ -34,7 +40,7 @@ class DashboardController {
              SELECT p.id 
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
-             ${scopeWhere.replace('WHERE', 'WHERE p.')} AND p.min_stock > 0
+             ${productScopeWhere} AND p.min_stock > 0
              GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
@@ -91,6 +97,12 @@ class DashboardController {
 
             const summaryParams = targetTenantId ? [targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId] : [];
 
+            // Fix SQL Error for API as well
+            let productScopeWhere = scopeWhere;
+            if (scopeWhere.includes('tenant_id')) {
+                productScopeWhere = scopeWhere.replace('tenant_id', 'p.tenant_id');
+            }
+
             const [summaryRows] = await db.execute(`
         SELECT 
           (SELECT COUNT(*) FROM bills ${scopeWhere}) AS bill_count,
@@ -102,7 +114,7 @@ class DashboardController {
              SELECT p.id 
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
-             ${scopeWhere.replace('WHERE', 'WHERE p.')} AND p.min_stock > 0
+             ${productScopeWhere} AND p.min_stock > 0
              GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
