@@ -181,17 +181,21 @@
                                                                                 จัดการแพ็กเกจ & Module
                                                                             </a>
                                                                             <% } %>
-                                                                                <a href="/admin/logs"
-                                                                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' %> rounded-xl transition-all">
-                                                                                    <i
-                                                                                        class="fas fa-clipboard-list"></i>
-                                                                                    บันทึกกิจกรรม
-                                                                                </a>
-                                                                                <a href="/admin/security-logs"
-                                                                                    class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'security-logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' %> rounded-xl transition-all">
-                                                                                    <i class="fas fa-shield-alt"></i>
-                                                                                    ความปลอดภัย
-                                                                                </a>
+                                                                                <% if (typeof user !=='undefined' &&
+                                                                                    user && user.tenant_id===1) { %>
+                                                                                    <a href="/admin/logs"
+                                                                                        class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' %> rounded-xl transition-all">
+                                                                                        <i
+                                                                                            class="fas fa-clipboard-list"></i>
+                                                                                        บันทึกกิจกรรม
+                                                                                    </a>
+                                                                                    <a href="/admin/security-logs"
+                                                                                        class="flex items-center gap-3 p-3 <%= (typeof active !== 'undefined' && active === 'security-logs') ? 'sidebar-active' : 'text-slate-500 hover:bg-indigo-50 hover:text-indigo-600' %> rounded-xl transition-all">
+                                                                                        <i
+                                                                                            class="fas fa-shield-alt"></i>
+                                                                                        ความปลอดภัย
+                                                                                    </a>
+                                                                                    <% } %>
                                                                     </div>
                                                                     <% } %>
     </nav>

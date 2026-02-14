@@ -3,31 +3,51 @@ const db = require('../config/db');
 class DashboardController {
     async viewDashboard(req, res) {
         try {
-            const tenantId = req.session.user.tenant_id || 1;
+            const userTenantId = req.session.user.tenant_id;
+            const isAdmin = userTenantId === 1;
+            const filterTenantId = req.query.tenant_id;
+
+            let scopeWhere = 'WHERE tenant_id = ?';
+            let targetTenantId = userTenantId;
+
+            if (isAdmin) {
+                if (filterTenantId) {
+                    scopeWhere = 'WHERE tenant_id = ?';
+                    targetTenantId = filterTenantId;
+                } else {
+                    scopeWhere = 'WHERE 1=1'; // Show all
+                    targetTenantId = null;
+                }
+            }
+
+            // Prepare params for summary query (needs 6 repetitions if tenant specific)
+            const summaryParams = targetTenantId ? [targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId] : [];
 
             const [[summary]] = await db.execute(`
         SELECT 
-          (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
-          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
-          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count,
-          (SELECT COUNT(*) FROM products WHERE tenant_id=?) AS product_count,
+          (SELECT COUNT(*) FROM bills ${scopeWhere}) AS bill_count,
+          (SELECT IFNULL(SUM(total_amount), 0) FROM bills ${scopeWhere}) AS total_sales,
+          (SELECT IFNULL(SUM(vat), 0) FROM bills ${scopeWhere}) AS total_vat,
+          (SELECT COUNT(*) FROM payment_slips ${scopeWhere}) AS slip_count,
+          (SELECT COUNT(*) FROM products ${scopeWhere}) AS product_count,
           (SELECT COUNT(*) FROM (
              SELECT p.id 
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
-             WHERE p.tenant_id = ? AND p.min_stock > 0
+             ${scopeWhere.replace('WHERE', 'WHERE p.')} AND p.min_stock > 0
              GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
-      `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
+      `, summaryParams);
 
+            // Slip Stats Params
+            const statParams = targetTenantId ? [targetTenantId] : [];
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
         FROM payment_slips 
-        WHERE tenant_id = ? AND status = 'success'
+        ${scopeWhere} AND status = 'success'
         GROUP BY source
-      `, [tenantId]);
+      `, statParams);
 
             const slipStats = { BROWSER: 0, MOBILE: 0, LINE: 0, TOTAL: 0 };
             slipStatsRaw.forEach(row => {
@@ -36,8 +56,8 @@ class DashboardController {
                 slipStats.TOTAL += amount;
             });
 
-            const [bills] = await db.execute(`SELECT * FROM bills WHERE tenant_id=? ORDER BY id DESC LIMIT 10`, [tenantId]);
-            const [slips] = await db.execute(`SELECT * FROM payment_slips WHERE tenant_id=? ORDER BY id DESC LIMIT 10`, [tenantId]);
+            const [bills] = await db.execute(`SELECT * FROM bills ${scopeWhere} ORDER BY id DESC LIMIT 10`, statParams);
+            const [slips] = await db.execute(`SELECT * FROM payment_slips ${scopeWhere} ORDER BY id DESC LIMIT 10`, statParams);
 
             res.render('dashboard', {
                 summary, bills, slips, slipStats,
@@ -52,44 +72,61 @@ class DashboardController {
     // API for Mobile Dashboard
     async getApiDashboardData(req, res) {
         try {
-            const tenantId = req.session.user.tenant_id || 1;
+            const userTenantId = req.session.user.tenant_id;
+            const isAdmin = userTenantId === 1;
+            const filterTenantId = req.query.tenant_id;
+
+            let scopeWhere = 'WHERE tenant_id = ?';
+            let targetTenantId = userTenantId;
+
+            if (isAdmin) {
+                if (filterTenantId) {
+                    scopeWhere = 'WHERE tenant_id = ?';
+                    targetTenantId = filterTenantId;
+                } else {
+                    scopeWhere = 'WHERE 1=1';
+                    targetTenantId = null;
+                }
+            }
+
+            const summaryParams = targetTenantId ? [targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId, targetTenantId] : [];
 
             const [summaryRows] = await db.execute(`
         SELECT 
-          (SELECT COUNT(*) FROM bills WHERE tenant_id=?) AS bill_count,
-          (SELECT IFNULL(SUM(total_amount), 0) FROM bills WHERE tenant_id=?) AS total_sales,
-          (SELECT IFNULL(SUM(vat), 0) FROM bills WHERE tenant_id=?) AS total_vat,
-          (SELECT COUNT(*) FROM payment_slips WHERE tenant_id=?) AS slip_count,
-          (SELECT COUNT(*) FROM products WHERE tenant_id=?) AS product_count,
+          (SELECT COUNT(*) FROM bills ${scopeWhere}) AS bill_count,
+          (SELECT IFNULL(SUM(total_amount), 0) FROM bills ${scopeWhere}) AS total_sales,
+          (SELECT IFNULL(SUM(vat), 0) FROM bills ${scopeWhere}) AS total_vat,
+          (SELECT COUNT(*) FROM payment_slips ${scopeWhere}) AS slip_count,
+          (SELECT COUNT(*) FROM products ${scopeWhere}) AS product_count,
           (SELECT COUNT(*) FROM (
              SELECT p.id 
              FROM products p
              LEFT JOIN inventory_balances b ON p.id = b.product_id
-             WHERE p.tenant_id = ? AND p.min_stock > 0
+             ${scopeWhere.replace('WHERE', 'WHERE p.')} AND p.min_stock > 0
              GROUP BY p.id, p.min_stock
              HAVING IFNULL(SUM(b.quantity), 0) < p.min_stock
           ) AS low_stock) AS low_stock_count
-      `, [tenantId, tenantId, tenantId, tenantId, tenantId, tenantId]);
+      `, summaryParams);
 
             const summary = summaryRows[0] || { bill_count: 0, total_sales: 0, total_vat: 0, slip_count: 0, product_count: 0, low_stock_count: 0 };
 
+            const statParams = targetTenantId ? [targetTenantId] : [];
             const [slipStatsRaw] = await db.execute(`
         SELECT source, IFNULL(SUM(amount), 0) as total_amount
         FROM payment_slips 
-        WHERE tenant_id = ? AND status = 'success'
+        ${scopeWhere} AND status = 'success'
         GROUP BY source
-      `, [tenantId]);
+      `, statParams);
 
             const slipStats = { BROWSER: 0, MOBILE: 0, LINE: 0, TOTAL: 0 };
-
             slipStatsRaw.forEach(row => {
                 const amount = Number(row.total_amount) || 0;
                 if (slipStats.hasOwnProperty(row.source)) slipStats[row.source] = amount;
                 slipStats.TOTAL += amount;
             });
 
-            const [latestBills] = await db.execute(`SELECT id, store_name, total_amount, date FROM bills WHERE tenant_id=? ORDER BY id DESC LIMIT 5`, [tenantId]);
-            const [latestSlips] = await db.execute(`SELECT id, trans_id, amount, datetime, source FROM payment_slips WHERE tenant_id=? ORDER BY id DESC LIMIT 5`, [tenantId]);
+            const [latestBills] = await db.execute(`SELECT id, store_name, total_amount, date FROM bills ${scopeWhere} ORDER BY id DESC LIMIT 5`, statParams);
+            const [latestSlips] = await db.execute(`SELECT id, trans_id, amount, datetime, source FROM payment_slips ${scopeWhere} ORDER BY id DESC LIMIT 5`, statParams);
 
             res.json({
                 success: true,
@@ -112,7 +149,25 @@ class DashboardController {
 
     async getStats(req, res) {
         try {
-            const tenantId = req.session.user.tenant_id || 1;
+            const userTenantId = req.session.user.tenant_id;
+            const isAdmin = userTenantId === 1;
+            const filterTenantId = req.query.tenant_id;
+
+            let scopeWhere = 'WHERE tenant_id = ?';
+            let targetTenantId = userTenantId;
+
+            if (isAdmin) {
+                if (filterTenantId) {
+                    scopeWhere = 'WHERE tenant_id = ?';
+                    targetTenantId = filterTenantId;
+                } else {
+                    scopeWhere = 'WHERE 1=1';
+                    targetTenantId = null;
+                }
+            }
+
+            const statParams = targetTenantId ? [targetTenantId] : [];
+
             const [rows] = await db.execute(`
         SELECT 
           DATE_FORMAT(datetime, '%d/%m') as date_label, 
@@ -120,12 +175,12 @@ class DashboardController {
           source,
           SUM(amount) as value
         FROM payment_slips
-        WHERE tenant_id = ? 
+        ${scopeWhere} 
           AND status = 'success'
           AND datetime >= DATE_SUB(CURRENT_DATE(), INTERVAL 6 DAY)
         GROUP BY 2, 1, 3
         ORDER BY 2 ASC
-      `, [tenantId]);
+      `, statParams);
             res.json(rows);
         } catch (err) {
             console.error('getStats Error:', err);

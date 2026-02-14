@@ -11,20 +11,36 @@ class BillController {
     async listBills(req, res) {
         try {
             const userId = req.session.user.id;
-            const tenantId = req.session.user.tenant_id || 1;
+            const userTenantId = req.session.user.tenant_id;
+            const isAdmin = userTenantId === 1;
+
             const page = parseInt(req.query.page) || 1;
             const limitParam = req.query.limit || '20';
             const limit = limitParam === 'all' ? null : parseInt(limitParam);
             const search = req.query.search || '';
-            const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
             const startDate = req.query.startDate;
             const endDate = req.query.endDate;
-            const startUploadDate = req.query.startUploadDate; // Removed default today
-            const endUploadDate = req.query.endUploadDate; // Removed default today
+            const startUploadDate = req.query.startUploadDate;
+            const endUploadDate = req.query.endUploadDate;
+            const filterTenantId = req.query.tenant_id; // For admin filtering
             const offset = (page - 1) * (limit || 0);
 
-            let whereClause = 'WHERE tenant_id = ?';
-            let params = [tenantId];
+            let whereClause = '';
+            let params = [];
+
+            if (isAdmin) {
+                // Admin: Show all or filter by specific tenant
+                if (filterTenantId) {
+                    whereClause = 'WHERE tenant_id = ?';
+                    params.push(filterTenantId);
+                } else {
+                    whereClause = 'WHERE 1=1';
+                }
+            } else {
+                // Regular User: Restricted to own tenant
+                whereClause = 'WHERE tenant_id = ?';
+                params.push(userTenantId);
+            }
 
             if (search) {
                 whereClause += ' AND (store_name LIKE ? OR raw_text LIKE ?)';
@@ -41,7 +57,6 @@ class BillController {
             let query = `SELECT * FROM bills ${whereClause} ORDER BY id DESC`;
             if (limit) {
                 query += ` LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
-                // params.push(parseInt(limit), parseInt(offset));
             }
 
             const [bills] = await db.execute(query, params);
