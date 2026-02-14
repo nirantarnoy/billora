@@ -98,6 +98,47 @@ async function setupDatabase() {
             log.warning('การตรวจสอบเบื้องต้น tenant_subscriptions: ' + err.message);
         }
 
+        // Fix for users
+        try {
+            const [tables] = await connection.query('SHOW TABLES');
+            const tableNames = tables.map(t => Object.values(t)[0]);
+
+            if (tableNames.includes('users')) {
+                const [cols] = await connection.query('SHOW COLUMNS FROM users');
+                const existing = cols.map(c => c.Field);
+
+                const missingCols = [
+                    { name: 'first_name', type: 'VARCHAR(100) AFTER password_hash' },
+                    { name: 'last_name', type: 'VARCHAR(100) AFTER first_name' },
+                    { name: 'phone', type: 'VARCHAR(20) AFTER last_name' },
+                    { name: 'avatar_url', type: 'VARCHAR(255) AFTER phone' },
+                    { name: 'email_verified', type: 'BOOLEAN DEFAULT FALSE AFTER is_active' },
+                    { name: 'email_verified_at', type: 'TIMESTAMP NULL AFTER email_verified' },
+                    { name: 'last_login_at', type: 'TIMESTAMP NULL AFTER email_verified_at' },
+                    { name: 'last_login_ip', type: 'VARCHAR(45) AFTER last_login_at' },
+                    { name: 'failed_login_attempts', type: 'INT DEFAULT 0 AFTER last_login_ip' },
+                    { name: 'locked_until', type: 'TIMESTAMP NULL AFTER failed_login_attempts' }
+                ];
+
+                for (const col of missingCols) {
+                    if (!existing.includes(col.name)) {
+                        log.info(`กำลังเพิ่มคอลัมน์ users.${col.name}...`);
+                        await connection.query(`ALTER TABLE users ADD COLUMN ${col.name} ${col.type}`);
+                        log.success(`เพิ่มคอลัมน์ users.${col.name} สำเร็จ`);
+                    }
+                }
+
+                // Fix Role Enum if needed (member vs user etc)
+                // In migration it's 'owner', 'admin', 'manager', 'accountant', 'user'
+                // In initial_setup it's 'admin', 'owner', 'member'
+                log.info('กำลังปรับปรุงบทบาทผู้ใช้ (Role Enum)...');
+                await connection.query("ALTER TABLE users MODIFY COLUMN role ENUM('owner', 'admin', 'manager', 'accountant', 'user') DEFAULT 'user'");
+                log.success('ปรับปรุงบทบาทผู้ใช้สำเร็จ');
+            }
+        } catch (err) {
+            log.warning('การตรวจสอบเบื้องต้น users: ' + err.message);
+        }
+
         // 2. รัน migrations
         const migrations = [
             {
