@@ -190,16 +190,50 @@ class TenantModel {
      * เปิดใช้งาน Tenant อีกครั้ง
      */
     static async activate(id) {
-        const [result] = await pool.query(
-            `UPDATE tenants SET 
-                subscription_status = 'active',
-                is_active = TRUE,
-                updated_at = NOW()
-             WHERE id = ?`,
-            [id]
-        );
+        // ดึงข้อมูล Tenant เพื่อหา plan_code
+        const tenant = await this.findById(id);
+        if (!tenant) return false;
 
-        return result.affectedRows > 0;
+        // ดึงข้อมูลแผนจากฐานข้อมูล
+        const [plans] = await pool.query(
+            'SELECT * FROM subscription_plans WHERE plan_code = ?',
+            [tenant.subscription_plan || 'free']
+        );
+        const plan = plans[0];
+
+        if (plan) {
+            // อัพเดทข้อมูลตามแผนที่มีในระบบ
+            const [result] = await pool.query(
+                `UPDATE tenants SET 
+                    subscription_status = 'active',
+                    is_active = TRUE,
+                    max_users = ?,
+                    max_storage_mb = ?,
+                    max_transactions_per_month = ?,
+                    features = ?,
+                    updated_at = NOW()
+                 WHERE id = ?`,
+                [
+                    plan.max_users,
+                    plan.max_storage_mb,
+                    plan.max_transactions_per_month,
+                    typeof plan.features === 'string' ? plan.features : JSON.stringify(plan.features || {}),
+                    id
+                ]
+            );
+            return result.affectedRows > 0;
+        } else {
+            // Fallback กรณีไม่พบข้อมูลแผน
+            const [result] = await pool.query(
+                `UPDATE tenants SET 
+                    subscription_status = 'active',
+                    is_active = TRUE,
+                    updated_at = NOW()
+                 WHERE id = ?`,
+                [id]
+            );
+            return result.affectedRows > 0;
+        }
     }
 
     /**

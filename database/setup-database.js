@@ -248,6 +248,10 @@ async function setupDatabase() {
             {
                 file: '027_create_security_logs_table.sql',
                 name: 'สร้างตาราง Security Logs (ตรวจสอบความปลอดภัย)'
+            },
+            {
+                file: '028_fix_free_plan_features.sql',
+                name: 'แก้ไขฟีเจอร์แพ็กเกจ Free (ซ่อนเมนูที่ไม่ได้รับอนุญาต)'
             }
         ];
 

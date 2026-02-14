@@ -437,7 +437,7 @@ CREATE TABLE `inventory_transactions` (
 
 -- 1. Subscription Plans
 INSERT INTO `subscription_plans` (`id`, `plan_name`, `plan_code`, `price_monthly`, `max_users`, `max_transactions_per_month`, `features`) VALUES
-(1, 'ฟรี', 'free', 0.00, 5, 100, '{"ocr": true, "ai_audit": false, "dashboard": true, "multichannel": false}'),
+(1, 'ฟรี', 'free', 0.00, 5, 100, '{"ocr": true, "dashboard": true, "bills": true, "slips": true, "reports": false, "inventory": false, "fulfillment": false, "multichannel": false, "ai_audit": false, "api_access": false}'),
 (2, 'เบสิก', 'basic', 290.00, 10, 500, '{"ocr": true, "ai_audit": false, "dashboard": true, "multichannel": true}'),
 (3, 'โปร', 'professional', 590.00, 20, 2000, '{"ocr": true, "ai_audit": true, "dashboard": true, "multichannel": true}'),
 (4, 'องค์กร', 'enterprise', 1290.00, 100, 10000, '{"ocr": true, "ai_audit": true, "dashboard": true, "multichannel": true, "custom_features": true}');

@@ -73,7 +73,13 @@ INSERT IGNORE INTO subscription_plans (plan_code, plan_name, plan_name_en, descr
     JSON_OBJECT(
         'ocr', true,
         'dashboard', true,
+        'bills', true,
+        'slips', true,
         'reports', false,
+        'inventory', false,
+        'fulfillment', false,
+        'multichannel', false,
+        'ai_audit', false,
         'api_access', false,
         'support', 'email'
     )
