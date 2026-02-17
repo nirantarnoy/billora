@@ -10,8 +10,8 @@ class MailService {
         // ดึงการตั้งค่าจาก Environment Variables
         this.transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+            port: parseInt(process.env.SMTP_PORT) || 465,
+            secure: process.env.SMTP_SECURE === 'true' || parseInt(process.env.SMTP_PORT) === 465,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS
@@ -19,7 +19,7 @@ class MailService {
             tls: {
                 rejectUnauthorized: false
             },
-            family: 4 // Force IPv4
+            family: 4 // บังคับให้ใช้ IPv4
         });
     }
 
