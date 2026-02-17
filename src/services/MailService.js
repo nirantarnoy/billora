@@ -17,11 +17,13 @@ class MailService {
                 pass: process.env.SMTP_PASS
             },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: false,
+                minVersion: 'TLSv1.2'
             },
             family: 4,
-            connectionTimeout: 20000, // เพิ่มเป็น 20 วินาที
-            greetingTimeout: 20000,
+            connectionTimeout: 60000, // 60 วินาที
+            greetingTimeout: 60000,
+            socketTimeout: 60000,
             logger: true,
             debug: true
         });
