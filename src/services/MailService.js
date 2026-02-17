@@ -18,7 +18,8 @@ class MailService {
             },
             tls: {
                 rejectUnauthorized: false
-            }
+            },
+            family: 4 // Force IPv4
         });
     }
 
@@ -29,7 +30,7 @@ class MailService {
     async sendMail(options) {
         try {
             const mailOptions = {
-                from: process.env.EMAIL_FROM || '"Billora System" <noreply@billora.com>',
+                from: process.env.EMAIL_FROM || '"Goodoper Billora System" <noreply@billora.com>',
                 to: options.to,
                 subject: options.subject,
                 text: options.text,
