@@ -72,6 +72,7 @@ const security = lusca({
 app.use((req, res, next) => {
     const isApi = req.originalUrl.startsWith('/api');
     const isWebhook = req.originalUrl === '/webhook';
+    const isRootPost = req.originalUrl === '/' && req.method === 'POST';
     if (isApi || isWebhook || isRootPost) {
         return next();
     }
