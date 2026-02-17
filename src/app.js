@@ -72,10 +72,7 @@ const security = lusca({
 app.use((req, res, next) => {
     const isApi = req.originalUrl.startsWith('/api');
     const isWebhook = req.originalUrl === '/webhook';
-    const isInventoryBulk = req.originalUrl === '/inventory/transaction/bulk';
-    const isRootPost = (req.originalUrl === '/' || req.originalUrl === '') && req.method === 'POST';
-
-    if (isApi || isWebhook || isInventoryBulk || isRootPost) {
+    if (isApi || isWebhook || isRootPost) {
         return next();
     }
 

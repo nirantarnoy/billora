@@ -221,6 +221,18 @@ class TenantController {
                 throw userErr;
             }
 
+            // ส่งอีเมลแจ้งเตือน Admin
+            const MailService = require('../services/MailService');
+            MailService.sendNewTenantNotification({
+                company_name,
+                tenant_code,
+                owner_email,
+                owner_first_name,
+                owner_last_name,
+                owner_phone,
+                phone
+            }).catch(err => console.error('Delayed Mail Error:', err));
+
             res.status(201).json({
                 success: true,
                 message: 'ลงทะเบียนสำเร็จ! กรุณารอผูดูแลระบบอนุมัติการใช้งาน',

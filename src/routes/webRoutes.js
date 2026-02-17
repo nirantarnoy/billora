@@ -34,22 +34,22 @@ const upload = multer({ storage: storage });
 
 
 // Dashboard
-router.get('/dashboard', isAuthenticated, DashboardController.viewDashboard);
+router.get('/dashboard', isAuthenticated, loadTenant, DashboardController.viewDashboard);
 
 // Bills
-router.get('/bills', isAuthenticated, hasPermission('bills'), BillController.listBills);
+router.get('/bills', isAuthenticated, loadTenant, hasPermission('bills'), BillController.listBills);
 
 // OCR Templates
 const OcrTemplateController = require('../controllers/OcrTemplateController');
-router.get('/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.listTemplates);
-router.post('/api/ocr-templates', isAuthenticated, hasPermission('bills'), OcrTemplateController.createTemplate);
-router.post('/api/ocr-templates/test-scan', isAuthenticated, hasPermission('bills'), upload.single('file'), OcrTemplateController.testScan);
-router.put('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.updateTemplate);
-router.delete('/api/ocr-templates/:id', isAuthenticated, hasPermission('bills'), OcrTemplateController.deleteTemplate);
+router.get('/ocr-templates', isAuthenticated, loadTenant, hasPermission('bills'), OcrTemplateController.listTemplates);
+router.post('/api/ocr-templates', isAuthenticated, loadTenant, hasPermission('bills'), OcrTemplateController.createTemplate);
+router.post('/api/ocr-templates/test-scan', isAuthenticated, loadTenant, hasPermission('bills'), upload.single('file'), OcrTemplateController.testScan);
+router.put('/api/ocr-templates/:id', isAuthenticated, loadTenant, hasPermission('bills'), OcrTemplateController.updateTemplate);
+router.delete('/api/ocr-templates/:id', isAuthenticated, loadTenant, hasPermission('bills'), OcrTemplateController.deleteTemplate);
 
 // Slips & History
-router.get('/slips', isAuthenticated, hasPermission('slips'), SlipController.listSlips);
-router.get('/history', isAuthenticated, isAdmin, SlipController.listOcrLogs);
+router.get('/slips', isAuthenticated, loadTenant, hasPermission('slips'), SlipController.listSlips);
+router.get('/history', isAuthenticated, loadTenant, isAdmin, SlipController.listOcrLogs);
 
 // Channels
 router.get('/channels', isAuthenticated, isAdmin, ChannelController.listChannels);
@@ -60,11 +60,11 @@ router.get('/auth/lazada/callback', isAuthenticated, ChannelController.lazadaCal
 router.post('/sync/:platform', isAuthenticated, ChannelController.triggerSync);
 
 // E-commerce & Logistics
-router.get('/orders', isAuthenticated, GeneralController.viewOrders);
-router.get('/sync-history', isAuthenticated, GeneralController.viewSyncHistory);
-router.get('/fee-report', isAuthenticated, GeneralController.viewFeeReport);
-router.get('/inventory', isAuthenticated, GeneralController.viewInventory);
-router.get('/reconciliation', isAuthenticated, GeneralController.viewReconciliation);
+router.get('/orders', isAuthenticated, loadTenant, GeneralController.viewOrders);
+router.get('/sync-history', isAuthenticated, loadTenant, GeneralController.viewSyncHistory);
+router.get('/fee-report', isAuthenticated, loadTenant, GeneralController.viewFeeReport);
+router.get('/inventory', isAuthenticated, loadTenant, GeneralController.viewInventory);
+router.get('/reconciliation', isAuthenticated, loadTenant, GeneralController.viewReconciliation);
 
 // Users (Admin Only)
 router.get('/users', isAuthenticated, isAdmin, UserController.listUsers);
@@ -111,34 +111,34 @@ router.post('/backup/schedules/:id/run', isAuthenticated, isAdmin, BackupSchedul
 router.get('/backup/history', isAuthenticated, isAdmin, BackupScheduleController.history);
 
 // Export
-router.get('/api/export/express', isAuthenticated, ExportController.exportExpress);
-router.get('/api/export', isAuthenticated, ExportController.exportCustom);
+router.get('/api/export/express', isAuthenticated, loadTenant, ExportController.exportExpress);
+router.get('/api/export', isAuthenticated, loadTenant, ExportController.exportCustom);
 
 // Inventory Management
 const InventoryController = require('../controllers/InventoryController');
-router.get('/inventory/transactions', isAuthenticated, InventoryController.viewTransactions);
-router.get('/inventory/balances', isAuthenticated, InventoryController.viewBalances);
-router.get('/inventory/purchase-plan', isAuthenticated, InventoryController.viewPurchasePlan); // Purchase Plan
-router.get('/inventory/issue/create', isAuthenticated, InventoryController.viewIssueForm); // New Master-Detail Form
-router.get('/inventory/transaction/:type', isAuthenticated, InventoryController.viewTransactionForm); // Old Form (keep for other types)
-router.post('/inventory/transaction', isAuthenticated, InventoryController.createTransaction);
-router.post('/inventory/transaction/bulk', isAuthenticated, InventoryController.createBulkTransaction); // New Bulk Submit
-router.get('/api/inventory/warehouse/:warehouseId/locations', isAuthenticated, InventoryController.getLocations);
-router.get('/api/inventory/stock/:productId', isAuthenticated, InventoryController.getStockForProduct); // New Stock API
+router.get('/inventory/transactions', isAuthenticated, loadTenant, InventoryController.viewTransactions);
+router.get('/inventory/balances', isAuthenticated, loadTenant, InventoryController.viewBalances);
+router.get('/inventory/purchase-plan', isAuthenticated, loadTenant, InventoryController.viewPurchasePlan); // Purchase Plan
+router.get('/inventory/issue/create', isAuthenticated, loadTenant, InventoryController.viewIssueForm); // New Master-Detail Form
+router.get('/inventory/transaction/:type', isAuthenticated, loadTenant, InventoryController.viewTransactionForm); // Old Form (keep for other types)
+router.post('/inventory/transaction', isAuthenticated, loadTenant, InventoryController.createTransaction);
+router.post('/inventory/transaction/bulk', isAuthenticated, loadTenant, InventoryController.createBulkTransaction); // New Bulk Submit
+router.get('/api/inventory/warehouse/:warehouseId/locations', isAuthenticated, loadTenant, InventoryController.getLocations);
+router.get('/api/inventory/stock/:productId', isAuthenticated, loadTenant, InventoryController.getStockForProduct); // New Stock API
 
 // Fulfillment Module
-router.get('/fulfillment/warehouses', isAuthenticated, FulfillmentController.viewWarehouses);
-router.post('/fulfillment/warehouses', isAuthenticated, FulfillmentController.createWarehouse);
-router.post('/fulfillment/warehouses/delete', isAuthenticated, FulfillmentController.deleteWarehouse);
-router.get('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, FulfillmentController.viewLocations);
-router.post('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, FulfillmentController.createLocation);
+router.get('/fulfillment/warehouses', isAuthenticated, loadTenant, FulfillmentController.viewWarehouses);
+router.post('/fulfillment/warehouses', isAuthenticated, loadTenant, FulfillmentController.createWarehouse);
+router.post('/fulfillment/warehouses/delete', isAuthenticated, loadTenant, FulfillmentController.deleteWarehouse);
+router.get('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, loadTenant, FulfillmentController.viewLocations);
+router.post('/fulfillment/warehouses/:warehouseId/locations', isAuthenticated, loadTenant, FulfillmentController.createLocation);
 
-router.get('/fulfillment/products', isAuthenticated, FulfillmentController.viewProducts);
-router.get('/fulfillment/products/create', isAuthenticated, FulfillmentController.viewProductForm);
-router.get('/fulfillment/products/:id/edit', isAuthenticated, FulfillmentController.viewProductForm);
-router.post('/fulfillment/products', isAuthenticated, FulfillmentController.saveProduct);
-router.get('/api/fulfillment/products/online-candidates', isAuthenticated, FulfillmentController.getOnlineCandidates);
-router.post('/api/fulfillment/products/import-online', isAuthenticated, FulfillmentController.importOnlineProducts);
+router.get('/fulfillment/products', isAuthenticated, loadTenant, FulfillmentController.viewProducts);
+router.get('/fulfillment/products/create', isAuthenticated, loadTenant, FulfillmentController.viewProductForm);
+router.get('/fulfillment/products/:id/edit', isAuthenticated, loadTenant, FulfillmentController.viewProductForm);
+router.post('/fulfillment/products', isAuthenticated, loadTenant, FulfillmentController.saveProduct);
+router.get('/api/fulfillment/products/online-candidates', isAuthenticated, loadTenant, FulfillmentController.getOnlineCandidates);
+router.post('/api/fulfillment/products/import-online', isAuthenticated, loadTenant, FulfillmentController.importOnlineProducts);
 
 // Other pages can be added here (History, Slips, etc.)
 // router.get('/slips', isAuthenticated, hasPermission('slips'), SlipController.listSlips);

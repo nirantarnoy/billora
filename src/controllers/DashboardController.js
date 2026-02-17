@@ -71,7 +71,8 @@ class DashboardController {
                 _csrf: req.csrfToken ? req.csrfToken() : ''
             });
         } catch (err) {
-            res.status(500).send(err.message);
+            console.error('viewDashboard Error:', err);
+            res.status(500).send('Server Error');
         }
     }
 
@@ -155,7 +156,8 @@ class DashboardController {
                 latestSlips: latestSlips.map(s => ({ ...s, amount: Number(s.amount) }))
             });
         } catch (err) {
-            res.status(500).json({ success: false, error: err.message });
+            console.error('getApiDashboardData Error:', err);
+            res.status(500).json({ success: false, error: 'Server Error' });
         }
     }
 
@@ -196,7 +198,7 @@ class DashboardController {
             res.json(rows);
         } catch (err) {
             console.error('getStats Error:', err);
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Server Error' });
         }
     }
 
@@ -218,7 +220,7 @@ class DashboardController {
             res.json({ success: true, message: 'เคลียร์ข้อมูลทดสอบเรียบร้อยแล้ว' });
         } catch (err) {
             console.error('ClearTestData Error:', err);
-            res.status(500).json({ success: false, error: err.message });
+            res.status(500).json({ success: false, error: 'Server Error' });
         }
     }
 }

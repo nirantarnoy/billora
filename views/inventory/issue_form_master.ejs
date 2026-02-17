@@ -173,6 +173,10 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
     function issueForm() {
+        // Setup Axios CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+
         return {
             header: {
                 transaction_date: new Date().toISOString().slice(0, 10),
