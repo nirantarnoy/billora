@@ -19,9 +19,11 @@ class MailService {
             tls: {
                 rejectUnauthorized: false
             },
-            family: 4, // บังคับให้ใช้ IPv4
-            connectionTimeout: 10000,
-            greetingTimeout: 10000
+            family: 4,
+            connectionTimeout: 20000, // เพิ่มเป็น 20 วินาที
+            greetingTimeout: 20000,
+            logger: true,
+            debug: true
         });
     }
 
