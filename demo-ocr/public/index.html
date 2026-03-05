@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billora OCR Demo - สแกนใบเบิกสินค้า</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Anuphan:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="glass-bg"></div>
+
+    <main class="container">
+        <header>
+            <h1>Bill <span>AI Scan</span></h1>
+            <p>สแกนใบเบิกสินค้าจากรูปถ่ายและบันทึกเป็นข้อมูลดิจิทัล</p>
+        </header>
+
+        <section class="template-selector card">
+            <h3>📂 ใช้แม่แบบที่มีอยู่ (Templates)</h3>
+            <div class="template-list" id="template-list">
+                <span class="muted">ไม่มีแม่แบบที่บันทึกไว้</span>
+            </div>
+        </section>
+
+        <section class="upload-section card">
+            <div class="upload-area" id="drop-zone">
+                <div class="icon">📄</div>
+                <h2>เลือกรูปภาพหรือลากไฟล์มาที่นี่</h2>
+                <p>รองรับไฟล์ JPG, PNG (รูปถ่ายใบเบิก)</p>
+                <input type="file" id="file-input" accept="image/*" hidden>
+                <button class="btn primary" onclick="document.getElementById('file-input').click()">เลือกไฟล์</button>
+            </div>
+
+            <div class="preview-area hidden" id="preview-container">
+                <img id="image-preview" src="" alt="Preview">
+                <button class="btn secondary" id="reset-btn">เปลี่ยนรูป</button>
+            </div>
+        </section>
+
+        <section class="process-section hidden" id="loading">
+            <div class="loader-container">
+                <div class="loader"></div>
+                <p>กำลังประมวลผลด้วย AI...</p>
+            </div>
+        </section>
+
+        <section class="result-section hidden" id="result-form">
+            <div class="card">
+                <h3>ตรวจสอบข้อมูลที่สแกนได้</h3>
+                <form id="bill-form">
+                    <div class="form-group">
+                        <label>วันที่</label>
+                        <input type="text" id="doc-date" placeholder="ยังไม่ระบุ">
+                    </div>
+
+                    <div class="items-header">
+                        <span>รายการสินค้า</span>
+                        <button type="button" class="btn-small" id="add-item">+ เพิ่ม</button>
+                    </div>
+
+                    <div id="items-container">
+                        <!-- Items will be injected here -->
+                    </div>
+
+                    <div class="actions">
+                        <button type="button" class="btn success" id="save-json">บันทึกเป็น JSON</button>
+                        <button type="button" class="btn secondary" id="save-template-btn">บันทึกเป็นแม่แบบ
+                            (Template)</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card raw-text">
+                <h3>ข้อความดิบจากภาพ (Raw Text)</h3>
+                <pre id="raw-output"></pre>
+            </div>
+        </section>
+    </main>
+
+    <script src="main.js"></script>
+</body>
+
+</html>

@@ -32,3 +32,9 @@ yarn-error.log*
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Demo OCR
+demo-ocr/node_modules/
+demo-ocr/scans/
+demo-ocr/templates/
+demo-ocr/vision-key.json
