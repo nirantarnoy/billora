@@ -71,6 +71,7 @@ router.get('/users', isAuthenticated, isAdmin, UserController.listUsers);
 router.get('/profile', isAuthenticated, UserController.showProfile);
 
 // Multi-tenant Routes
+router.get('/subscription/renew', isAuthenticated, WebTenantController.showRenewalPage);
 router.get('/register', WebTenantController.showRegisterPage); // Public - ลูกค้าลงทะเบียนเอง
 router.get('/tenant/users', isAuthenticated, loadTenant, WebTenantController.showUserManagementPage); // จัดการ users ในแต่ละ tenant
 router.get('/tenant/settings', isAuthenticated, loadTenant, WebTenantController.showTenantSettings); // ตั้งค่า tenant

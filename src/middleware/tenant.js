@@ -57,6 +57,15 @@ const loadTenant = async (req, res, next) => {
             return;
         }
 
+        // Bypass subscription checks for Super Admin (tenant_id 1)
+        if (user.role === 'admin' && user.tenant_id === 1) {
+            req.tenant = tenant;
+            req.tenantId = tenant.id;
+            res.locals.tenant = tenant;
+            res.locals.tenantId = tenant.id;
+            return next();
+        }
+
         // ตรวจสอบ subscription
         if (tenant.subscription_status !== 'active') {
             if (req.xhr || req.path.startsWith('/api/')) {

@@ -20,6 +20,34 @@ class WebTenantController {
     }
 
     /**
+     * แสดงหน้าต่ออายุ Subscription
+     */
+    static async showRenewalPage(req, res) {
+        try {
+            const pool = require('../config/db');
+            const user = req.session.user || req.user;
+
+            // ดึงข้อมูล tenant
+            const [tenants] = await pool.query(
+                `SELECT * FROM tenants WHERE id = ?`,
+                [user.tenant_id]
+            );
+
+            const tenant = tenants[0];
+
+            res.render('subscription-renew', {
+                layout: false,
+                title: 'สมัครสมาชิกและต่ออายุ',
+                tenant: tenant,
+                user: user
+            });
+        } catch (error) {
+            console.error('Error showing renewal page:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    }
+
+    /**
      * แสดงหน้า User Management (สำหรับแต่ละ Tenant)
      */
     static async showUserManagementPage(req, res) {

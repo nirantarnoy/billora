@@ -98,7 +98,7 @@ app.use(async (req, res, next) => {
     res.locals._csrf = res.locals._csrf || '';
 
     // Bypass for login/logout/public routes to avoid infinite loops
-    const publicPaths = ['/login', '/logout', '/register', '/api/login'];
+    const publicPaths = ['/login', '/logout', '/register', '/api/login', '/subscription/renew'];
     if (publicPaths.some(path => req.path.startsWith(path))) {
         return next();
     }
